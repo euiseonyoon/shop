@@ -1,0 +1,7 @@
+# ktlint.toml
+
+[rule_override.standard]
+chain-wrapping = "disabled"
+chain-method-continuation = "disabled"
+multiline-expression-wrapping = "disabled"
+function-signature = "disabled"

@@ -1,0 +1,20 @@
+# .editorconfig
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+continuation_indent_size = 4
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 999999
+
+[*.kt]
+# Kotlin 파일에만 적용할 특정 스타일 설정이 있다면 여기에 추가
+# (규칙 비활성화는 ktlint.toml에서 처리)
+
+[*.{gradle,kts}]
+indent_size = 4

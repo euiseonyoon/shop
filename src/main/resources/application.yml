@@ -23,3 +23,16 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
+
+    security:
+      oauth2:
+        client:
+          registration:
+            google:
+              client-id: google-client-id
+              client-secret: google-client-secret
+
+jwt:
+  access_secret: DadFufN4Oui8Bfv3ScFj6R9fyJ9hD45E6AGFsXgFsRhT4YSdSb
+  refresh_secret: 2X2N7NQvCJyvQUSK3nnvsuRmVC7NA4XaydaWcYsmGFzTcrYmM
+  issuer: "my-shop-demo-project"

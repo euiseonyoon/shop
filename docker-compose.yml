@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: my-local-postgres
+    container_name: my-shop-postgres
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
