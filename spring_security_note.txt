@@ -1,0 +1,286 @@
+
+https://docs.spring.io/spring-security/reference/servlet/architecture.html의 내용을 다루고 있음
+
+* Servlet: 
+
+client
+   |
+filter
+   |
+filter
+   |
+   .. 
+    |
+servlet
+
+
+* Spring의 sevlet 관련 지원:
+    - Spring은 `org.springframework.web.filter.DelegatingFilterProxy` 라는 `jakarta.servlet.Filter`의 구현체를 제공한다.
+
+    - DelegatingFilterProxy의 내부에서는 
+        Spring의 ApplicationContext내부의 Bean을 필터로 가져다가 사용하게 해준다.
+
+    - Servelt 컨테이너는 해당 `DelegatingFilterProxy`가 `Filter`의 구현체임으로, `Filter`로 인식하고 추가한다. (내부에 어떤게 있는지는 모른다.)
+
+
+* Spring Security:
+
+    - Spring Security의 Sevlet 지원은 `org.springframework.security.web.FilterChainProxy` 라는것에 구현된다.
+
+    - `DelegatingFilterProxy`는 Spring Security의 `FilterChainProxy`의 구현체 Bean을 프록시한다.
+
+    - `FilterChainProxy` Bean은 다시 여러개의 필터를 연결헤놓은 `org.springframework.security.web.SecurityFilterChain`을 사용한다.
+        `FilterChainProxy` 내부에 보면  
+        `private List<SecurityFilterChain> filterChains` 라는것이 있다.
+        이것이 우리가 만드는 SecurityFilterChain들이 저장되는 곳 같다.
+        아래의 코드예시 에서 "여기" 라고 표시 한 것들이 SecurityFilterChain에 포함되는 Filter들 이다.
+        해당 Filter들은 대부분 Bean이며, 이 Bean들은 `FilterChainProxy`에 등록된다.
+
+
+1. `SecurityFilterChain` 설명
+
+@Configuration 
+@EnableWebSecurity
+class SecurityConfig {
+    @Bean 
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val config =
+            CorsConfiguration().apply {
+                allowedOrigins = listOf("*")
+                allowedMethods = listOf("*") // 임시로 모든 메소드 허용
+                allowedHeaders = listOf("*")
+                allowCredentials = true
+                maxAge = 3600L
+            }
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", config)
+        return source
+    }
+
+    @Bean 
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+        val result : DefaultSecurityFilterChain = http
+            .csrf { it.disable() } // org.springframework.security.web.csrf.CsrfFilter  <-- 여기
+            .cors { cors -> cors.configurationSource(corsConfigurationSource()) } // org.springframework.web.filter.CorsFilter   <-- 여기
+            .httpBasic {  } // org.springframework.security.web.authentication.www.BasicAuthenticationFilter   <-- 여기
+            .formLogin {  } // org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter   <-- 여기
+            .build()
+        
+        return result
+    }
+}
+
+
+CsrfFilter - org.springframework.web.filter.OncePerRequestFilter() 상속 - org.springframework.web.filter.GenericFilterBean() 상속 - jakarta.servlet.Filter(인터페이스) 구현
+CorsFilter - org.springframework.web.filter.OncePerRequestFilter() 상속 - org.springframework.web.filter.GenericFilterBean() 상속 - jakarta.servlet.Filter(인터페이스) 구현
+BasicAuthenticationFilter - org.springframework.web.filter.OncePerRequestFilter() 상속 - org.springframework.web.filter.GenericFilterBean() 상속 - jakarta.servlet.Filter(인터페이스) 구현
+UsernamePasswordAuthenticationFilter - org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter() 상속 - org.springframework.web.filter.GenericFilterBean() 상속 - jakarta.servlet.Filter(인터페이스) 구현
+
+
+한마디로 우리가 Spring Security를 통해서 만드는 필터들이 합쳐져서 `SecurityFilterChain`를 이루고
+이 `SecurityFilterChain`(들)은  Spring Security의 `FilterChainProxy`프록시 Bean에 의해 사용되며,
+`FilterChainProxy` 프록시 Bean은 다시 Spring의 `DelegatingFilterProxy`프록시에 의해 사용되고
+`DelegatingFilterProxy`은 Servlet의 Filter로 작용한다.
+
+
+Filter를 `SecurityFilterChain`에 추가 할 때에는 아래와 같은 메소드를 사용할 수 있다.
+    .addFilterAt()
+    .addFilter()
+    .addFilterAfter()
+    .addFilterBefore()
+
+예시)
+
+@Configuration 
+@EnableWebSecurity
+class SecurityConfig {
+    @Bean 
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val config =
+            CorsConfiguration().apply {
+                allowedOrigins = listOf("*")
+                allowedMethods = listOf("*") // 임시로 모든 메소드 허용
+                allowedHeaders = listOf("*")
+                allowCredentials = true
+                maxAge = 3600L
+            }
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", config)
+        return source
+    }
+
+    @Bean 
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+        val result : DefaultSecurityFilterChain = http
+            .csrf { it.disable() } // org.springframework.security.web.csrf.CsrfFilter
+            .cors { cors -> cors.configurationSource(corsConfigurationSource()) } // org.springframework.web.filter.CorsFilter
+            .httpBasic {  } // org.springframework.security.web.authentication.www.BasicAuthenticationFilter
+            .formLogin {  } // org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+            .addFilterBefore(...). <-- 예시
+            .build()
+        
+        return result
+    }
+}
+
+
+2. 여러개의 `SecurityFilterChain` 사용
+앞선 예제에서는 1개의 SecurityFilterChain에 여러개의 Filter들을 넣어서 사용하는 상황을 보았다.
+여기서는 여러개의 SecurityFilterChain을 사용하는 방법을 보자
+
+예시)
+
+@Configuration @EnableWebSecurity
+class SecurityConfig {
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val config =
+            CorsConfiguration().apply {
+                allowedOrigins = listOf("*")
+                allowedMethods = listOf("*") // 임시로 모든 메소드 허용
+                allowedHeaders = listOf("*")
+                allowCredentials = true
+                maxAge = 3600L
+            }
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", config)
+        return source
+    }
+
+    private fun makeBaseHttpSecurity(http: HttpSecurity): HttpSecurity {
+        val httpSecurity: HttpSecurity = http
+            .securityMatcher("some condition")
+            .csrf { it.disable() }
+            .cors { cors -> cors.configurationSource(corsConfigurationSource()) }
+            
+        return httpSecurity
+    }
+
+    @Bean 
+    @Order(1)
+    fun formLogInSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        val formLoginSecurityFilterChain = makeBaseHttpSecurity(http)
+            .securityMatcher("/login/form")
+            .formLogin {  }
+            .build()
+        return formLoginSecurityFilterChain
+    }
+
+    @Bean 
+    @Order(2)
+    fun basicSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        val basicSecurityFilterChain = makeBaseHttpSecurity(http).build()
+        return basicSecurityFilterChain
+    }
+}
+
+SecurityFilterChain1 : 
+    이름 : formLogInSecurityFilterChain
+    filters : CSRF 필터, CORS 필터, FORM LOGIN 필터 
+
+SecurityFilterChain2 : 
+    이름 : basicSecurityFilterChain
+    filters : CSRF 필터, CORS 필터
+
+이렇게 여러개의 SecurityFilterChain을 만들수 있다.
+이런 다수의 SecurityFilterChain은  FilterChainProxy의 내부에 등록된다.
+그러면 어떤 상황에서 어떤 SecurityFilterChain을 사용해야 하는지는 어떻게 조정할 수 있을까?
+답은 Ordering + `securityMatcher()`에 있다.
+
+1. @Order가 낮은 순데로, 여러 SecurityFilterChain들을 "검사"한다.
+2. 1번에서 "검사"라는 과정은, 특정 SecurityFilterChain에 명시된 메소드 securityMatcher( some condition )를 확인,
+현재 시나리오가 "some condition" 과 일치한다면, 해당 SecurityFilterChain을 적용하게 된다.
+3. 만약 Order1, Order2,... 의 SecurityFilterChain의 securityMatcher() 조건에 모두 부합하지 않는다면,
+최종적으로 마지막 Order를 가진 SecurityFilterChain까지 오게 된다. 이때 만약 마지막 SecurityFilterChain에 securityMatcher()가 있고,
+그 조건 마저 충족시키지 못한다면, 어떠한 SecurityFilterChain도 적용되지 않는다.
+
+pseudo code
+
+val securityFilterChainsInOrder = @Order가 낮은 순데로 정렬된 SecurityFilterChain Bean들
+val securityFilterChainToUse = null
+for (securityFilterChain in securityFilterChainsInOrder) {
+    if (current situation matches securityFilterChain.securityMatcher()에 명시된 condition) {
+        securityFilterChainToUse = securityFilterChain
+    }
+}
+if (securityFilterChainToUse != null) {
+    securityFilterChainToUse을 적용하여 필터링
+} else {
+    어떠한 SecurityFilterChain 도 적용하지 않음 (필터링 없음)
+}
+
+
+3. org.springframework.security.web.access.ExceptionTranslationFilter
+
+`ExceptionTranslationFilter` 필터가 어떤 SecurityFilterChain에 포함된다면,
+그 SecurityFilterChain의 필터들을 수행중에  
+    org.springframework.security.access.AccessDeniedException 
+    org.springframework.security.access.AuthenticationException
+이 발생한다면, 이들을 "처리" 한다.
+여기서 "처리"는 Authentication 과정을 시작 하는것이다.
+그래서  ExceptionTranslationFilter의 생성자에는 `org.springframework.security.web.AuthenticationEntryPoint`가 필수로 필요하다.
+자세한건 ExceptionTranslationFilter의.doFilter(private 메소드)를 보면 알 수 있다.
+
+ExceptionTranslationFilter는
+
+HttpSecurity.build()를 하면 자동적으로 추가된다. 
+예)
+@Bean 
+@Order(1)
+fun formLogInSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    val formLoginSecurityFilterChain = makeBaseHttpSecurity(http)
+        .securityMatcher("/login/form")
+        .formLogin {  }
+        .build() <-- 여기서 자동 추가됨
+    return formLoginSecurityFilterChain
+}
+
+만약 자동으로 추가하는 것을 원하지 않는다면 HttpSecurity에 .exceptionHandling 메소드를 사용하여 헨들링 할 수 있다.
+다만, 이런 경우  사용자를 로그인 페이지로 리디렉팅하거나  401(Unahtorized)를 보내는 자동적인 흐름이 작동하지 않을 수 있다.
+예)
+
+@Bean @Order(1)
+fun formLogInSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    val formLoginSecurityFilterChain = makeBaseHttpSecurity(http)
+        .securityMatcher("/login/form")
+        .formLogin {  }
+        .exceptionHandling {  } <-- 여기
+        .build()
+    return formLoginSecurityFilterChain
+}
+
+질문:
+    HttpSecurity.build()를 하면 
+    자동적으로 ExceptionTranslationFilter가 SecurityFilterChain에 등록된다고 했잖아
+    근데 ExceptionTranslationFilter의 생성자를 보니 AthenticationEntryPoint가 필수던데
+    자동으로 등록되는 ExceptionTranslationFilter에는 어떤 AuthenticationEntryPoint가 들어가는거니?
+
+답변: 
+    어떤 AuthenticationEntryPoint가 주입되는지는 주로 HttpSecurity에서 어떤 인증 메커니즘을 활성화했는지에 따라 달라집니다.
+
+    가장 일반적인 경우는 다음과 같습니다:
+
+    1. http.formLogin()을 활성화한 경우:
+
+        `LoginUrlAuthenticationEntryPoint`가 자동으로 구성됩니다.
+        이 EntryPoint는 인증되지 않은 사용자를 기본 로그인 페이지(기본값 /login)로 리다이렉션합니다.
+
+    2. http.httpBasic()을 활성화한 경우:
+
+        `BasicAuthenticationEntryPoint`가 자동으로 구성됩니다.
+        이 EntryPoint는 401 Unauthorized 응답과 함께 WWW-Authenticate: Basic 헤더를 전송하여 브라우저에 기본 인증 대화 상자를 띄우도록 합니다.
+
+    3. http.oauth2Login()을 활성화한 경우:
+
+        `OAuth2LoginAuthenticationEntryPoint`와 같은 OAuth 2.0 로그인 관련 EntryPoint가 구성됩니다.
+
+    4. http.oauth2ResourceServer() (JWT 등 토큰 기반)을 활성화한 경우:
+
+        `BearerTokenAuthenticationEntryPoint`와 같은 토큰 기반 인증용 EntryPoint가 구성됩니다.
+
+    5. 특별한 인증 메커니즘을 명시적으로 활성화하지 않은 경우 (기본값):
+
+        만약 formLogin(), httpBasic() 등을 명시적으로 호출하지 않았다면, 
+        Spring Security는 컨텍스트에 따라 HttpStatusEntryPoint (예: 401 Unauthorized 상태 코드 반환)와 같은 
+        일반적인 EntryPoint를 기본값으로 사용할 수 있습니다. 웹 애플리케이션에서는 종종 폼 로그인이 기본으로 암시되기도 합니다.
+
