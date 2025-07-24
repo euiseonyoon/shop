@@ -284,3 +284,41 @@ fun formLogInSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         Spring Security는 컨텍스트에 따라 HttpStatusEntryPoint (예: 401 Unauthorized 상태 코드 반환)와 같은 
         일반적인 EntryPoint를 기본값으로 사용할 수 있습니다. 웹 애플리케이션에서는 종종 폼 로그인이 기본으로 암시되기도 합니다.
 
+
+===================================================
+Authentication
+
+위의 SecurityFilterChain에 등록된 필터중  `AbstractAuthenticationProcessingFilter`상속 받은 필터가 있다면
+이건 Authentication을 위한 필터임을 알고 Authentication을 시작한다.
+    좀 더 정확히 말하자면 여느 다른 필터와 같이 doFilter()가 수행된다.
+    `AbstractAuthenticationProcessingFilter.doFilter()`내부에서 attemptAuthentication()를 수행한다
+
+(아래 인증 과정은 위에서 언급한 AbstractAuthenticationProcessingFilter.attemptAuthentication()의 과정이다)
+이 인증 과정 아래와 같다.
+1. 필터는 Authentication 이라는 정보를 만든다 ( 인증할때 사용될 유저의 정보 예를들면, 유저의 id(username) 그리고 password)
+    `AuthenticationConverter`를 사용하여 request를 Authentication이라는 유저의 정보가 담긴 객체로 만든다.
+    참고: AbstractAuthenticationProcessingFilter.authenticationConverter
+
+2. 필터는 만들어진 Authentication을 AuthenticationManager(인터페이스) 에게 전달한다.
+    - 유저의 username, password를 정보를 인증에서 사용할때에는, `UsernamePasswordAuthenticationToken`라는 `Authentication` 구현체를 사용한다.
+
+3. 필터가 AuthenticationManager.authenticate()라는 메소드를 호출하며 인증이 시작된다.
+
+3. AuthenticationManager(인터페이스)는 여러개의 AuthenticationProvider(인터페이스)들을 가지고 있다.
+    - AuthenticationManager를 구현한 구현체중 ProviderManager가 있다.
+
+4. 해당 AuthenticationManager는 자신이 가지고 있는 여러개의 AuthenticationProvider들의 `authenticate()`라는 메소드를 호출하여 해당 유저(Authentication에 담긴)가 인증이 되는지 검사 한다.
+    - AuthenticationProvider를 구현한 구현체중 `DaoAuthenticationProvider`가 있다.
+
+5. 각각의 AuthenticationProvider는 UserDetailService 라는 유저의 정보를 가져오는 서비스를 사용한다.
+   해당 서비스는 유저의 정보를 DB로 부터 가져올 수 도 있고, 그렇지 않으면 예를들어 google oauth를 사용해서 유저의 정보를 가져올 수 도 있다,
+
+6. AuthenticationManager가 인증을 마치었다.
+    6.1 인증 성공
+        AbstractAuthenticationProcessingFilter.successfulAuthentication() 가 호출된다. 아래는 그 내용을 요약한것이다.
+        1. 성공하면, Spring Security는 해당 사용자의 SecurityContext를 유저정보(Authentication)를 통해 생성 -> `SecurityContextHolder`에게 SecurityContext를 넘겨줌
+        2. SecurityContextHolder는 이걸 현재 요청을 처리하는 스레드의 ThreadLocal에 저장한다.
+        3. 어떠한 스레드에서도 SecurityContextHolder.getContext()를 호출하면 해당 스레드에 저장된 SecurityContext를 가져올수 있다.
+    6.2 인증 실패
+        AbstractAuthenticationProcessingFilter.unsuccessfulAuthentication() 가 호출된다.
+
