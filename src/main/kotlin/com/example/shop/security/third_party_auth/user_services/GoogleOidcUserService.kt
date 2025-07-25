@@ -1,0 +1,35 @@
+package com.example.shop.security.third_party_auth.user_services
+
+import com.example.shop.security.third_party_auth.interfaces.ThirdPartyOidcUserService
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.oauth2.core.oidc.OidcIdToken
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.JwtException
+import java.time.Instant
+
+class GoogleOidcUserService(
+    private val jwtDecoder: JwtDecoder
+) : ThirdPartyOidcUserService {
+
+    override fun loadUser(idToken: String): OidcUser {
+        try {
+            val jwt = jwtDecoder.decode(idToken)
+
+            val oidcIdToken = OidcIdToken(
+                idToken,
+                jwt.issuedAt ?: Instant.now(),
+                jwt.expiresAt ?: Instant.MAX,
+                jwt.claims
+            )
+            // jwt.claims.iss = "https://accounts.google.com
+            // jwt.claims.email_verified = true
+            return DefaultOidcUser(emptyList(), oidcIdToken, OidcUserInfo(jwt.claims), "email")
+        } catch (e: JwtException) {
+            // JWT 검증 실패 (서명 오류, 만료, 유효하지 않은 클레임 등)
+            throw BadCredentialsException("Invalid ID Token: ${e.message}", e)
+        }
+    }
+}

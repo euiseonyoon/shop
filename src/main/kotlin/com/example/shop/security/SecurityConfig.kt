@@ -1,9 +1,12 @@
 package com.example.shop.security
 
 import com.example.shop.security.filters.EmailPasswordAuthenticationFilter
+import com.example.shop.security.filters.ThirdPartyOidcTokenAuthenticationFilter
 import com.example.shop.security.handlers.MyLogInAuthenticationFailureHandler
 import com.example.shop.security.handlers.MyLogInAuthenticationSuccessHandler
+import com.example.shop.security.jwt_helper.GoogleJwtDecoder
 import com.example.shop.security.jwt_helper.MyJwtTokenHelper
+import com.example.shop.security.third_party_auth.user_services.GoogleOidcUserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -28,6 +31,7 @@ class SecurityConfig {
 
     companion object {
         val EMAIL_PASSWORD_AUTH_URI = "/login/form"
+        val OAUTH_AUTH_URI = "/login/oauth"
     }
 
     @Bean
@@ -43,10 +47,12 @@ class SecurityConfig {
         val emailPasswordAuthenticationProvider = DaoAuthenticationProvider(JdbcUserDetailsManager(dataSource))
         emailPasswordAuthenticationProvider.setPasswordEncoder(passwordEncoder)
 
+        val thirdPartyOidcAuthenticationProvider = ThirdPartyOauthAuthenticationProvider(GoogleOidcUserService(GoogleJwtDecoder()))
+
         // 나의 모든 api 호출시, access token이 없으면 안된다.
         // val myJwtAuthenticationProvider = JwtAuthenticationProvider()
 
-        return ProviderManager(emailPasswordAuthenticationProvider)
+        return ProviderManager(emailPasswordAuthenticationProvider, thirdPartyOidcAuthenticationProvider)
     }
 
     @Bean
@@ -84,6 +90,23 @@ class SecurityConfig {
         return makeBaseHttpSecurity(http)
             .securityMatcher(EMAIL_PASSWORD_AUTH_URI)
             .addFilterAt(emailPasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .build()
+    }
+
+    @Bean
+    @Order(2)
+    fun thirdPartyOauthAuthenticateFilterChain(
+        http: HttpSecurity,
+        authenticationManager: AuthenticationManager,
+        myJwtTokenHelper: MyJwtTokenHelper,
+    ): SecurityFilterChain {
+        val thirdPartyOauthAuthenticationFilter = ThirdPartyOidcTokenAuthenticationFilter(OAUTH_AUTH_URI, authenticationManager).apply {
+            setAuthenticationSuccessHandler(MyLogInAuthenticationSuccessHandler(myJwtTokenHelper))
+            setAuthenticationFailureHandler(MyLogInAuthenticationFailureHandler())
+        }
+        return makeBaseHttpSecurity(http)
+            .securityMatcher(OAUTH_AUTH_URI)
+            .addFilterAt(thirdPartyOauthAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
     }
 }

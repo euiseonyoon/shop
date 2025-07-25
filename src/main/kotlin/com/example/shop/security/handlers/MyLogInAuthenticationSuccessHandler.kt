@@ -18,7 +18,11 @@ class MyLogInAuthenticationSuccessHandler(
         response: HttpServletResponse,
         authentication: Authentication
     ) {
-        val email = (authentication.principal as UserDetails).username
+        val email = if (authentication.principal is UserDetails) {
+            (authentication.principal as UserDetails).username
+        } else {
+            (authentication.principal as OAuth2User).name
+        }
 
         val accessToken = jwtHelper.createAccessToken(email)
         val refreshToken = jwtHelper.createRefreshToken(email)
