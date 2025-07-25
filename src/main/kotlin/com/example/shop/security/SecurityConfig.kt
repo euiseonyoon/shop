@@ -1,7 +1,7 @@
 package com.example.shop.security
 
 import com.example.shop.security.filters.EmailPasswordAuthenticationFilter
-import com.example.shop.security.filters.ThirdPartyOidcTokenAuthenticationFilter
+import com.example.shop.security.filters.ThirdPartyOauthAuthenticationFilter
 import com.example.shop.security.handlers.MyLogInAuthenticationFailureHandler
 import com.example.shop.security.handlers.MyLogInAuthenticationSuccessHandler
 import com.example.shop.security.jwt_helper.GoogleJwtDecoder
@@ -114,7 +114,7 @@ class SecurityConfig {
         myJwtTokenHelper: MyJwtTokenHelper,
     ): SecurityFilterChain {
         val thirdPartyOauthAuthenticationFilter =
-            ThirdPartyOidcTokenAuthenticationFilter(OAUTH_AUTH_URI_PATTERN, authenticationManager)
+            ThirdPartyOauthAuthenticationFilter(OAUTH_AUTH_URI_PATTERN, authenticationManager)
                 .apply {
                     setAuthenticationSuccessHandler(MyLogInAuthenticationSuccessHandler(myJwtTokenHelper))
                     setAuthenticationFailureHandler(MyLogInAuthenticationFailureHandler())
