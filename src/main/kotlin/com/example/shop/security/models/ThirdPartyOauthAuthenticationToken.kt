@@ -1,5 +1,6 @@
 package com.example.shop.security.models
 
+import com.example.shop.security.third_party_auth.enums.ThirdPartyAuthenticationVendor
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.core.user.OAuth2User
@@ -7,6 +8,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User
 class ThirdPartyOauthAuthenticationToken(
     // OIDC인 경우, idToken, Oauth2.0 인경우, accessToken
     private val token: String,
+    private val vendor: ThirdPartyAuthenticationVendor,
     authorities: Collection<GrantedAuthority>,
 ) : AbstractAuthenticationToken(authorities) {
 
@@ -21,4 +23,6 @@ class ThirdPartyOauthAuthenticationToken(
     override fun getPrincipal(): Any = authenticatedUser ?: token
 
     fun getTokenValue(): String = token
+
+    fun getVendor(): ThirdPartyAuthenticationVendor = vendor
 }

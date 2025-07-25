@@ -6,7 +6,9 @@ import com.example.shop.security.handlers.MyLogInAuthenticationFailureHandler
 import com.example.shop.security.handlers.MyLogInAuthenticationSuccessHandler
 import com.example.shop.security.jwt_helper.GoogleJwtDecoder
 import com.example.shop.security.jwt_helper.MyJwtTokenHelper
+import com.example.shop.security.third_party_auth.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.security.third_party_auth.user_services.GoogleOidcUserService
+import com.example.shop.security.third_party_auth.user_services.ThirdPartyUserServiceManager
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -31,23 +33,34 @@ class SecurityConfig {
 
     companion object {
         val EMAIL_PASSWORD_AUTH_URI = "/login/form"
-        val OAUTH_AUTH_URI = "/login/oauth"
+        val OAUTH_AUTH_URI_PATTERN = "/login/oauth/*"
     }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
     @Bean
+    fun googleUserService(): ThirdPartyAuthenticationUserService {
+        return GoogleOidcUserService(GoogleJwtDecoder())
+    }
+
+    @Bean
+    fun thirdPartyAuthUserServiceManager(
+        services: List<ThirdPartyAuthenticationUserService>,
+    ): ThirdPartyUserServiceManager = ThirdPartyUserServiceManager(services)
+
+    @Bean
     fun authenticationManager(
         passwordEncoder: PasswordEncoder,
         dataSource: DataSource,
+        thirdPartyAuthUserServiceManager: ThirdPartyUserServiceManager
     ): AuthenticationManager {
         // /login/form : email+password로 로그인하는 유저들
         // https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/jdbc.html#servlet-authentication-jdbc-schema
         val emailPasswordAuthenticationProvider = DaoAuthenticationProvider(JdbcUserDetailsManager(dataSource))
         emailPasswordAuthenticationProvider.setPasswordEncoder(passwordEncoder)
 
-        val thirdPartyOidcAuthenticationProvider = ThirdPartyOauthAuthenticationProvider(GoogleOidcUserService(GoogleJwtDecoder()))
+        val thirdPartyOidcAuthenticationProvider = ThirdPartyOauthAuthenticationProvider(thirdPartyAuthUserServiceManager)
 
         // 나의 모든 api 호출시, access token이 없으면 안된다.
         // val myJwtAuthenticationProvider = JwtAuthenticationProvider()
@@ -100,12 +113,14 @@ class SecurityConfig {
         authenticationManager: AuthenticationManager,
         myJwtTokenHelper: MyJwtTokenHelper,
     ): SecurityFilterChain {
-        val thirdPartyOauthAuthenticationFilter = ThirdPartyOidcTokenAuthenticationFilter(OAUTH_AUTH_URI, authenticationManager).apply {
-            setAuthenticationSuccessHandler(MyLogInAuthenticationSuccessHandler(myJwtTokenHelper))
-            setAuthenticationFailureHandler(MyLogInAuthenticationFailureHandler())
-        }
+        val thirdPartyOauthAuthenticationFilter =
+            ThirdPartyOidcTokenAuthenticationFilter(OAUTH_AUTH_URI_PATTERN, authenticationManager)
+                .apply {
+                    setAuthenticationSuccessHandler(MyLogInAuthenticationSuccessHandler(myJwtTokenHelper))
+                    setAuthenticationFailureHandler(MyLogInAuthenticationFailureHandler())
+                }
         return makeBaseHttpSecurity(http)
-            .securityMatcher(OAUTH_AUTH_URI)
+            .securityMatcher(OAUTH_AUTH_URI_PATTERN)
             .addFilterAt(thirdPartyOauthAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
     }

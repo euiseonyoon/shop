@@ -1,6 +1,7 @@
 package com.example.shop.security.third_party_auth.user_services
 
-import com.example.shop.security.third_party_auth.interfaces.ThirdPartyOidcUserService
+import com.example.shop.security.third_party_auth.enums.ThirdPartyAuthenticationVendor
+import com.example.shop.security.third_party_auth.interfaces.ThirdPartyAuthenticationUserService
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo
@@ -12,14 +13,15 @@ import java.time.Instant
 
 class GoogleOidcUserService(
     private val jwtDecoder: JwtDecoder
-) : ThirdPartyOidcUserService {
+) : ThirdPartyAuthenticationUserService {
+    override val providerId = ThirdPartyAuthenticationVendor.GOOGLE
 
-    override fun loadUser(idToken: String): OidcUser {
+    override fun loadUser(token: String): OidcUser {
         try {
-            val jwt = jwtDecoder.decode(idToken)
+            val jwt = jwtDecoder.decode(token)
 
             val oidcIdToken = OidcIdToken(
-                idToken,
+                token,
                 jwt.issuedAt ?: Instant.now(),
                 jwt.expiresAt ?: Instant.MAX,
                 jwt.claims

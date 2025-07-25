@@ -1,7 +1,7 @@
 package com.example.shop.security
 
 import com.example.shop.security.models.ThirdPartyOauthAuthenticationToken
-import com.example.shop.security.third_party_auth.interfaces.ThirdPartyOidcUserService
+import com.example.shop.security.third_party_auth.user_services.ThirdPartyUserServiceManager
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.authentication.BadCredentialsException
@@ -10,17 +10,20 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.jwt.JwtException
 
 class ThirdPartyOauthAuthenticationProvider(
-    private val googleOidcUserService: ThirdPartyOidcUserService,
+    private val thirdPartyAuthUserServiceManager: ThirdPartyUserServiceManager,
 ) : AuthenticationProvider {
     override fun authenticate(authentication: Authentication): Authentication {
 
-        val idTokenAuthToken = authentication as? ThirdPartyOauthAuthenticationToken
+        val authenticationToken = authentication as? ThirdPartyOauthAuthenticationToken
             ?: return authentication
 
         try {
-            val user = googleOidcUserService.loadUser(idTokenAuthToken.getTokenValue())
-            val idTokenString = user.idToken.tokenValue
-            return ThirdPartyOauthAuthenticationToken(idTokenString, user.authorities).apply {
+            val user = thirdPartyAuthUserServiceManager.loadUser(authenticationToken.getTokenValue(), authenticationToken.getVendor())
+            return ThirdPartyOauthAuthenticationToken(
+                token = authenticationToken.getTokenValue(),
+                vendor = authenticationToken.getVendor(),
+                authorities = user.authorities,
+            ).apply {
                 isAuthenticated = true
                 authenticatedUser = user
             }
