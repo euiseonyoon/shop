@@ -322,3 +322,167 @@ Authentication
     6.2 인증 실패
         AbstractAuthenticationProcessingFilter.unsuccessfulAuthentication() 가 호출된다.
 
+================================================================================================
+Authorization (인가) - Architecture
+
+1. Authorities(권한)
+
+Authentication(인증)의 과정에서 GrantedAuthority를 유저정보(Authentication)에 기입함
+`GrantedAuthority`인터페이스는 getAuthority()라는 메소드가 있음
+이 메소드는 `AuthorizationManager`에 의해 주로 사용됨
+부여된권한(GrantedAuthority)가 간단한 경우 그냥 String으로 표현하여 AuthorizationManager가 쉽게 read 하고 핸들링 할 수 있음
+하지만 부여된권(GrantedAuthority) 복잡한 경우에는 getAuthority() 메소드의 return값이 null이 되어야함
+GrantedAuthority.getAuthority()의 결과값이 null -> AuthorizationManager가 "특별한" GrantedAuthority 핸들링이 필요함을 파악
+
+`SimpleGrantedAuthority`는 `GrantedAuthority`의 구현체 중 하나임.
+이건 유저의 권한을 String 형태로 저장, "ROLE_" 이라는 prefix를 기본적으로 사용
+이 prefix를 바꾸고 싶으면 `GrantedAuthorityDefaults`를 사용할 수 있음
+
+
+2. Invocation Handling
+
+Spring Security는 method 실행이나, web request에 대해 접근제어를 하는 interceptor를 제공한다
+`AuthorizationManager` 객체는 어떤 method가 실행되기전에 어떤 pre-invocation이 이루어질지를 결정하기도하고
+어떤 값이 return 되기 전에 post-invocation이 이루어 질지를 결정하기도 한다.
+
+    2.1 AuthenticationManager
+        AuthenticationManager는 예전에 사용되었던 legacy인 `AccessDecisionManager`, `AccessDecisionVoter`를 대체한다.
+        AuthenticationManager의 여러 구현체들은 Spring Security의 request-based, method-based, message-based 인가요소(authorization components)들에 의해 호출되며,
+        최종 접근제어를 한다.
+
+    2.2 Delegate-based AuthorizationManager Implementations
+        아래와 같은 Delegating을 하여 secure source에 접근제어를 하는 `AuthorizationManager`의 구현체가 있다. (이외에도 많음)
+
+        RequestMatcherDelegatingAuthorizationManager (secure source가 request base)
+        AuthorizationManagerBeforeMethodInterceptor (secure source가 method base)
+        AuthorizationManagerAfterMethodInterceptor (secure source가 method base)
+
+        AuthorityAuthorizationManager
+            가장 많이 쓰임. 유저정보(Authentication)에 기입된 GrantedAuthority들을 확인하여 접근제어한다.
+            (It is configured with a given set of authorities to look for on the current Authentication.)
+
+        AuthenticatedAuthorizationManager
+            it can be used to differentiate between anonymous, fully-authenticated and remember-me authenticated users.
+
+        AuthorizationManagers ( AuthorizationManager관련 유용한게 사용될 수 있는 static 메서드들이 많이 있다)
+
+3. Adapting AccessDecisionManager and AccessDecisionVoters (이건 skip)
+
+4. Hierarchical Roles
+아래의 코드처럼 Role 간의 Hierarchy를 만들어 낼 수 있다.
+위의 롤 상하관계는
+    request-based 인가: HttpSecurity.authorizeHttpRequests 에서 사용될 수 있고
+    method-based 인가 에서 사용될 수 있다:
+        `DefaultMethodSecurityExpressionHandler` for pre-post annotations(@PreAuthorize, @PostAuthorize, @PreFilter @PostFilter),
+            예시 1을 참고 : MethodSecurityExpressionHandler 빈을 따로 등록해줘야 한다.
+
+        `SecuredAuthorizationManager` for @Secured 어노테이션,
+            예시 2을 참고:
+                @EnableMethodSecurity(securedEnabled = true) 추가하고
+                @Secure(ROLE_ADMIN) 이런식으로 사용하면 된다.
+
+        `Jsr250AuthorizationManager` for JSR-250 annotations(@RolesAllowed, @PermitAll, @DenyAll.)
+            예시 3을 참고:
+                @EnableMethodSecurity(jsr250Enabled = true)
+                @RolesAllowed, @PermitAll, @DenyAll 등을 사용
+
+
+// 예시 1.
+```
+@Bean
+static RoleHierarchy roleHierarchy() {
+    return RoleHierarchyImpl.withDefaultRolePrefix()
+        .role("ADMIN").implies("STAFF")
+        .role("STAFF").implies("USER")
+        .role("USER").implies("GUEST")
+        .build();
+}
+// @PreAuthorize, @PostAuthorize, @PreFilter, @PostFilter 와 같은 pre-post 어노테이션을 사용할때 아래 코드를 추가.
+@Bean
+static MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
+    DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+    expressionHandler.setRoleHierarchy(roleHierarchy);
+    return expressionHandler;
+}
+```
+
+// 예시 2
+```
+@Configuration
+@EnableMethodSecurity(securedEnabled = true) // @Secured 어노테이션 활성화 (기본값은 false)
+class SecurityConfig {
+
+    @Bean
+    fun roleHierarchy(): RoleHierarchy {
+        val roleHierarchy = RoleHierarchyImpl()
+        // 계층 관계 정의: ADMIN은 STAFF의 권한을, STAFF는 USER의 권한을 포함
+        roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_STAFF \n ROLE_STAFF > ROLE_USER")
+        return roleHierarchy
+    }
+
+    // DefaultMethodSecurityExpressionHandler (pre-post용)는 필요하다면 계속 정의
+    // @Bean
+    // fun methodSecurityExpressionHandler(roleHierarchy: RoleHierarchy): MethodSecurityExpressionHandler {
+    //     val expressionHandler = DefaultMethodSecurityExpressionHandler()
+    //     expressionHandler.setRoleHierarchy(roleHierarchy)
+    //     return expressionHandler
+    // }
+}
+
+@Service
+class AdminService {
+    @Secured("ROLE_ADMIN") // ADMIN 권한이 있는 사용자만 접근 가능
+    fun deleteCriticalData() {
+        println("Critical data deleted by Admin.")
+    }
+
+    @Secured("ROLE_USER") // USER 권한이 있는 사용자만 접근 가능 (ADMIN, STAFF도 가능)
+    fun viewUserSpecificData() {
+        println("User specific data viewed.")
+    }
+}
+```
+
+// 예시 3
+```
+@Configuration
+@EnableMethodSecurity(jsr250Enabled = true) // JSR-250 어노테이션 활성화 (기본값은 false)
+class SecurityConfig {
+
+    @Bean
+    fun roleHierarchy(): RoleHierarchy {
+        val roleHierarchy = RoleHierarchyImpl()
+        // 계층 관계 정의: ADMIN은 STAFF의 권한을, STAFF는 USER의 권한을 포함
+        roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_STAFF \n ROLE_STAFF > ROLE_USER")
+        return roleHierarchy
+    }
+
+    // ... 나머지 SecurityFilterChain 및 다른 빈들 ...
+}
+
+@Service
+class ReportService {
+
+    // ADMIN 권한이 있는 사용자만 접근 가능 (RoleHierarchy 적용)
+    // 복수의 role도 가능
+    @RolesAllowed({"ROLE_ADMIN", "ROLE_SECOND_ADMIN"})
+    fun generateDetailedReport() {
+        println("Detailed report generated by Admin.")
+    }
+
+    @RolesAllowed("ROLE_USER") // USER 권한이 있는 사용자만 접근 가능 (ADMIN, STAFF도 RoleHierarchy에 의해 가능)
+    fun viewBasicReport() {
+        println("Basic report viewed by user.")
+    }
+
+    @PermitAll // 모든 사용자 접근 허용
+    fun getPublicReportInfo(): String {
+        return "This is public report information."
+    }
+
+    @DenyAll // 아무도 접근 불가
+    fun restrictedMethod() {
+        println("This method should never be called.")
+    }
+}
+```
