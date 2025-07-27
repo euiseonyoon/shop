@@ -486,3 +486,105 @@ class ReportService {
     }
 }
 ```
+================================================================================================
+Authorization (인가) - Authorize Http Request
+
+1. 동작 flow
+    1. SecurityFilterChain에 AuthorizationFilter
+        `AuthorizationFilter`는 기본적으로 SecurityFilterChain에서 마지막에 위치한다.
+    2. SecurityContextHolder를 사용하여 유저정보(Authentication) 확보
+    3. `RequestMatcherDelegatingAuthorizationManager` 가 Authorize 체크
+
+2. https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html#match-requests 에 기입되어 있듯이,
+다양한 방식으로 Http Request에 Matching 하게 하여 Authorization을 할 수 있다.
+
+
+================================================================================================
+Authorization (인가) - Method based Security
+
+1. 아래의 경우에 Method based Security를 적용하면 효율적
+    - 좀 더 세밀한 Authorization 로직이 필요한 경우, 예를들면, 메소드의 파라미터나 return 결과값을 사용하여 authorization을 해야하는 경우
+    - Security를 서비스 layer에서 강제하려 할 때
+    - Http-based 보다 어노테이션 기반의 Authorization을 선호 할 때,
+(참고로 Method Security는 Spring의 AOP 프록시를 사용한다)
+
+
+```
+@Service
+open class MyCustomerService {
+    @PreAuthorize("hasAuthority('permission:read')")
+    @PostAuthorize("returnObject.owner == authentication.name")
+    fun readCustomer(id: String): Customer { ... }
+}
+```
+위 코드를 예시로 사용한다.
+
+2. 동작 Flow
+
+    1. Spring AOP가 readCustomer() 메소드를 invoke 한다.
+    proxy의 advisor 중에, @PreAuthorize 포인트컷에 매칭되는 (아마 내부적으로 @annotation을 사용해서 포인트컷을 사용하겟지?)
+    `AuthorizationManagerBeforeMethodInterceptor` advisor를 invoke한다.
+
+    2. AuthorizationManagerBeforeMethodInterceptor.invoke()
+    -> AuthorizationManagerBeforeMethodInterceptor.attemptAuthorization()
+    -> AuthorizationManagerBeforeMethodInterceptor.authorizationManager.authorize()
+        AuthorizationManagerBeforeMethodInterceptor.authorizationManager는 `PreAuthorizeAuthorizationManager` 이라는 클래스 타입
+        `public final class PreAuthorizeAuthorizationManager implements AuthorizationManager<MethodInvocation>, MethodAuthorizationDeniedHandler {..}`
+    -> PreAuthorizeAuthorizationManager.authorize() -> PreAuthorizeAuthorizationManager.check()  호출
+
+    3. AuthorizationManager(PreAuthorizeAuthorizationManager)는 MethodSecurityExpressionHandler를 이용하여 EvaluationContext를 생성
+    4. EvaluationContext 생성, 생성된 context 와 유저정보(Authentication)을 비교하여 `permission:read` 권한을 확인
+    5. evalution이 통과되면 `readCustomer()` 메소드를 invoke
+    6. 통과 안되면, AccessDeniedException 발생
+    7. readCustomer() 메소드가 return 하면,
+        @PostAuthorize 포인트컷에 매칭되는 어드바이저인 `AuthorizationManagerAfterMethodInterceptor`를 invoke
+    8. AuthorizationManagerAfterMethodInterceptor.invoke() ->
+        `readCustomer()` 메소드를 invoke ->
+        AuthorizationManagerAfterMethodInterceptor.attemptAuthorization() ->
+        AuthorizationManagerAfterMethodInterceptor.authorizationManager.authorize()
+            AuthorizationManagerBeforeMethodInterceptor.authorizationManager는 `PostAuthorizeAuthorizationManager` 이라는 클래스 타입
+            `public final class PostAuthorizeAuthorizationManager implements AuthorizationManager<MethodInvocation>, MethodAuthorizationDeniedHandler {..}`
+        PostAuthorizeAuthorizationManager.authorize() ->
+        PostAuthorizeAuthorizationManager.check() 호출
+     9. EvaluationContext 생성, 생성된 context 와 `returnObject.owner == authentication.name` 확인
+     10. evaluation 통과 되면 continue
+     11. 그렇지 않으면 AccessDeniedException 발생
+
+
+    * 위의 예시 처럼 메스드에 여러 어노테이션이 있으면 순차적으로 진행된다
+    * 같은 어노테이션은 반복되어 사용될 수 없다
+    * 각 어노테이션들은 고유의 포인트컷과 method interceptor(어드바이저 내용을 포함하는)로 이루어 진다
+
+    @PreAuthorize :  AuthorizationManagerBeforeMethodInterceptor 인터셉터의 preAuthorize()를 사용한다, preAuthorize()는 내부적으로 PreAuthorizeAuthorizationManager 를 사용한다
+    @PostAuthorize :  AuthorizationManagerAfterMethodInterceptor 인터셉터의 postAuthorize()를 사용한다, postAuthorize()는 내부적으로 PostAuthorizeAuthorizationManager 를 사용한다
+    @PreFilter: PreFilterAuthorizationMethodInterceptor 인터셉터를 사용
+    @PostFilter: PostFilterAuthorizationMethodInterceptor 인터셉터를 사용
+    @Secured:  AuthorizationManagerBeforeMethodInterceptor 인터셉터의 secured()를 사용한다. secured()는 내부적으로 SecuredAuthorizationManager를 사용한다.
+    JSR-250 어노테이션: AuthorizationManagerBeforeMethodInterceptor 인터셉터의 jsr250() 사용한다, jsr250()은 내부적으로 Jsr250AuthorizationManager를 사용한다.
+
+
+* Authorize 어노테이션 (@PreAuthorize, @PostAuthorize):
+  목적: 메서드 호출 전체 또는 메서드의 전체 반환 값에 대한 접근 권한을 결정합니다.
+  권한이 있다면 메서드가 정상적으로 실행되거나 반환됩니다.
+
+* Filter 어노테이션 (@PreFilter, @PostFilter)
+    목적: 메서드의 입력/출력 컬렉션 또는 배열의 개별 요소에 대해 보안 검사를 수행하여,
+    허용되지 않는 요소를 제거합니다. 즉, 컬렉션의 "부분 집합"을 제어합니다.
+    필터링된 요소는 제거될 뿐, 전체 메서드 호출이 거부되지는 않습니다.
+
+* 아래처럼 사용할 수도 있다.
+```
+@Target(ElementType.METHOD, ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@PreAuthorize("hasRole('ADMIN')")
+annotation class IsAdmin
+
+@Component
+open class BankService {
+	@IsAdmin
+	fun readAccount(id: Long): Account {
+        // ... is only returned if the `Account` belongs to the logged in user
+	}
+}
+```
+
