@@ -1,4 +1,4 @@
-package com.example.shop.security
+package com.example.shop.security.providers
 
 import com.example.shop.security.models.ThirdPartyOauthAuthenticationToken
 import com.example.shop.security.third_party_auth.user_services.ThirdPartyUserServiceManager

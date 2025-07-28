@@ -6,6 +6,7 @@ import com.example.shop.security.handlers.MyLogInAuthenticationFailureHandler
 import com.example.shop.security.handlers.MyLogInAuthenticationSuccessHandler
 import com.example.shop.security.third_party_auth.jwt_decoder.GoogleJwtDecoder
 import com.example.shop.security.jwt_helper.MyJwtTokenHelper
+import com.example.shop.security.providers.ThirdPartyOauthAuthenticationProvider
 import com.example.shop.security.third_party_auth.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.security.third_party_auth.user_services.GoogleOidcUserService
 import com.example.shop.security.third_party_auth.user_services.ThirdPartyUserServiceManager
