@@ -1,4 +1,4 @@
-package com.example.shop.security.jwt_helper
+package com.example.shop.security.third_party_auth.jwt_decoder
 
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
