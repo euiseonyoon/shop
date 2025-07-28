@@ -2,6 +2,8 @@ plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
     kotlin("plugin.serialization") version "1.9.23"
+    kotlin("plugin.jpa") version "1.9.25"
+    kotlin("kapt") version "1.9.23" // QueryDSL을 사용하기위한 kotlin annotation processor tool
     id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -30,6 +32,17 @@ repositories {
 }
 
 dependencies {
+    // QueryDSL. https://velog.io/@yangwon-park/Kotlin-Querydsl-%EC%84%B8%ED%8C%85
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    implementation("com.querydsl:querydsl-apt:5.0.0:jakarta")
+    implementation("jakarta.persistence:jakarta.persistence-api")
+    implementation("jakarta.annotation:jakarta.annotation-api")
+    // Querydsl Q Class 생성해주는 Annotation Processor
+    kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
+    // SrpingBoot @ConfigurationProperties
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
+
+
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Security
