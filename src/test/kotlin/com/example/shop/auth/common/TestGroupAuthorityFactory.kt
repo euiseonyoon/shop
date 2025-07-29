@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component
 class TestGroupAuthorityFactory {
     fun createGroupAuthorities(em: EntityManager, names: List<String>, group: AccountGroup): List<GroupAuthority> {
         val groupAuthorities = names.map { name ->
-            GroupAuthority(name)
-                .apply { accountGroup = group }
-                .also { em.persist(it) }
+            val ga = GroupAuthority(name)
+            group.addGroupAuthority(ga).also { em.persist(ga) }
+            ga
         }
         em.flush()
         return groupAuthorities

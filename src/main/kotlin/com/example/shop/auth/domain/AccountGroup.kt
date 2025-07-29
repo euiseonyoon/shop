@@ -28,6 +28,13 @@ class AccountGroup: BaseCompareEntity<AccountGroup> {
         this.name = name
     }
 
+    fun addGroupAuthority(groupAuthority: GroupAuthority) {
+        if (groupAuthority.accountGroup != this) {
+            groupAuthority.accountGroup = this
+        }
+        this.authorities.add(groupAuthority)
+    }
+
     override fun compareDetail(other: AccountGroup): Boolean {
         if (name != other.name) return false
         return true
