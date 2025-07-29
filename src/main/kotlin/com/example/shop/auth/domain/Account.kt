@@ -1,6 +1,7 @@
 package com.example.shop.auth.domain
 
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
+import com.example.shop.common.hibernate.BaseCompareEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -9,18 +10,19 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
-import jakarta.persistence.Transient
+import org.hibernate.proxy.HibernateProxy
 
 
 @Entity
-class Account {
+class Account: BaseCompareEntity<Account>() {
     @Id
     @GeneratedValue
     val id: Long? = null
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     var username: String? = null
 
     @Column(nullable = false)
@@ -37,23 +39,38 @@ class Account {
     var nickname: String? = null
 
     // 유저당 ROLE을 1개만 갖도록 강제한다.
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "authority_id", unique = true, nullable = false)
     var authority: Authority? = null
 
     @OneToMany(mappedBy = "account")
     val groupMemberMap: MutableSet<GroupMember> = mutableSetOf()
 
-    @Transient
-    val accountGroup: List<AccountGroup> = groupMemberMap.mapNotNull { it.accountGroup }
+    fun getGroups(): List<AccountGroup> {
+        return groupMemberMap.mapNotNull { it.accountGroup }
+    }
 
-    @Transient
-    val groupAuthorities: List<GroupAuthority> = this.accountGroup.flatMap { it.authorities }
+    fun getGroupAuthorities(): List<GroupAuthority> {
+        return getGroups().flatMap { it.authorities }
+    }
 
     fun addRole(role: Authority) {
         if (this.authority != role) {
             this.authority = role
         }
-        role.account = this
+        role.accounts.add(this)
+    }
+
+    override fun compareDetail(other: Account): Boolean {
+        if (username != other.username) return false
+        return true
+    }
+
+    override fun compareByIdentifierWhenProxy(other: HibernateProxy): Boolean {
+        return (other.hibernateLazyInitializer.identifier as Long) == this.id
+    }
+
+    override fun hashCodeGenerator(): Int {
+        return username?.hashCode() ?: 0
     }
 }
