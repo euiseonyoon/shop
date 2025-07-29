@@ -8,8 +8,10 @@ import com.example.shop.auth.security.third_party.jwt_decoder.GoogleJwtDecoder
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.security.providers.ThirdPartyOauthAuthenticationProvider
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
+import com.example.shop.auth.security.user_services.EmailPasswordUserDetailService
 import com.example.shop.auth.security.user_services.GoogleOidcUserService
 import com.example.shop.auth.security.user_services.ThirdPartyUserServiceManager
+import com.example.shop.auth.services.AccountService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -20,7 +22,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.provisioning.JdbcUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
@@ -53,12 +54,12 @@ class SecurityConfig {
     @Bean
     fun authenticationManager(
         passwordEncoder: PasswordEncoder,
-        dataSource: DataSource,
-        thirdPartyAuthUserServiceManager: ThirdPartyUserServiceManager
+        thirdPartyAuthUserServiceManager: ThirdPartyUserServiceManager,
+        accountService: AccountService,
     ): AuthenticationManager {
         // /login/form : email+password로 로그인하는 유저들
         // https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/jdbc.html#servlet-authentication-jdbc-schema
-        val emailPasswordAuthenticationProvider = DaoAuthenticationProvider(JdbcUserDetailsManager(dataSource))
+        val emailPasswordAuthenticationProvider = DaoAuthenticationProvider(EmailPasswordUserDetailService(accountService))
         emailPasswordAuthenticationProvider.setPasswordEncoder(passwordEncoder)
 
         val thirdPartyOidcAuthenticationProvider = ThirdPartyOauthAuthenticationProvider(thirdPartyAuthUserServiceManager)
