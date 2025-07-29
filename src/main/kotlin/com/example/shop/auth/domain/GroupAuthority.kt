@@ -18,6 +18,6 @@ class GroupAuthority {
     val name: String? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
-    var group: Group? = null
+    @JoinColumn(name = "account_group_id")
+    var accountGroup: AccountGroup? = null
 }

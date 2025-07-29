@@ -1,7 +1,6 @@
 package com.example.shop.auth.domain
 
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -46,10 +45,10 @@ class Account {
     val groupMemberMap: MutableSet<GroupMember> = mutableSetOf()
 
     @Transient
-    val group: List<Group> = groupMemberMap.mapNotNull { it.group }
+    val accountGroup: List<AccountGroup> = groupMemberMap.mapNotNull { it.accountGroup }
 
     @Transient
-    val groupAuthorities: List<GroupAuthority> = this.group.flatMap { it.authorities }
+    val groupAuthorities: List<GroupAuthority> = this.accountGroup.flatMap { it.authorities }
 
     fun addRole(role: Authority) {
         if (this.authority != role) {

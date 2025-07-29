@@ -23,20 +23,20 @@ class GroupMember {
     val id: Long? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
-    var group: Group? = null
+    @JoinColumn(name = "account_group_id")
+    var accountGroup: AccountGroup? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     var account: Account? = null
 
     constructor()
-    constructor(account: Account, group: Group) {
+    constructor(account: Account, accountGroup: AccountGroup) {
         if (this.account != account) {
             this.account = account
         }
-        if (this.group != group) {
-            this.group = group
+        if (this.accountGroup != accountGroup) {
+            this.accountGroup = accountGroup
         }
     }
 
@@ -65,14 +65,14 @@ class GroupMember {
     }
 
     private fun compareDetail(other: GroupMember): Boolean {
-        if (group != other.group) return false
+        if (accountGroup != other.accountGroup) return false
         if (account != other.account) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = group?.hashCode() ?: 0
+        var result = accountGroup?.hashCode() ?: 0
         result = 31 * result + (account?.hashCode() ?: 0)
         return result
     }

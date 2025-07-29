@@ -7,7 +7,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 
 @Entity
-class Group {
+class AccountGroup {
     @Id
     @GeneratedValue
     val id: Long? = null
@@ -15,9 +15,9 @@ class Group {
     @Column(nullable = false)
     var name: String? = null
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "accountGroup")
     val groupMemberMap: MutableSet<GroupMember> = mutableSetOf()
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "accountGroup")
     val authorities: MutableSet<GroupAuthority> = mutableSetOf()
 }
