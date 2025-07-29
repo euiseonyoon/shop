@@ -1,12 +1,12 @@
 package com.example.shop.auth.services
 
-import com.example.shop.auth.ROLE_PREFIX
+import com.example.shop.auth.ROLE_USER
+import com.example.shop.auth.common.TestAccountGroupFactory
+import com.example.shop.auth.common.TestAuthorityFactory
+import com.example.shop.auth.common.TestGroupAuthorityFactory
 import com.example.shop.auth.domain.Account
-import com.example.shop.auth.domain.AccountGroup
-import com.example.shop.auth.domain.Authority
 import com.example.shop.auth.domain.GroupAuthority
 import com.example.shop.auth.domain.GroupMember
-import com.example.shop.auth.repositories.AccountRepository
 import com.example.shop.common.logger.LogSupport
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -20,7 +20,13 @@ import kotlin.test.assertEquals
 @SpringBootTest
 class AccountServiceTest : LogSupport() {
     @Autowired
-    lateinit var accountRepository: AccountRepository
+    lateinit var testAuthorityFactory: TestAuthorityFactory
+
+    @Autowired
+    lateinit var testAccountGroupFactory: TestAccountGroupFactory
+
+    @Autowired
+    lateinit var testGroupAuthorityFactory: TestGroupAuthorityFactory
 
     @Autowired
     lateinit var accountService: AccountService
@@ -33,22 +39,24 @@ class AccountServiceTest : LogSupport() {
     @Transactional
     fun `test account repository extension`() {
         // GIVEN
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_USER)).first()
+
+        val groups = testAccountGroupFactory.createAccountGroup(em, listOf("group1", "group2"))
+        val firstGroup = groups.first()
+        val secondGroup = groups.last()
+
+        val firstGroupAuthorities = testGroupAuthorityFactory.createGroupAuthorities(
+            em,
+            listOf("GROUP_authority_1-1", "GROUP_authority_1-2"),
+            firstGroup
+        )
+        val secondGroupAuthorities = testGroupAuthorityFactory.createGroupAuthorities(
+            em,
+            listOf("GROUP_authority_2"),
+            secondGroup
+        )
+
         val EMAIL = "test@gamil.com"
-        val authority = Authority("${ROLE_PREFIX}USER").also { em.persist(it) }
-        em.flush()
-
-        val firstGroup = AccountGroup("group1").also { em.persist(it) }
-        val secondGroup = AccountGroup("group2").also { em.persist(it) }
-        em.flush()
-
-        val firstGroupAuthorities = listOf("GROUP_authority_1-1", "GROUP_authority_1-2").map {
-            GroupAuthority(it).apply { accountGroup = firstGroup }.also { em.persist(it) }
-        }
-        val secondGroupAuthorities = listOf("GROUP_authority_2-1").map {
-            GroupAuthority(it).apply { accountGroup = secondGroup }.also { em.persist(it) }
-        }
-        em.flush()
-
         val account = Account().apply {
             username = EMAIL
             password = "123"
