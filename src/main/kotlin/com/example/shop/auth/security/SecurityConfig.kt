@@ -4,7 +4,6 @@ import com.example.shop.auth.security.filters.EmailPasswordAuthenticationFilter
 import com.example.shop.auth.security.filters.ThirdPartyOauthAuthenticationFilter
 import com.example.shop.auth.security.handlers.MyLogInAuthenticationFailureHandler
 import com.example.shop.auth.security.handlers.MyLogInAuthenticationSuccessHandler
-import com.example.shop.auth.security.third_party.jwt_decoder.GoogleJwtDecoder
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.security.providers.ThirdPartyOauthAuthenticationProvider
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
@@ -28,14 +27,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import javax.sql.DataSource
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
 
     companion object {
-        val EMAIL_PASSWORD_AUTH_URI = "/login/form"
+        val EMAIL_PASSWORD_AUTH_URI = "/login"
         val OAUTH_AUTH_URI_PATTERN = "/login/oauth/*"
     }
 
@@ -96,37 +94,31 @@ class SecurityConfig {
 
     @Bean
     @Order(1)
-    fun emailPasswordAuthenticateFilterChain(
+    fun loginAuthenticationFilterChain(
         http: HttpSecurity,
         authenticationManager: AuthenticationManager,
         myJwtTokenHelper: MyJwtTokenHelper,
     ): SecurityFilterChain {
-        val emailPasswordAuthenticationFilter = EmailPasswordAuthenticationFilter(authenticationManager).apply {
-            setAuthenticationSuccessHandler(MyLogInAuthenticationSuccessHandler(myJwtTokenHelper))
-            setAuthenticationFailureHandler(MyLogInAuthenticationFailureHandler())
-        }
-        return makeBaseHttpSecurity(http)
-            .securityMatcher(EMAIL_PASSWORD_AUTH_URI)
-            .addFilterAt(emailPasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .build()
-    }
+        val successLoginHandler = MyLogInAuthenticationSuccessHandler(myJwtTokenHelper)
+        val failLoginHandler = MyLogInAuthenticationFailureHandler()
 
-    @Bean
-    @Order(2)
-    fun thirdPartyOauthAuthenticateFilterChain(
-        http: HttpSecurity,
-        authenticationManager: AuthenticationManager,
-        myJwtTokenHelper: MyJwtTokenHelper,
-    ): SecurityFilterChain {
-        val thirdPartyOauthAuthenticationFilter =
-            ThirdPartyOauthAuthenticationFilter(OAUTH_AUTH_URI_PATTERN, authenticationManager)
-                .apply {
-                    setAuthenticationSuccessHandler(MyLogInAuthenticationSuccessHandler(myJwtTokenHelper))
-                    setAuthenticationFailureHandler(MyLogInAuthenticationFailureHandler())
-                }
+        val emailPasswordAuthenticationFilter = EmailPasswordAuthenticationFilter(authenticationManager).apply {
+            setAuthenticationSuccessHandler(successLoginHandler)
+            setAuthenticationFailureHandler(failLoginHandler)
+        }
+
+        val thirdPartyOauthAuthenticationFilter = ThirdPartyOauthAuthenticationFilter(
+            OAUTH_AUTH_URI_PATTERN,
+            authenticationManager
+        ).apply {
+            setAuthenticationSuccessHandler(successLoginHandler)
+            setAuthenticationFailureHandler(failLoginHandler)
+        }
+
         return makeBaseHttpSecurity(http)
-            .securityMatcher(OAUTH_AUTH_URI_PATTERN)
-            .addFilterAt(thirdPartyOauthAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .securityMatcher(OAUTH_AUTH_URI_PATTERN, EMAIL_PASSWORD_AUTH_URI)
+            .addFilterBefore(thirdPartyOauthAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterAt(emailPasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
     }
 }
