@@ -10,6 +10,7 @@ import com.example.shop.auth.security.providers.ThirdPartyOauthAuthenticationPro
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.auth.security.user_services.EmailPasswordUserDetailService
 import com.example.shop.auth.security.user_services.GoogleOidcUserService
+import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
 import com.example.shop.auth.security.user_services.ThirdPartyUserServiceManager
 import com.example.shop.auth.services.AccountService
 import org.springframework.context.annotation.Bean
@@ -42,8 +43,10 @@ class SecurityConfig {
     fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
     @Bean
-    fun googleUserService(): ThirdPartyAuthenticationUserService {
-        return GoogleOidcUserService(GoogleJwtDecoder())
+    fun googleUserService(
+        oauth2AuthenticatedAutoRegisterer: OauthAuthenticatedUserAutoRegisterer
+    ): ThirdPartyAuthenticationUserService {
+        return GoogleOidcUserService(oauth2AuthenticatedAutoRegisterer)
     }
 
     @Bean
