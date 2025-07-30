@@ -12,10 +12,9 @@ import javax.crypto.SecretKey
 
 @Component
 class MyJwtTokenHelperImpl : MyJwtTokenHelper {
-
-    val ACCESS_EXPIRATION_MILLISECONDS: Long = 1000 * 60 * 30 // 1시간
-    val REFRESH_EXPIRATION_MILLISECONDS: Long = 1000 * 60 * 60 * 24 * 7 // 7일
-    val AUTH_CLAIM_KEY = "auth"
+    override val accessTokenExpirationMs: Long = 1000 * 60 * 30 // 1시간
+    override val refreshTokenExpirationMs: Long = 1000 * 60 * 60 * 24 * 7 // 7일
+    override val authClaimKey: String = "auth"
 
     @Value("\${jwt.access_secret}")
     lateinit var encodedAccessSecretKey: String
@@ -29,13 +28,14 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     private val accessSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedAccessSecretKey)) }
     private val refreshSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedRefreshSecretKey)) }
 
+
     override fun createAccessToken(email: String, authentication: Authentication): String {
         val authoritiesString = authentication.authorities.map { it.authority }.joinToString(",")
         return createToken(
             email,
-            ACCESS_EXPIRATION_MILLISECONDS,
+            accessTokenExpirationMs,
             accessSecretKey,
-            mapOf(AUTH_CLAIM_KEY to authoritiesString),
+            mapOf(authClaimKey to authoritiesString),
             null
         )
     }
@@ -43,7 +43,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     override fun createRefreshToken(email: String): String {
         return createToken(
             email,
-            REFRESH_EXPIRATION_MILLISECONDS,
+            refreshTokenExpirationMs,
             refreshSecretKey,
             null,
             UUID.randomUUID().toString()
