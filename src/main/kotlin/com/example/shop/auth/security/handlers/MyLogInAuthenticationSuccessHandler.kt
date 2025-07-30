@@ -24,8 +24,7 @@ class MyLogInAuthenticationSuccessHandler(
             (authentication.principal as OAuth2User).name
         }
 
-        // TODO: 여기서 유저의 authentication(ROLE_) 그리고 group authorities들을 넣어서 access token을 만들자.
-        val accessToken = jwtHelper.createAccessToken(email)
+        val accessToken = jwtHelper.createAccessToken(email, authentication)
         val refreshToken = jwtHelper.createRefreshToken(email)
 
         // 응답 본문에 토큰을 JSON 형식으로 작성합니다.

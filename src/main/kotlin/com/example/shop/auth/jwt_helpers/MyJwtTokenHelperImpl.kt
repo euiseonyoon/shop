@@ -5,6 +5,7 @@ import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.crypto.SecretKey
@@ -14,6 +15,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
 
     val ACCESS_EXPIRATION_MILLISECONDS: Long = 1000 * 60 * 30 // 1시간
     val REFRESH_EXPIRATION_MILLISECONDS: Long = 1000 * 60 * 60 * 24 * 7 // 7일
+    val AUTH_CLAIM_KEY = "auth"
 
     @Value("\${jwt.access_secret}")
     lateinit var encodedAccessSecretKey: String
@@ -27,28 +29,45 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     private val accessSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedAccessSecretKey)) }
     private val refreshSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedRefreshSecretKey)) }
 
-    override fun createAccessToken(email: String): String {
-        return createToken(email, ACCESS_EXPIRATION_MILLISECONDS, accessSecretKey)
+    override fun createAccessToken(email: String, authentication: Authentication): String {
+        val authoritiesString = authentication.authorities.map { it.authority }.joinToString(",")
+        return createToken(
+            email,
+            ACCESS_EXPIRATION_MILLISECONDS,
+            accessSecretKey,
+            mapOf(AUTH_CLAIM_KEY to authoritiesString),
+            null
+        )
     }
 
     override fun createRefreshToken(email: String): String {
-        return createToken(email, REFRESH_EXPIRATION_MILLISECONDS, refreshSecretKey)
+        return createToken(
+            email,
+            REFRESH_EXPIRATION_MILLISECONDS,
+            refreshSecretKey,
+            null,
+            UUID.randomUUID().toString()
+        )
     }
 
     private fun createToken(
         email: String,
         durationMs: Long,
         secretKey: SecretKey,
+        claims: Map<String, Any>?,
+        jti: String?
     ): String {
-        // TODO: JWT 토큰 생성시 추가해야 할 것들이 있는지 권장사항을 조사해보고 처리하자.
-        return Jwts
+        val builder = Jwts
             .builder()
             .setSubject(email)
             .setIssuedAt(Date())
             .setIssuer(issuer)
             .setExpiration(Date(System.currentTimeMillis() + durationMs))
             .signWith(secretKey, SignatureAlgorithm.HS256)
-            .compact()
+
+        jti?.let { builder.setId(it) }
+        claims?.let { builder.setClaims(it) }
+        return builder.compact()
     }
 }
 
