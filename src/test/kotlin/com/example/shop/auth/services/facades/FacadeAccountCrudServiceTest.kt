@@ -74,6 +74,7 @@ class FacadeAccountCrudServiceTest {
             email = email,
             rawPassword = rawPassword,
             nickname = nickname,
+            thirdPartyOauthVendor = null,
             groupNames = setOf(groupNames.first())
         )
         em.clear()
@@ -101,6 +102,7 @@ class FacadeAccountCrudServiceTest {
                 email = email,
                 rawPassword = rawPassword,
                 nickname = nickname,
+                thirdPartyOauthVendor = null,
                 groupNames = setOf(groupNames.first())
             )
         }
