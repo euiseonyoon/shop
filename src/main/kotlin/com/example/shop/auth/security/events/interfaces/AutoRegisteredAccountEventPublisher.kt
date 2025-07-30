@@ -1,4 +1,4 @@
-package com.example.shop.auth.security.third_party.interfaces
+package com.example.shop.auth.security.events.interfaces
 
 import com.example.shop.auth.security.third_party.models.AccountFindOrCreateResult
 

@@ -1,7 +1,7 @@
 package com.example.shop.auth.security.user_services
 
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
-import com.example.shop.auth.security.third_party.interfaces.AutoRegisteredAccountEventPublisher
+import com.example.shop.auth.security.events.interfaces.AutoRegisteredAccountEventPublisher
 import com.example.shop.auth.security.third_party.interfaces.OauthAuthenticationToAutoRegister
 import com.example.shop.auth.security.third_party.models.AccountFindOrCreateResult
 import com.example.shop.auth.security.third_party.utils.PasswordGenerator
