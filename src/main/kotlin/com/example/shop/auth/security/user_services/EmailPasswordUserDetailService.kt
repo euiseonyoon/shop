@@ -2,6 +2,7 @@ package com.example.shop.auth.security.user_services
 
 import com.example.shop.auth.models.CustomUserDetails
 import com.example.shop.auth.services.AccountService
+import com.example.shop.common.utils.AuthorityUtils
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -17,17 +18,13 @@ class EmailPasswordUserDetailService(
             ?: throw UsernameNotFoundException("Account Not found. username: $username")
 
         // 2. find user authorities ( role authority + group authorities)
-        val roleAuthority = SimpleGrantedAuthority(account.authority!!.roleName!!)
-        val groupAuthorities = account.getGroupAuthorities().map {
-            SimpleGrantedAuthority(it.name!!)
-        }
-        val accountAuthorities = groupAuthorities + roleAuthority
+        val accountAllAuthorities = AuthorityUtils.createSimpleGrantedAuthorities(account)
 
         // 3. create `CustomUserDetail`
         return CustomUserDetails(
             account.username!!,
             account.password!!,
-            accountAuthorities,
+            accountAllAuthorities,
             account.enabled,
             true,
             true,
