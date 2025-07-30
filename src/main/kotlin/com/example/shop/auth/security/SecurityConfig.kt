@@ -1,5 +1,7 @@
 package com.example.shop.auth.security
 
+import com.example.shop.auth.ADMIN_NAME
+import com.example.shop.auth.PERMIT_ALL_END_POINTS
 import com.example.shop.auth.security.filters.EmailPasswordAuthenticationFilter
 import com.example.shop.auth.security.filters.ThirdPartyOauthAuthenticationFilter
 import com.example.shop.auth.security.handlers.MyLogInAuthenticationFailureHandler
@@ -12,6 +14,7 @@ import com.example.shop.auth.security.user_services.GoogleOidcUserService
 import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
 import com.example.shop.auth.security.user_services.ThirdPartyUserServiceManager
 import com.example.shop.auth.services.AccountService
+import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -23,6 +26,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -120,5 +124,60 @@ class SecurityConfig {
             .addFilterBefore(thirdPartyOauthAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .addFilterAt(emailPasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
+    }
+
+    /**
+     * NOTE:
+     *      아래 코드처럼 하는 것 보다
+     *      allowAllFilterChain을 따로 만드는 것이 효율적이다.
+     *      아래 코드처럼 하면, 아래의 과정을 거친다.
+     *
+     *      1. jwtFilter의 authentication 과정을 거친다 (jwt 토큰 decoding 등등의 과정이 발생)
+     *      2. 유저정보(Authentication)이 null 이다
+     *      3. AuthorizationFilter(인가 필터)에 null인 Authentication이 전달된다.
+     *      4. 하지만 permitAll에 해당되는 request 라면 Authentication 결과에 상관없이 진행한다.
+     *
+     *      그래서 쓸데 없는 jwt 토큰 검증 과정을 거치게 된다.
+     *
+     *     http
+     *     .authorizeHttpRequests { auth ->
+     *         auth
+     *             .requestMatchers(*PERMIT_ALL_END_POINTS.toTypedArray()).permitAll()
+     *             .requestMatchers("/admin/`**").hasRole(ADMIN_NAME)
+     *             .anyRequest().authenticated()
+     *     }
+     *     .addFilterBefore(jwtTokenFilter, AuthorizationFilter::class.java)
+     *
+     * **/
+    @Bean
+    @Order(2)
+    fun permitAllFilterChain(
+        http: HttpSecurity,
+        authenticationManager: AuthenticationManager,
+        myJwtTokenHelper: MyJwtTokenHelper,
+    ): SecurityFilterChain {
+
+        return makeBaseHttpSecurity(http)
+            .securityMatcher(*PERMIT_ALL_END_POINTS.toTypedArray())
+            .build()
+    }
+
+    @Bean
+    @Order(3)
+    fun jwtAuthenticationFilterChain(
+        http: HttpSecurity,
+        authenticationManager: AuthenticationManager,
+        myJwtTokenHelper: MyJwtTokenHelper,
+    ): SecurityFilterChain {
+        throw NotImplementedException("NOT IMPLEMENTED YET")
+//        return makeBaseHttpSecurity(http)
+//            .securityMatcher()
+//            .authorizeHttpRequests { auth ->
+//                auth
+//                    .requestMatchers("/admin/**").hasRole(ADMIN_NAME)
+//                    .anyRequest().authenticated()
+//            }
+//            .addFilterBefore(jwtTokenFilter, AuthorizationFilter::class.java)
+//            .build()
     }
 }
