@@ -27,6 +27,7 @@ class FacadeAccountCrudService(
             roleName = ROLE_USER,
             groupNames = groupNames,
             assignGroupStrictly = false,
+            createRoleIfNotExist = true,
         )
     }
 
@@ -46,6 +47,7 @@ class FacadeAccountCrudService(
             roleName = ROLE_ADMIN,
             groupNames = groupNames,
             assignGroupStrictly = true,
+            createRoleIfNotExist = false,
         )
     }
 }

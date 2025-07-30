@@ -11,4 +11,7 @@ class AuthorityService(
 ) {
     @Transactional(readOnly = true)
     fun findByRoleName(name: String): Authority? = authorityRepository.findByRoleName(name)
+
+    @Transactional
+    fun createNewAuthority(name: String): Authority = authorityRepository.save(Authority(name))
 }

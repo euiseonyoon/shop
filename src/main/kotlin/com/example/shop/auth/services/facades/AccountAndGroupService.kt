@@ -1,6 +1,7 @@
 package com.example.shop.auth.services.facades
 
 import com.example.shop.auth.domain.Account
+import com.example.shop.auth.domain.Authority
 import com.example.shop.auth.exceptions.AccountGroupPartiallyNotFoundException
 import com.example.shop.auth.exceptions.AuthorityNotFoundException
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
@@ -29,11 +30,16 @@ class AccountAndGroupService(
         roleName: String,
         groupNames: Set<String>,
         assignGroupStrictly: Boolean,
+        createRoleIfNotExist: Boolean,
     ): Account {
         AuthorityUtils.validateAuthorityPrefix(roleName)
 
-        val authority = authorityService.findByRoleName(roleName)
-            ?: throw AuthorityNotFoundException("$roleName authority not found.")
+        val authority = authorityService.findByRoleName(roleName) ?: run {
+            if (!createRoleIfNotExist) {
+                throw AuthorityNotFoundException("$roleName authority not found.")
+            }
+            authorityService.createNewAuthority(roleName)
+        }
 
         val savedAccount = accountService.createAccount(email, rawPassword, nickname, thirdPartyOauthVendor, authority)
         val foundGroups = accountGroupService.findAccountGroups(groupNames)

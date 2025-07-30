@@ -96,16 +96,14 @@ class FacadeAccountCrudServiceTest {
         val rawPassword = "test"
         val nickname = "RyanAtBurst"
 
-        // WHEN, THEN
-        assertThrows<AuthorityNotFoundException> {
-            facadeAccountCrudService.createUserAccount(
-                email = email,
-                rawPassword = rawPassword,
-                nickname = nickname,
-                thirdPartyOauthVendor = null,
-                groupNames = setOf(groupNames.first())
-            )
-        }
+        // WHEN
+        facadeAccountCrudService.createUserAccount(
+            email = email,
+            rawPassword = rawPassword,
+            nickname = nickname,
+            thirdPartyOauthVendor = null,
+            groupNames = setOf(groupNames.first())
+        )
 
         // THEN
         em.clear()
