@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional
 class FacadeAccountCrudService(
     private val accountAndGroupService: AccountAndGroupService
 ) {
-    @Transactional
     fun createUserAccount(
         email: String,
         rawPassword: String,
@@ -32,7 +31,6 @@ class FacadeAccountCrudService(
     }
 
     // TODO: 여기에 hasRole("ROLE_ADMIN) && hasAuthority("어떤 authority") 적용하면 좋을 것 같다.
-    @Transactional
     fun createAdminAccount(
         email: String,
         rawPassword: String,
