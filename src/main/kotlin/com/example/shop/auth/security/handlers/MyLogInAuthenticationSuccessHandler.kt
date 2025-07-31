@@ -1,5 +1,7 @@
 package com.example.shop.auth.security.handlers
 
+import com.example.shop.auth.ACCESS_TOKEN_KEY
+import com.example.shop.auth.REFRESH_TOKEN_KEY
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -28,7 +30,7 @@ class MyLogInAuthenticationSuccessHandler(
         val accessToken = jwtHelper.createAccessToken(email, authentication)
         val refreshToken = jwtHelper.createRefreshToken(email)
 
-        val refreshTokenCookie = Cookie("refreshToken", refreshToken).apply {
+        val refreshTokenCookie = Cookie(REFRESH_TOKEN_KEY, refreshToken).apply {
             isHttpOnly = true // JavaScript 접근 방지
             path = "/" // 모든 경로에서 쿠키 사용 가능
             maxAge = (jwtHelper.refreshTokenExpirationMs / 1000).toInt() // Refresh Token 유효 기간 (초 단위)
@@ -43,7 +45,7 @@ class MyLogInAuthenticationSuccessHandler(
             """
             {
                 "message": "Login successful",
-                "accessToken": "$accessToken"
+                "$ACCESS_TOKEN_KEY": "$accessToken"
             }
             """.trimIndent()
         )
