@@ -1,4 +1,4 @@
-package com.example.shop.auth.security.third_party.utils
+package com.example.shop.auth.security.utils
 
 
 import org.springframework.stereotype.Component

@@ -4,7 +4,7 @@ import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthentication
 import com.example.shop.auth.security.events.interfaces.AutoRegisteredAccountEventPublisher
 import com.example.shop.auth.security.third_party.interfaces.OauthAuthenticationToAutoRegister
 import com.example.shop.auth.security.third_party.models.AccountFindOrCreateResult
-import com.example.shop.auth.security.third_party.utils.PasswordGenerator
+import com.example.shop.auth.security.utils.PasswordGenerator
 import com.example.shop.auth.services.AccountService
 import com.example.shop.auth.services.facades.FacadeAccountCrudService
 import org.springframework.stereotype.Service
