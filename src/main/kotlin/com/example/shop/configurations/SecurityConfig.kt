@@ -1,6 +1,8 @@
-package com.example.shop.auth.security
+package com.example.shop.configurations
 
 import com.example.shop.auth.ADMIN_NAME
+import com.example.shop.auth.EMAIL_PASSWORD_AUTH_URI
+import com.example.shop.auth.OAUTH_AUTH_URI_PATTERN
 import com.example.shop.auth.PERMIT_ALL_END_POINTS
 import com.example.shop.auth.security.filters.EmailPasswordAuthenticationFilter
 import com.example.shop.auth.security.filters.ThirdPartyOauthAuthenticationFilter
@@ -43,12 +45,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
-
-    companion object {
-        val EMAIL_PASSWORD_AUTH_URI = "/login"
-        val OAUTH_AUTH_URI_PATTERN = "/login/oauth/*"
-    }
-
     @Bean
     fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
