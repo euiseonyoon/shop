@@ -8,5 +8,4 @@ const val ROLE_ADMIN = ROLE_PREFIX + ADMIN_NAME
 
 val PERMIT_ALL_END_POINTS = listOf("/", "/health-check")
 
-const val ACCESS_TOKEN_KEY = "accessToken"
 const val REFRESH_TOKEN_KEY = "refreshToken"

@@ -20,6 +20,7 @@ import com.example.shop.auth.security.user_services.ThirdPartyUserServiceManager
 import com.example.shop.auth.security.utils.MyJwtTokenExtractor
 import com.example.shop.auth.services.AccountService
 import com.example.shop.common.utils.CustomAuthorityUtils
+import kotlinx.serialization.json.Json
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -125,8 +126,9 @@ class SecurityConfig {
         http: HttpSecurity,
         authenticationManager: AuthenticationManager,
         myJwtTokenHelper: MyJwtTokenHelper,
+        json: Json,
     ): SecurityFilterChain {
-        val successLoginHandler = MyLogInAuthenticationSuccessHandler(myJwtTokenHelper)
+        val successLoginHandler = MyLogInAuthenticationSuccessHandler(myJwtTokenHelper, json)
         val failLoginHandler = MyLogInAuthenticationFailureHandler()
 
         val emailPasswordAuthenticationFilter = EmailPasswordAuthenticationFilter(authenticationManager).apply {
