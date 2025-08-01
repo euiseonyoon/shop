@@ -1,6 +1,7 @@
 package com.example.shop.auth.jwt_helpers
 
 import io.jsonwebtoken.Claims
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.Authentication
 
 interface MyJwtTokenHelper {
@@ -20,4 +21,6 @@ interface MyJwtTokenHelper {
     fun getAuthorityStringList(claims: Claims): List<String>
 
     fun getAccountEmail(claims: Claims): String
+
+    fun setRefreshTokenOnCookie(response: HttpServletResponse, refreshToken: String)
 }

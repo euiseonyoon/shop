@@ -30,13 +30,7 @@ class MyLogInAuthenticationSuccessHandler(
         val accessToken = jwtHelper.createAccessToken(email, authentication)
         val refreshToken = jwtHelper.createRefreshToken(email)
 
-        val refreshTokenCookie = Cookie(REFRESH_TOKEN_KEY, refreshToken).apply {
-            isHttpOnly = true // JavaScript 접근 방지
-            path = "/" // 모든 경로에서 쿠키 사용 가능
-            maxAge = (jwtHelper.refreshTokenExpirationMs / 1000).toInt() // Refresh Token 유효 기간 (초 단위)
-            secure = true
-        }
-        response.addCookie(refreshTokenCookie)
+        jwtHelper.setRefreshTokenOnCookie(response, refreshToken)
 
         // 응답 본문에 토큰을 JSON 형식으로 작성합니다.
         response.status = HttpStatus.OK.value() // HTTP 상태 코드를 200 OK로 설정
