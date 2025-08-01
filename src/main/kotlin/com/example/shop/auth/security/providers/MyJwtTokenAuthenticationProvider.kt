@@ -1,7 +1,7 @@
 package com.example.shop.auth.security.providers
 
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
-import com.example.shop.auth.models.UserIdEmailAuthenticationToken
+import com.example.shop.auth.models.AccountAuthenticationToken
 import com.example.shop.auth.services.AccountService
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.AuthenticationServiceException
@@ -29,10 +29,20 @@ class MyJwtTokenAuthenticationProvider(
             val account = accountService.findByEmail(accountEmail) ?:
                 throw AuthenticationServiceException("Failed to find the account from database.")
 
-            return UserIdEmailAuthenticationToken(
+            /**
+             * 아래의 `AccountAuthenticationToken`는 `UsernamePasswordAuthenticationToken` 상속한다.
+             *
+             * `UsernamePasswordAuthenticationToken` 생성자중, authorities를 사용하는 생성자는
+             *  내부에서 이미 authenticated = true로 설정한다.
+             *
+             * `AccountAuthenticationToken.apply {authenticated = true}`를 실행하면,
+             * `UsernamePasswordAuthenticationToken.setAuthenticated()` 내부의 exception이 발생한다.
+             *
+             * */
+            return AccountAuthenticationToken(
                 account = account,
                 authorities = authorities,
-            ) // UsernamePasswordAuthenticationToken 생성자 내부에서 이미 authenticated = true로 설정한다.
+            )
         } catch (e: JwtException) {
             throw BadCredentialsException("Invalid Access Token: ${e.message}", e)
         } catch (e: AuthenticationException) {

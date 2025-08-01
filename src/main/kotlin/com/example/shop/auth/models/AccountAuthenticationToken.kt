@@ -5,7 +5,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 
-class UserIdEmailAuthenticationToken(
+class AccountAuthenticationToken(
     private val account: Account,
     val authorities: List<GrantedAuthority>?
 ): UsernamePasswordAuthenticationToken(account, null, authorities) {
