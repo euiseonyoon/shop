@@ -3,7 +3,7 @@ package com.example.shop.auth.security.user_services
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.security.third_party.interfaces.OidcDecodingAuthentication
 import com.example.shop.auth.security.third_party.jwt_decoder.GoogleJwtDecoder
-import com.example.shop.common.utils.AuthorityUtils
+import com.example.shop.common.utils.CustomAuthorityUtils
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo
@@ -13,7 +13,8 @@ import org.springframework.security.oauth2.jwt.JwtException
 import java.time.Instant
 
 class GoogleOidcUserService(
-    private val oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer
+    private val oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer,
+    private val customAuthorityUtils: CustomAuthorityUtils,
 ) : OidcDecodingAuthentication {
     override val providerId: ThirdPartyAuthenticationVendor = ThirdPartyAuthenticationVendor.GOOGLE
     override val jwtDecoder = GoogleJwtDecoder()
@@ -37,7 +38,7 @@ class GoogleOidcUserService(
                 email = jwt.claims[nameAttributeKey] as String,
                 providerId = this.providerId
             )
-            val accountAuthorities = AuthorityUtils.createSimpleGrantedAuthorities(accountResult.account)
+            val accountAuthorities = customAuthorityUtils.createSimpleGrantedAuthorities(accountResult.account)
 
             // 아래 accountAuthorities 는 access token/refresh token 만들때, claims에 넣도록 하자.
             return DefaultOidcUser(accountAuthorities, oidcIdToken, OidcUserInfo(jwt.claims), nameAttributeKey)

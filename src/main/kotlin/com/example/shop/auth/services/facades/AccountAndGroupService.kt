@@ -1,7 +1,6 @@
 package com.example.shop.auth.services.facades
 
 import com.example.shop.auth.domain.Account
-import com.example.shop.auth.domain.Authority
 import com.example.shop.auth.exceptions.AccountGroupPartiallyNotFoundException
 import com.example.shop.auth.exceptions.AuthorityNotFoundException
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
@@ -9,10 +8,9 @@ import com.example.shop.auth.services.AccountGroupService
 import com.example.shop.auth.services.AccountService
 import com.example.shop.auth.services.AuthorityService
 import com.example.shop.auth.services.GroupMemberService
-import com.example.shop.common.utils.AuthorityUtils
+import com.example.shop.common.utils.CustomAuthorityUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-
 
 @Service
 class AccountAndGroupService(
@@ -20,6 +18,7 @@ class AccountAndGroupService(
     private val accountGroupService: AccountGroupService,
     private val groupMemberService: GroupMemberService,
     private val authorityService: AuthorityService,
+    private val customAuthorityUtils: CustomAuthorityUtils
 ) {
     @Transactional
     fun createAccountAndAssignGroup(
@@ -32,7 +31,7 @@ class AccountAndGroupService(
         assignGroupStrictly: Boolean,
         createRoleIfNotExist: Boolean,
     ): Account {
-        AuthorityUtils.validateAuthorityPrefix(roleName)
+        customAuthorityUtils.validateAuthorityPrefix(roleName)
 
         val authority = authorityService.findByRoleName(roleName) ?: run {
             if (!createRoleIfNotExist) {

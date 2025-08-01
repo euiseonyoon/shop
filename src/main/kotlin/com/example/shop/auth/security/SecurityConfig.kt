@@ -17,7 +17,9 @@ import com.example.shop.auth.security.user_services.EmailPasswordUserDetailServi
 import com.example.shop.auth.security.user_services.GoogleOidcUserService
 import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
 import com.example.shop.auth.security.user_services.ThirdPartyUserServiceManager
+import com.example.shop.auth.security.utils.MyJwtTokenExtractor
 import com.example.shop.auth.services.AccountService
+import com.example.shop.common.utils.CustomAuthorityUtils
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -51,9 +53,10 @@ class SecurityConfig {
 
     @Bean
     fun googleUserService(
-        oauth2AuthenticatedAutoRegisterer: OauthAuthenticatedUserAutoRegisterer
+        oauth2AuthenticatedAutoRegisterer: OauthAuthenticatedUserAutoRegisterer,
+        customAuthorityUtils: CustomAuthorityUtils
     ): ThirdPartyAuthenticationUserService {
-        return GoogleOidcUserService(oauth2AuthenticatedAutoRegisterer)
+        return GoogleOidcUserService(oauth2AuthenticatedAutoRegisterer, customAuthorityUtils)
     }
 
     @Bean
@@ -67,10 +70,13 @@ class SecurityConfig {
         thirdPartyAuthUserServiceManager: ThirdPartyUserServiceManager,
         accountService: AccountService,
         jwtTokenHelper: MyJwtTokenHelper,
+        customAuthorityUtils: CustomAuthorityUtils,
     ): AuthenticationManager {
         // /login/form : email+password로 로그인하는 유저들
         // https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/jdbc.html#servlet-authentication-jdbc-schema
-        val emailPasswordAuthenticationProvider = DaoAuthenticationProvider(EmailPasswordUserDetailService(accountService))
+        val emailPasswordAuthenticationProvider = DaoAuthenticationProvider(
+            EmailPasswordUserDetailService(accountService, customAuthorityUtils)
+        )
         emailPasswordAuthenticationProvider.setPasswordEncoder(passwordEncoder)
 
         val thirdPartyOidcAuthenticationProvider = ThirdPartyOauthAuthenticationProvider(thirdPartyAuthUserServiceManager)
@@ -88,7 +94,9 @@ class SecurityConfig {
     }
 
     @Bean
-    fun myAuthenticationConverter(): AuthenticationConverter = CustomJwtAuthenticationConverter()
+    fun myAuthenticationConverter(
+        myJwtTokenExtractor: MyJwtTokenExtractor
+    ): AuthenticationConverter = CustomJwtAuthenticationConverter(myJwtTokenExtractor)
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
