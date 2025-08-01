@@ -88,16 +88,18 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
         claims: Map<String, Any>?,
         jti: String?
     ): String {
-        val builder = Jwts
-            .builder()
+        val builder = Jwts.builder()
+
+        claims?.let { builder.setClaims(it) }
+        jti?.let { builder.setId(it) }
+
+        builder
             .setSubject(email)
             .setIssuedAt(Date())
             .setIssuer(issuer)
             .setExpiration(Date(System.currentTimeMillis() + durationMs))
             .signWith(secretKey, SignatureAlgorithm.HS256)
 
-        jti?.let { builder.setId(it) }
-        claims?.let { builder.setClaims(it) }
         return builder.compact()
     }
 }
