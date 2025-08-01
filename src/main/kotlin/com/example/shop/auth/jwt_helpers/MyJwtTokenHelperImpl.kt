@@ -1,11 +1,14 @@
 package com.example.shop.auth.jwt_helpers
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.jwt.BadJwtException
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.crypto.SecretKey
@@ -15,6 +18,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     override val accessTokenExpirationMs: Long = 1000 * 60 * 30 // 1시간
     override val refreshTokenExpirationMs: Long = 1000 * 60 * 60 * 24 * 7 // 7일
     override val authClaimKey: String = "auth"
+    override val authStringDelimiter: String = ","
 
     @Value("\${jwt.access_secret}")
     lateinit var encodedAccessSecretKey: String
@@ -30,7 +34,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
 
 
     override fun createAccessToken(email: String, authentication: Authentication): String {
-        val authoritiesString = authentication.authorities.map { it.authority }.joinToString(",")
+        val authoritiesString = authentication.authorities.map { it.authority }.joinToString(authStringDelimiter)
         return createToken(
             email,
             accessTokenExpirationMs,
@@ -48,6 +52,33 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
             null,
             UUID.randomUUID().toString()
         )
+    }
+
+    override fun parseAccessToken(accessToken: String): Claims {
+        return paresToken(accessToken, accessSecretKey)
+    }
+
+    override fun parseRefreshToken(refreshToken: String): Claims {
+        return paresToken(refreshToken, refreshSecretKey)
+    }
+
+    override fun getAuthorityStringList(claims: Claims): List<String> {
+        val authoritiesString = claims[authClaimKey] as? String ?:
+            throw BadCredentialsException("Access Token should include authority claim string.")
+
+        return authoritiesString.split(authStringDelimiter)
+    }
+
+    override fun getAccountEmail(claims: Claims): String {
+        return claims.subject ?: throw BadJwtException("subject missing from claims.")
+    }
+
+    private fun paresToken(token: String, secretKey: SecretKey): Claims {
+        return Jwts.parserBuilder()
+            .setSigningKey(secretKey)
+            .build()
+            .parseClaimsJws(token)
+            .body
     }
 
     private fun createToken(

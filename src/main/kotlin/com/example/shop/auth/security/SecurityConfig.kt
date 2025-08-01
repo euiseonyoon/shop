@@ -7,6 +7,10 @@ import com.example.shop.auth.security.filters.ThirdPartyOauthAuthenticationFilte
 import com.example.shop.auth.security.handlers.MyLogInAuthenticationFailureHandler
 import com.example.shop.auth.security.handlers.MyLogInAuthenticationSuccessHandler
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
+import com.example.shop.auth.jwt_helpers.MyJwtTokenHelperImpl
+import com.example.shop.auth.security.filters.MyJwtAuthenticationFilter
+import com.example.shop.auth.security.filters.authentication_converter.CustomJwtAuthenticationConverter
+import com.example.shop.auth.security.providers.MyJwtTokenAuthenticationProvider
 import com.example.shop.auth.security.providers.ThirdPartyOauthAuthenticationProvider
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.auth.security.user_services.EmailPasswordUserDetailService
@@ -14,7 +18,6 @@ import com.example.shop.auth.security.user_services.GoogleOidcUserService
 import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
 import com.example.shop.auth.security.user_services.ThirdPartyUserServiceManager
 import com.example.shop.auth.services.AccountService
-import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -27,6 +30,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.AuthorizationFilter
+import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -69,11 +73,20 @@ class SecurityConfig {
 
         val thirdPartyOidcAuthenticationProvider = ThirdPartyOauthAuthenticationProvider(thirdPartyAuthUserServiceManager)
 
-        // 나의 모든 api 호출시, access token이 없으면 안된다.
-        // val myJwtAuthenticationProvider = JwtAuthenticationProvider()
+        val jwtTokenAuthenticationProvider = MyJwtTokenAuthenticationProvider(
+            MyJwtTokenHelperImpl(),
+            accountService,
+        )
 
-        return ProviderManager(emailPasswordAuthenticationProvider, thirdPartyOidcAuthenticationProvider)
+        return ProviderManager(
+            emailPasswordAuthenticationProvider,
+            thirdPartyOidcAuthenticationProvider,
+            jwtTokenAuthenticationProvider,
+        )
     }
+
+    @Bean
+    fun myAuthenticationConverter(): AuthenticationConverter = CustomJwtAuthenticationConverter()
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
@@ -168,16 +181,16 @@ class SecurityConfig {
         http: HttpSecurity,
         authenticationManager: AuthenticationManager,
         myJwtTokenHelper: MyJwtTokenHelper,
+        authenticationConverter: AuthenticationConverter
     ): SecurityFilterChain {
-        throw NotImplementedException("NOT IMPLEMENTED YET")
-//        return makeBaseHttpSecurity(http)
-//            .securityMatcher()
-//            .authorizeHttpRequests { auth ->
-//                auth
-//                    .requestMatchers("/admin/**").hasRole(ADMIN_NAME)
-//                    .anyRequest().authenticated()
-//            }
-//            .addFilterBefore(jwtTokenFilter, AuthorizationFilter::class.java)
-//            .build()
+        val jwtTokenFilter = MyJwtAuthenticationFilter(authenticationManager, authenticationConverter)
+        return makeBaseHttpSecurity(http)
+            .authorizeHttpRequests { auth ->
+                auth
+                    .requestMatchers("/admin/**").hasRole(ADMIN_NAME)
+                    .anyRequest().authenticated()
+            }
+            .addFilterBefore(jwtTokenFilter, AuthorizationFilter::class.java)
+            .build()
     }
 }

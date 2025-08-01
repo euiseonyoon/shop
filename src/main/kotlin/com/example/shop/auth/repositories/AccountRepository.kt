@@ -5,4 +5,5 @@ import com.example.shop.auth.repositories.extensions.AccountRepositoryExtension
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface AccountRepository : JpaRepository<Account, Long>, AccountRepositoryExtension {
+    fun findByUsername(email: String): Account?
 }

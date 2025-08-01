@@ -13,6 +13,8 @@ class AccountService(
     private val accountRepository: AccountRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
+    fun findByEmail(email: String): Account? = accountRepository.findByUsername(email)
+
     @Transactional(readOnly = true)
     fun findWithAuthoritiesByEmail(email: String): Account? {
         return accountRepository.findWithAuthoritiesByEmail(email)
