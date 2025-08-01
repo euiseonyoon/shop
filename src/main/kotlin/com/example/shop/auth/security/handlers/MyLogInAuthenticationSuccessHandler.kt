@@ -31,6 +31,7 @@ class MyLogInAuthenticationSuccessHandler(
         val accessToken = jwtHelper.createAccessToken(email, authentication.authorities.toList())
         val refreshToken = jwtHelper.createRefreshToken(email)
 
+        // TODO: /token/refresh 에서 Refresh 토큰도 재생성한다. 따라서 여기서도 Refresh 토큰 생성시, Refresh 토큰의 state를 관리해야한다.
         // 응답 본문에 토큰을 JSON 형식으로 작성합니다.
         response.status = HttpStatus.OK.value() // HTTP 상태 코드를 200 OK로 설정
         response.contentType = MediaType.APPLICATION_JSON_VALUE // 응답 Content-Type을 JSON으로 설정
