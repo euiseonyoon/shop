@@ -32,7 +32,7 @@ class MyJwtTokenAuthenticationProvider(
             return UserIdEmailAuthenticationToken(
                 account = account,
                 authorities = authorities,
-            ).apply { isAuthenticated = true }
+            ) // UsernamePasswordAuthenticationToken 생성자 내부에서 이미 authenticated = true로 설정한다.
         } catch (e: JwtException) {
             throw BadCredentialsException("Invalid Access Token: ${e.message}", e)
         } catch (e: AuthenticationException) {
