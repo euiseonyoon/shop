@@ -27,7 +27,7 @@ class MyLogInAuthenticationSuccessHandler(
             (authentication.principal as OAuth2User).name
         }
 
-        val accessToken = jwtHelper.createAccessToken(email, authentication)
+        val accessToken = jwtHelper.createAccessToken(email, authentication.authorities.toList())
         val refreshToken = jwtHelper.createRefreshToken(email)
 
         jwtHelper.setRefreshTokenOnCookie(response, refreshToken)

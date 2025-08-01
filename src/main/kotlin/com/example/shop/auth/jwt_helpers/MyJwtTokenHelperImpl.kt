@@ -10,7 +10,7 @@ import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.core.Authentication
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.jwt.BadJwtException
 import org.springframework.stereotype.Component
 import java.util.*
@@ -36,8 +36,8 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     private val refreshSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedRefreshSecretKey)) }
 
 
-    override fun createAccessToken(email: String, authentication: Authentication): String {
-        val authoritiesString = authentication.authorities.map { it.authority }.joinToString(authStringDelimiter)
+    override fun createAccessToken(email: String, authorities: List<GrantedAuthority>): String {
+        val authoritiesString = authorities.map { it.authority }.joinToString(authStringDelimiter)
         return createToken(
             email,
             accessTokenExpirationMs,
