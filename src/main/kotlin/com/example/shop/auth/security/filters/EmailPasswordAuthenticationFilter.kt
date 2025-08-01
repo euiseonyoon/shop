@@ -14,9 +14,8 @@ import java.io.IOException
 
 class EmailPasswordAuthenticationFilter(
     authenticationManager: AuthenticationManager,
+    private val json: Json
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
-
-    private val json = Json { ignoreUnknownKeys = true }
 
     init {
         setFilterProcessesUrl(EMAIL_PASSWORD_AUTH_URI)

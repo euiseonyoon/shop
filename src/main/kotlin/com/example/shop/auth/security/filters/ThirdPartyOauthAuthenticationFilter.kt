@@ -15,9 +15,8 @@ import java.io.IOException
 class ThirdPartyOauthAuthenticationFilter(
     targetUri: String,
     authenticationManager: AuthenticationManager,
+    private val json: Json,
 ) : AbstractAuthenticationProcessingFilter(targetUri, authenticationManager) {
-
-    private val json = Json { ignoreUnknownKeys = true }
 
     override fun attemptAuthentication(
         request: HttpServletRequest,

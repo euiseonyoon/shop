@@ -127,14 +127,15 @@ class SecurityConfig {
         val successLoginHandler = MyLogInAuthenticationSuccessHandler(myJwtTokenHelper, json)
         val failLoginHandler = MyLogInAuthenticationFailureHandler()
 
-        val emailPasswordAuthenticationFilter = EmailPasswordAuthenticationFilter(authenticationManager).apply {
+        val emailPasswordAuthenticationFilter = EmailPasswordAuthenticationFilter(authenticationManager, json).apply {
             setAuthenticationSuccessHandler(successLoginHandler)
             setAuthenticationFailureHandler(failLoginHandler)
         }
 
         val thirdPartyOauthAuthenticationFilter = ThirdPartyOauthAuthenticationFilter(
             OAUTH_AUTH_URI_PATTERN,
-            authenticationManager
+            authenticationManager,
+            json,
         ).apply {
             setAuthenticationSuccessHandler(successLoginHandler)
             setAuthenticationFailureHandler(failLoginHandler)
