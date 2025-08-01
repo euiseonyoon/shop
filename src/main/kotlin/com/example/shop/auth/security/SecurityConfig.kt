@@ -9,6 +9,7 @@ import com.example.shop.auth.security.handlers.MyLogInAuthenticationSuccessHandl
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.security.filters.MyJwtAuthenticationFilter
 import com.example.shop.auth.security.filters.authentication_converter.CustomJwtAuthenticationConverter
+import com.example.shop.auth.security.handlers.MyJwtAuthenticationSuccessHandler
 import com.example.shop.auth.security.providers.MyJwtTokenAuthenticationProvider
 import com.example.shop.auth.security.providers.ThirdPartyOauthAuthenticationProvider
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
@@ -25,6 +26,7 @@ import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
@@ -169,7 +171,6 @@ class SecurityConfig {
         authenticationManager: AuthenticationManager,
         myJwtTokenHelper: MyJwtTokenHelper,
     ): SecurityFilterChain {
-
         return makeBaseHttpSecurity(http)
             .securityMatcher(*PERMIT_ALL_END_POINTS.toTypedArray())
             .build()
@@ -183,8 +184,37 @@ class SecurityConfig {
         myJwtTokenHelper: MyJwtTokenHelper,
         authenticationConverter: AuthenticationConverter
     ): SecurityFilterChain {
-        val jwtTokenFilter = MyJwtAuthenticationFilter(authenticationManager, authenticationConverter)
+        val jwtTokenFilter = MyJwtAuthenticationFilter(authenticationManager, authenticationConverter).apply {
+            successHandler = MyJwtAuthenticationSuccessHandler()
+        }
+        /**
+         * 아래처럼  securityContext{}를 통해 SecurityContextRepository를 지정하지 않으면
+         * `DelegatingSecurityContextRepository`가 default로 사용된다.
+         *      DelegatingSecurityContextRepository는
+         *      1. 요청에 세션 ID(JSESSIONID)가 있으면 -> HttpSessionSecurityContextRepository를 사용하여 HttpSession에 인증/인가 정보를 저장한다.
+         *      2. 1번의 경우가 아니면 -> 내부적으로 설정된 다른 SecurityContextRepository에 위임합니다.
+         *
+         * 우리의 경우처럼, stateless한 API를 사용하는 경우,
+         * `RequestAttributeSecurityContextRepository`를 사용해야 한다.
+         *
+         * RequestAttributeSecurityContextRepository()를 Bean으로 정의 한뒤,
+         * 주입받고, 아래 코드 처럼 할 수도 있다.
+         *
+         *             .securityContext { securityContext ->
+         *                 securityContext.securityContextRepository(securityContextRepository)
+         *             }
+         *
+         * 하지만 아래 코드 처럼한다면, DelegatingSecurityContextRepository가 알아서, RequestAttributeSecurityContextRepository를
+         * 사용한다.
+         *              .sessionManagement { session ->
+         *             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+         *         }
+         *
+         * */
         return makeBaseHttpSecurity(http)
+            .sessionManagement { session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/admin/**").hasRole(ADMIN_NAME)
