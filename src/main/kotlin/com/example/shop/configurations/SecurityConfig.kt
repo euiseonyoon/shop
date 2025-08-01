@@ -113,6 +113,9 @@ class SecurityConfig {
     private fun makeBaseHttpSecurity(http: HttpSecurity): HttpSecurity {
         http.csrf { it.disable() }
             .cors { cors -> cors.configurationSource(corsConfigurationSource()) }
+            .sessionManagement { session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
         return http
     }
 
@@ -219,9 +222,6 @@ class SecurityConfig {
          *
          * */
         return makeBaseHttpSecurity(http)
-            .sessionManagement { session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/admin/**").hasRole(ADMIN_NAME)
