@@ -7,7 +7,6 @@ import com.example.shop.auth.security.filters.ThirdPartyOauthAuthenticationFilte
 import com.example.shop.auth.security.handlers.MyLogInAuthenticationFailureHandler
 import com.example.shop.auth.security.handlers.MyLogInAuthenticationSuccessHandler
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
-import com.example.shop.auth.jwt_helpers.MyJwtTokenHelperImpl
 import com.example.shop.auth.security.filters.MyJwtAuthenticationFilter
 import com.example.shop.auth.security.filters.authentication_converter.CustomJwtAuthenticationConverter
 import com.example.shop.auth.security.providers.MyJwtTokenAuthenticationProvider
@@ -65,6 +64,7 @@ class SecurityConfig {
         passwordEncoder: PasswordEncoder,
         thirdPartyAuthUserServiceManager: ThirdPartyUserServiceManager,
         accountService: AccountService,
+        jwtTokenHelper: MyJwtTokenHelper,
     ): AuthenticationManager {
         // /login/form : email+password로 로그인하는 유저들
         // https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/jdbc.html#servlet-authentication-jdbc-schema
@@ -74,7 +74,7 @@ class SecurityConfig {
         val thirdPartyOidcAuthenticationProvider = ThirdPartyOauthAuthenticationProvider(thirdPartyAuthUserServiceManager)
 
         val jwtTokenAuthenticationProvider = MyJwtTokenAuthenticationProvider(
-            MyJwtTokenHelperImpl(),
+            jwtTokenHelper,
             accountService,
         )
 
