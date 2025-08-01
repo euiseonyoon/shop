@@ -22,6 +22,10 @@ class MyJwtAuthenticationFilter(
     private val securityContextRepository: SecurityContextRepository =
         RequestAttributeSecurityContextRepository()
 
+    /**
+     * securityContextHolderStrategy의 실제 객체는 `ThreadLocalSecurityContextHolderStrategy`
+     * SecurityContextHolder.initializeStrategy() 참고. (default가 ThreadLocalSecurityContextHolderStrategy)
+     * */
     private val securityContextHolderStrategy: SecurityContextHolderStrategy =
         SecurityContextHolder.getContextHolderStrategy()
 
@@ -47,7 +51,7 @@ class MyJwtAuthenticationFilter(
         val authentication = authenticationConverter.convert(request) ?: return null
 
         return authenticationManager.authenticate(authentication) ?:
-            throw ServletException("AuthenticationManager should not return null Authentication object.")
+        throw ServletException("AuthenticationManager should not return null Authentication object.")
     }
 
     private fun unsuccessfulAuthentication(request: HttpServletRequest, response: HttpServletResponse, failed: AuthenticationException) {
@@ -56,9 +60,8 @@ class MyJwtAuthenticationFilter(
     }
 
     private fun successfulAuthentication(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain, authentication: Authentication) {
-        val context = securityContextHolderStrategy.createEmptyContext()
+        val context = securityContextHolderStrategy.context
         context.authentication = authentication
-        securityContextHolderStrategy.context = context
         securityContextRepository.saveContext(context, request, response)
         successHandler.onAuthenticationSuccess(request, response, chain, authentication)
     }
