@@ -323,6 +323,50 @@ Authentication
         AbstractAuthenticationProcessingFilter.unsuccessfulAuthentication() 가 호출된다.
 
 ================================================================================================
+
+** 추가사항 (Persistence of 인증):
+    위의 6.1 -> 2번
+    " 2. SecurityContextHolder는 이걸 현재 요청을 처리하는 스레드의 ThreadLocal에 저장한다. " 에 관련하여 좀 더 알아보자
+
+    * 유저정보(Authentication)은 일단 `SecurityContext`에 저장된다.
+    * 이 `SecurityContext`는 스레드의 ThreadLocal에 저장되기도 하지만 `SecurityContextRepository`라는 저장소에 저장된다.
+
+        - `SecurityContextRepository`의 default 구현체는 `DelegatingSecurityContextRepository`이고
+        - `DelegatingSecurityContextRepository` 는 `SecurityContext`의 load/save를 아래의 저장소에 delegate 한다.
+
+        - `SecurityContextRepository` 타입 :
+            1. `HttpSessionSecurityContextRepository` : `SecurityContext`를 `HttpSession`에 저장한다 (session을 사용하는 stateful 한 request를 처리할때 주로 사용됨)
+            2. `RequestAttributeSecurityContextRepository` : `SecurityContext`를 request(HttpServletRequest) 객체에 attribute 형태로 저장한다.
+                예를들면 request.setAttribute("someSecurityContextKey", securityContext) 이런식으로.
+
+    * `SecurityContextPersistenceFilter`가 바로 유저정보(Authentication)이 포함된 SecurityContext를 스레드의 ThreadLocal에 save/load 하는 녀석이다.
+        - SecurityContextPersistenceFilter는 `SecurityContext`를 holding 할 때, 여러 전략(strategy)중 하나를 사용한다.
+            - 전략은 : MODE_THREADLOCAL (ThreadLocal에 저장하기, default),  MODE_INHERITABLETHREADLOCAL, MODE_GLOBAL, MODE_PRE_INITIALIZED 이 있다.
+            - appliction.yaml에 "spring.security.strategy=MODE_THREADLOCAL" 처럼 설정하여 SecurityContext holding 전략을 명시 할 수 있다.
+        -  org.springframework.security.core.context.SecurityContextHolder.initializeStrategy()를 확인해 보면 알 수 있다.
+
+
+    * "SecurityContext"의 라이프사이클을 보도록 하자
+
+        1. 요청 시작 시 (On the way in):
+            - 가장 먼저 실행되는 필터 중 하나인 SecurityContextPersistenceFilter는 SecurityContextRepository.loadContext()를 호출
+            - 인증 정보(SecurityContext)를 ThreadLocal에 불러옵니다.
+
+        2. 인증/인가 필터 실행:
+            - 이후 AuthenticationFilter, AuthorizationFilter 등이 실행됩니다.
+            - 이 필터들은 모두 ThreadLocal에 있는 SecurityContext를 참조하고, 인증 성공 시 Authentication 객체를 업데이트합니다.
+
+        3. 요청 종료 시 (On the way out):
+            - 모든 필터와 컨트롤러가 실행된 후, SecurityContextPersistenceFilter가 다시 한번 실행됩니다.
+            - 이 필터는 ThreadLocal에 있는 최종 SecurityContext를 SecurityContextRepository.saveContext()를 통해 SecurityContextRepository에 다시 저장합니다.
+            - 마지막으로 ThreadLocal의 컨텍스트를 정리하여 다음 요청에 영향을 주지 않도록 합니다.
+
+
+    * https://docs.spring.io/spring-security/reference/servlet/authentication/persistence.html#securitycontextpersistencefilter를 참고하면
+    `SecurityContextPersistenceFilter`와 위에서 설명한 `SecurityContextHolderFilter`둘 다 나와있지만,
+    `SecurityContextPersistenceFilter`는 Deprecated 되었다고 코드상에 기입되어 있다.
+
+================================================================================================
 Authorization (인가) - Architecture
 
 1. Authorities(권한)
@@ -587,4 +631,6 @@ open class BankService {
 	}
 }
 ```
+
+
 
