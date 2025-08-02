@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.server.resource.authentication.Bearer
 import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.stereotype.Component
 
+@Component
 class CustomJwtAuthenticationConverter(
     private val myJwtTokenExtractor: MyJwtTokenExtractor
 ) : AuthenticationConverter, MyJwtAuthenticationConverter {
