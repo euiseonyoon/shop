@@ -1,5 +1,7 @@
 package com.example.shop.auth.jwt_helpers
 
+import com.example.shop.auth.ACCESS_TOKEN_EXPIRATION_MS
+import com.example.shop.auth.REFRESH_TOKEN_EXPIRATION_MS
 import com.example.shop.auth.REFRESH_TOKEN_KEY
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -18,8 +20,8 @@ import javax.crypto.SecretKey
 
 @Component
 class MyJwtTokenHelperImpl : MyJwtTokenHelper {
-    override val accessTokenExpirationMs: Long = 1000 * 60 * 30 // 1시간
-    override val refreshTokenExpirationMs: Long = 1000 * 60 * 60 * 24 * 7 // 7일
+    override val accessTokenExpirationMs: Long = ACCESS_TOKEN_EXPIRATION_MS
+    override val refreshTokenExpirationMs: Long = REFRESH_TOKEN_EXPIRATION_MS
     override val authClaimKey: String = "auth"
     override val authStringDelimiter: String = ","
 
