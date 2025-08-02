@@ -32,6 +32,9 @@ repositories {
 }
 
 dependencies {
+    // Redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
     // QueryDSL. https://velog.io/@yangwon-park/Kotlin-Querydsl-%EC%84%B8%ED%8C%85
     implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
     implementation("com.querydsl:querydsl-apt:5.0.0:jakarta")
