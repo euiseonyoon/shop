@@ -21,6 +21,7 @@ import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRe
 import com.example.shop.auth.security.user_services.ThirdPartyUserServiceManager
 import com.example.shop.auth.security.utils.MyJwtTokenExtractor
 import com.example.shop.auth.services.AccountService
+import com.example.shop.auth.utils.RefreshTokenStateHelper
 import com.example.shop.common.utils.CustomAuthorityUtils
 import kotlinx.serialization.json.Json
 import org.springframework.context.annotation.Bean
@@ -126,8 +127,9 @@ class SecurityConfig {
         authenticationManager: AuthenticationManager,
         myJwtTokenHelper: MyJwtTokenHelper,
         json: Json,
+        refreshTokenStateHelper: RefreshTokenStateHelper,
     ): SecurityFilterChain {
-        val successLoginHandler = MyLogInAuthenticationSuccessHandler(myJwtTokenHelper, json)
+        val successLoginHandler = MyLogInAuthenticationSuccessHandler(myJwtTokenHelper, json, refreshTokenStateHelper)
         val failLoginHandler = MyLogInAuthenticationFailureHandler()
 
         val emailPasswordAuthenticationFilter = EmailPasswordAuthenticationFilter(authenticationManager, json).apply {
