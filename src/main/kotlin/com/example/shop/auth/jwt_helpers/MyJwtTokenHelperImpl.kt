@@ -79,13 +79,27 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     }
 
     override fun setRefreshTokenOnCookie(response: HttpServletResponse, refreshToken: String) {
-        val refreshTokenCookie = Cookie(REFRESH_TOKEN_KEY, refreshToken).apply {
+        val refreshTokenCookie = Cookie(REFRESH_TOKEN_KEY, refreshToken)
+        response.addCookie(
+            setSecuredCookie(refreshTokenCookie, (refreshTokenExpirationMs / 1000).toInt())
+        )
+    }
+
+    override fun deleteRefreshTokenFromCookie(response: HttpServletResponse) {
+        val refreshTokenCookie = Cookie(REFRESH_TOKEN_KEY, null)
+        response.addCookie(
+            setSecuredCookie(refreshTokenCookie, 0)
+        )
+    }
+
+    private fun setSecuredCookie(cookie: Cookie, maxAgeSec: Int): Cookie {
+        cookie.apply {
             isHttpOnly = true // JavaScript 접근 방지
-            path = "/" // 모든 경로에서 쿠키 사용 가능
-            maxAge = (refreshTokenExpirationMs / 1000).toInt() // Refresh Token 유효 기간 (초 단위)
+            path = "/"
+            maxAge = maxAgeSec
             secure = true
         }
-        response.addCookie(refreshTokenCookie)
+        return cookie
     }
 
     private fun paresToken(token: String, secretKey: SecretKey): Claims {

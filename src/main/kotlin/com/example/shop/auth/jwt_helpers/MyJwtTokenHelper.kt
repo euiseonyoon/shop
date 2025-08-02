@@ -23,4 +23,6 @@ interface MyJwtTokenHelper {
     fun getAccountEmail(claims: Claims): String
 
     fun setRefreshTokenOnCookie(response: HttpServletResponse, refreshToken: String)
+
+    fun deleteRefreshTokenFromCookie(response: HttpServletResponse)
 }
