@@ -14,11 +14,11 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
-import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import org.springframework.web.filter.OncePerRequestFilter
 
 @Configuration
 @EnableWebSecurity
@@ -62,6 +62,9 @@ class SecurityConfig {
             .securityMatcher(OAUTH_AUTH_URI_PATTERN, EMAIL_PASSWORD_AUTH_URI)
             .addFilterBefore(thirdPartyOauthAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .addFilterAt(emailPasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .authorizeHttpRequests { auth ->
+                auth.anyRequest().permitAll()
+            }
             .build()
     }
 
@@ -93,6 +96,9 @@ class SecurityConfig {
     fun permitAllFilterChain(http: HttpSecurity): SecurityFilterChain {
         return makeBaseHttpSecurity(http)
             .securityMatcher(*PERMIT_ALL_END_POINTS.toTypedArray())
+            .authorizeHttpRequests { auth ->
+                auth.anyRequest().permitAll()
+            }
             .build()
     }
 
@@ -101,8 +107,25 @@ class SecurityConfig {
     fun jwtAuthenticationFilterChain(
         http: HttpSecurity,
         @Qualifier("myJwtAuthenticationFilter")
-        jwtTokenFilter: AuthenticationFilter
+        jwtTokenFilter: OncePerRequestFilter
     ): SecurityFilterChain {
+        /**
+         * 문제:
+         *  MyJwtAuthenticationFilter를 Bean 으로 등록하면 위의 permitAllFilterChain()에 매칭되는 /token/refresh 를 호출해도
+         *  MyJwtAuthenticationFilter.doFilterInternal()을 거친다.
+         *  추측으로는 MyJwtAuthenticationFilter : AuthenticationFilter : OncePerRequestFilter()라서 ?
+         *
+         * OncePerRequestFilter는 기본적으로 모든 request에 한번씩 적용된다.
+         * 그래서 Bean으로 등록해두면 permitAllFilterChain()의 securityMatcher에 매칭되지 않더라도 적용된것이다.
+         * 이걸 원하지 않으면 OncePerRequestFilter는.shouldNotFilter()를 override 한 것을 Bean으로 등록하면 된다.
+         *
+         * 그러지 않으면 아래처럼 OncePerRequestFilter를 Bean 으로 등록하지 않으면 된다.
+         *
+         *     val jwtTokenFilter = MyJwtAuthenticationFilter(authenticationManager, authenticationConverter).apply {
+         *        successHandler = noOpAuthenticationSuccessHandler
+         *     }
+         * */
+
         /**
          * 아래처럼  securityContext{}를 통해 SecurityContextRepository를 지정하지 않으면
          * `DelegatingSecurityContextRepository`가 default로 사용된다.

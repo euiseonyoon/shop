@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.filter.OncePerRequestFilter
 
 @Configuration
 class SecurityFilterConfig {
@@ -59,7 +60,7 @@ class SecurityFilterConfig {
         authenticationConverter: AuthenticationConverter,
         @Qualifier("myJwtAuthenticationSuccessHandler")
         noOpAuthenticationSuccessHandler: AuthenticationSuccessHandler
-    ): AuthenticationFilter {
+    ): OncePerRequestFilter {
         return MyJwtAuthenticationFilter(authenticationManager, authenticationConverter).apply {
             successHandler = noOpAuthenticationSuccessHandler
         }

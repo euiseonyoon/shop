@@ -1,5 +1,6 @@
 package com.example.shop.auth.security.filters
 
+import com.example.shop.auth.PERMIT_ALL_END_POINTS
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
@@ -11,13 +12,16 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextHolderStrategy
 import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.security.web.authentication.AuthenticationFilter
-import org.springframework.security.web.context.RequestAttributeSecurityContextRepository
-import org.springframework.security.web.context.SecurityContextRepository
 
 class MyJwtAuthenticationFilter(
     private val authenticationManager: AuthenticationManager,
     private val authenticationConverter: AuthenticationConverter, // request -> Authentication으로 바꾸는것
 ) : AuthenticationFilter(authenticationManager, authenticationConverter) {
+
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        // permitAll 엔드포인트는 필터를 거치지 않도록 설정
+        return PERMIT_ALL_END_POINTS.contains(request.servletPath)
+    }
 
     /**
      *
