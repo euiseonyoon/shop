@@ -10,12 +10,12 @@ class AccountAuthenticationToken(
     val authorities: List<GrantedAuthority>?
 ): UsernamePasswordAuthenticationToken(account, null, authorities) {
     init {
-        if (account.username == null || account.id == null) {
-            throw AuthenticationServiceException("account username and id should not be null.")
+        if (account.email == null || account.id == null) {
+            throw AuthenticationServiceException("account email and id should not be null.")
         }
     }
 
-    fun getEmail(): String = account.username!!
+    fun getEmail(): String = account.email!!
 
     fun getAccountId(): Long = account.id!!
 }

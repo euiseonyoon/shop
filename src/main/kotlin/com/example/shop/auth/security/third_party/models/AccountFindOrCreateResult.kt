@@ -8,7 +8,7 @@ data class AccountFindOrCreateResult(
     val newlyCreated: Boolean,
 ) {
     init {
-        requireNotNull(account.username) { "If Account email must be provided." }
+        requireNotNull(account.email) { "If Account email must be provided." }
 
         if (newlyCreated) {
             requireNotNull(generatedPassword) {

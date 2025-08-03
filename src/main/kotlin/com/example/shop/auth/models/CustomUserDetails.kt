@@ -10,10 +10,10 @@ class CustomUserDetails(
     accountNonExpired: Boolean = true,
     credentialsNonExpired: Boolean = true,
     accountNonLocked: Boolean = true,
-) : User(account.username!!, account.password!!, account.enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, allAuthorities) {
+) : User(account.email!!, account.password!!, account.enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, allAuthorities) {
 
     init {
-        requireNotNull(account.username) { "Custom user detail exception. Account.username should not be null." }
+        requireNotNull(account.email) { "Custom user detail exception. Account.username should not be null." }
         requireNotNull(account.id) { "Custom user detail exception. Account.id should not be null." }
     }
 

@@ -22,7 +22,7 @@ class Account: BaseCompareEntity<Account>() {
     val id: Long? = null
 
     @Column(nullable = false, unique = true)
-    var username: String? = null
+    var email: String? = null
 
     @Column(nullable = false)
     var password: String? = null
@@ -61,7 +61,7 @@ class Account: BaseCompareEntity<Account>() {
     }
 
     override fun compareDetail(other: Account): Boolean {
-        if (username != other.username) return false
+        if (email != other.email) return false
         return true
     }
 
@@ -70,6 +70,6 @@ class Account: BaseCompareEntity<Account>() {
     }
 
     override fun hashCodeGenerator(): Int {
-        return username?.hashCode() ?: 0
+        return email?.hashCode() ?: 0
     }
 }

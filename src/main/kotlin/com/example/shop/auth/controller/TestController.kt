@@ -17,7 +17,7 @@ class TestController {
     fun test(): String {
         val authentication = SecurityContextHolder.getContext().authentication as AccountAuthenticationToken
         val account: Account = authentication.principal as Account
-        return "hello ${account.username}"
+        return "hello ${account.email}"
     }
 
     @GetMapping("/test2")
@@ -26,7 +26,7 @@ class TestController {
         account: Account
     ): String {
         val authorities = account.getGroupAuthorities()
-        return "hello2 ${account.username}"
+        return "hello2 ${account.email}"
     }
 
     // @EnableMethodSecurity 를 사용해야 한다. SecurityConfig에 적용한다.

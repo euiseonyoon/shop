@@ -13,7 +13,7 @@ class AccountService(
     private val accountRepository: AccountRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
-    fun findByEmail(email: String): Account? = accountRepository.findByUsername(email)
+    fun findByEmail(email: String): Account? = accountRepository.findByEmail(email)
 
     @Transactional(readOnly = true)
     fun findWithAuthoritiesByEmail(email: String): Account? {
@@ -29,7 +29,7 @@ class AccountService(
         authority: Authority
     ): Account {
         val account = Account().apply {
-            this.username = email
+            this.email = email
             this.password = passwordEncoder.encode(rawPassword)
             this.enabled = true
             this.nickname = nickname

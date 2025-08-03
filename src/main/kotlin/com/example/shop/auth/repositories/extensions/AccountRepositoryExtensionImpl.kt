@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class AccountRepositoryExtensionImpl : QuerydslRepositorySupport(Account::class.java), AccountRepositoryExtension {
-    override fun findWithAuthoritiesByEmail(username: String): Account? {
+    override fun findWithAuthoritiesByEmail(email: String): Account? {
         val account = QAccount.account
         val authority = QAuthority.authority
         val groupMember = QGroupMember.groupMember
@@ -24,7 +24,7 @@ class AccountRepositoryExtensionImpl : QuerydslRepositorySupport(Account::class.
             .leftJoin(account.groupMemberMap, groupMember).fetchJoin()
             .leftJoin(groupMember.accountGroup, accountGroup).fetchJoin()
             .leftJoin(accountGroup.authorities, groupAuthority).fetchJoin()
-            .where(account.username.eq(username))
+            .where(account.email.eq(email))
             .fetchOne()
     }
 }

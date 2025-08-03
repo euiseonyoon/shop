@@ -12,7 +12,7 @@ class AutoRegisteredAccountEventPublisherImpl(
 ): AutoRegisteredAccountEventPublisher {
     override fun publishAutoRegisteredEvent(createdResult: AccountFindOrCreateResult) {
         if (createdResult.newlyCreated) {
-            val event = AutoRegisteredAccountEvent(createdResult.account.username!!, createdResult.generatedPassword!!)
+            val event = AutoRegisteredAccountEvent(createdResult.account.email!!, createdResult.generatedPassword!!)
             eventPublisher.publishEvent(event)
         }
     }

@@ -80,7 +80,7 @@ class FacadeAccountCrudServiceTest {
         em.clear()
 
         // THEN
-        assertEquals(email, newUserAccount.username)
+        assertEquals(email, newUserAccount.email)
         assertEquals(nickname, newUserAccount.nickname)
         assertEquals(ROLE_USER, newUserAccount.authority!!.roleName)
         assertEquals(setOf(groups.first()), newUserAccount.getGroups().toSet())
@@ -108,8 +108,8 @@ class FacadeAccountCrudServiceTest {
         // THEN
         em.clear()
 
-        val accounts = em.createQuery("SELECT a FROM Account a WHERE a.username = :username", Account::class.java)
-            .setParameter("username", email).resultList
+        val accounts = em.createQuery("SELECT a FROM Account a WHERE a.email = :email", Account::class.java)
+            .setParameter("email", email).resultList
         assertTrue(accounts.isEmpty())
     }
 
@@ -132,7 +132,7 @@ class FacadeAccountCrudServiceTest {
         em.clear()
 
         // THEN
-        assertEquals(email, newUserAccount.username)
+        assertEquals(email, newUserAccount.email)
         assertEquals(nickname, newUserAccount.nickname)
         assertEquals(ROLE_ADMIN, newUserAccount.authority!!.roleName)
         assertEquals(setOf(groups.first()), newUserAccount.getGroups().toSet())
@@ -161,8 +161,8 @@ class FacadeAccountCrudServiceTest {
         // THEN
         em.clear()
 
-        val accounts = em.createQuery("SELECT a FROM Account a WHERE a.username = :username", Account::class.java)
-            .setParameter("username", email).resultList
+        val accounts = em.createQuery("SELECT a FROM Account a WHERE a.email = :email", Account::class.java)
+            .setParameter("email", email).resultList
         assertTrue(accounts.isEmpty())
     }
 }

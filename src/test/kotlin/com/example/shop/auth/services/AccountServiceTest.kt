@@ -5,7 +5,6 @@ import com.example.shop.auth.common.TestAccountGroupFactory
 import com.example.shop.auth.common.TestAuthorityFactory
 import com.example.shop.auth.common.TestGroupAuthorityFactory
 import com.example.shop.auth.domain.Account
-import com.example.shop.auth.domain.GroupAuthority
 import com.example.shop.auth.domain.GroupMember
 import com.example.shop.common.logger.LogSupport
 import jakarta.persistence.EntityManager
@@ -58,7 +57,7 @@ class AccountServiceTest : LogSupport() {
 
         val EMAIL = "test@gamil.com"
         val account = Account().apply {
-            username = EMAIL
+            email = EMAIL
             password = "123"
             addRole(authority)
         }.also { em.persist(it) }
@@ -91,7 +90,7 @@ class AccountServiceTest : LogSupport() {
          *         a1_0.nickname,
          *         a1_0.oauth,
          *         a1_0.password,
-         *         a1_0.username
+         *         a1_0.email
          *     from
          *         account a1_0
          *     left join
@@ -107,7 +106,7 @@ class AccountServiceTest : LogSupport() {
          *         group_authority a3_0
          *             on ag1_0.id=a3_0.account_group_id
          *     where
-         *         a1_0.username=?
+         *         a1_0.email=?
          * */
 
         // THEN
