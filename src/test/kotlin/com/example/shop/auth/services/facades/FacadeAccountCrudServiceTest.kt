@@ -5,10 +5,10 @@ import com.example.shop.auth.ROLE_USER
 import com.example.shop.auth.common.TestAccountGroupFactory
 import com.example.shop.auth.common.TestAuthorityFactory
 import com.example.shop.auth.common.TestGroupAuthorityFactory
+import com.example.shop.auth.domain.Account
 import com.example.shop.auth.domain.AccountGroup
 import com.example.shop.auth.domain.GroupAuthority
 import com.example.shop.auth.exceptions.AccountGroupPartiallyNotFoundException
-import com.example.shop.auth.exceptions.AuthorityNotFoundException
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.BeforeEach
@@ -108,7 +108,8 @@ class FacadeAccountCrudServiceTest {
         // THEN
         em.clear()
 
-        val accounts = em.createQuery("SELECT a FROM Account a").resultList
+        val accounts = em.createQuery("SELECT a FROM Account a WHERE a.username = :username", Account::class.java)
+            .setParameter("username", email).resultList
         assertTrue(accounts.isEmpty())
     }
 
@@ -160,7 +161,8 @@ class FacadeAccountCrudServiceTest {
         // THEN
         em.clear()
 
-        val accounts = em.createQuery("SELECT a FROM Account a").resultList
+        val accounts = em.createQuery("SELECT a FROM Account a WHERE a.username = :username", Account::class.java)
+            .setParameter("username", email).resultList
         assertTrue(accounts.isEmpty())
     }
 }

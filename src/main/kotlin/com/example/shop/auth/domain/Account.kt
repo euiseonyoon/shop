@@ -12,7 +12,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import org.hibernate.proxy.HibernateProxy
 
 
@@ -40,7 +39,7 @@ class Account: BaseCompareEntity<Account>() {
 
     // 유저당 ROLE을 1개만 갖도록 강제한다.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "authority_id", unique = true, nullable = false)
+    @JoinColumn(name = "authority_id", nullable = false)
     var authority: Authority? = null
 
     @OneToMany(mappedBy = "account")
