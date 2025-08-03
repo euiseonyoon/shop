@@ -61,8 +61,10 @@ class SecurityFilterConfig {
         @Qualifier("myJwtAuthenticationSuccessHandler")
         noOpAuthenticationSuccessHandler: AuthenticationSuccessHandler
     ): OncePerRequestFilter {
-        return MyJwtAuthenticationFilter(authenticationManager, authenticationConverter).apply {
-            successHandler = noOpAuthenticationSuccessHandler
-        }
+        return MyJwtAuthenticationFilter(
+            authenticationManager,
+            authenticationConverter,
+            noOpAuthenticationSuccessHandler,
+        )
     }
 }
