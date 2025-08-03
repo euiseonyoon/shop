@@ -23,8 +23,8 @@ class AuthenticationResultHandlerConfig {
     }
 
     @Bean
-    fun myLogInAuthenticationFailureHandler(): AuthenticationFailureHandler {
-        return MyLogInAuthenticationFailureHandler()
+    fun myLogInAuthenticationFailureHandler(json: Json): AuthenticationFailureHandler {
+        return MyLogInAuthenticationFailureHandler(json)
     }
 
     @Bean
