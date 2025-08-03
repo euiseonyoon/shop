@@ -10,13 +10,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class CustomJwtAuthenticationConverter(
-    private val myJwtTokenExtractor: MyJwtTokenExtractor
+    override val myJwtTokenExtractor: MyJwtTokenExtractor
 ) : AuthenticationConverter, MyJwtAuthenticationConverter {
     override fun convert(request: HttpServletRequest): Authentication? {
         val accessToken = extractAccessToken(request) ?: return null
         return BearerTokenAuthenticationToken(accessToken)
     }
-
-    override fun extractAccessToken(request: HttpServletRequest): String? =
-        myJwtTokenExtractor.extractAccessTokenFromHeader(request)
 }
