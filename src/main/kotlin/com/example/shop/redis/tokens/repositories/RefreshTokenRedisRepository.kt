@@ -14,7 +14,7 @@ class RefreshTokenRedisRepository(
     redisTemplate: RedisTemplate<String, ByteArray>,
     redisOperatorHelper: RedisOperatorHelper,
     redisKeyGenerator: RefreshTokenRedisKeyGenerator,
-) : GenericRedisRepository<String, String>(
+) : GenericRedisRepository<String, Long>(
     redisTemplate = redisTemplate,
     redisKeyGenerator = redisKeyGenerator,
     redisOperatorHelper = redisOperatorHelper,

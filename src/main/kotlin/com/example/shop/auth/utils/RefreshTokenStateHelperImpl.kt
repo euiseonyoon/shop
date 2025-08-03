@@ -10,8 +10,8 @@ class RefreshTokenStateHelperImpl(
     private val refreshTokenRedisRepository: RefreshTokenRedisRepository
 ) : LogSupport(),
     RefreshTokenStateHelper {
-    override fun validateRefreshToken(email: String, refreshTokenFromRequest: String) {
-        val issuedRefreshToken = refreshTokenRedisRepository.find(email)
+    override fun validateRefreshToken(accountId: Long, refreshTokenFromRequest: String) {
+        val issuedRefreshToken = refreshTokenRedisRepository.find(accountId)
 
         /**
          * Redis에 해당 account의 refresh token 이 없는경우
@@ -27,8 +27,8 @@ class RefreshTokenStateHelperImpl(
         // 전에 발급된 refresh token과 request에 포함된 refresh token이 다를 경우, 탈취된 refresh token일 수 있다.
         if (issuedRefreshToken != refreshTokenFromRequest) {
             logger.warn(
-                "Refresh token not matching. email={}, IssuedRefreshToken={}, RefreshTokenFromRequest={}",
-                email, issuedRefreshToken, refreshTokenFromRequest
+                "Refresh token not matching. account_id={}, IssuedRefreshToken={}, RefreshTokenFromRequest={}",
+                accountId, issuedRefreshToken, refreshTokenFromRequest
             )
             throw BadRefreshTokenStateException(
                 "Refresh token from the request did not match with the previously issued one for the account."
@@ -36,7 +36,7 @@ class RefreshTokenStateHelperImpl(
         }
     }
 
-    override fun updateWithNewRefreshToken(email: String, newRefreshToken: String) {
-        refreshTokenRedisRepository.save(email, newRefreshToken)
+    override fun updateWithNewRefreshToken(accountId: Long, newRefreshToken: String) {
+        refreshTokenRedisRepository.save(accountId, newRefreshToken)
     }
 }

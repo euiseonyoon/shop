@@ -52,11 +52,8 @@ class AuthenticationProviderConfig {
     }
 
     @Bean
-    fun myJwtTokenAuthenticationProvider(
-        jwtTokenHelper: MyJwtTokenHelper,
-        accountService: AccountService,
-    ): AuthenticationProvider {
-        return MyJwtTokenAuthenticationProvider(jwtTokenHelper, accountService)
+    fun myJwtTokenAuthenticationProvider(jwtTokenHelper: MyJwtTokenHelper): AuthenticationProvider {
+        return MyJwtTokenAuthenticationProvider(jwtTokenHelper)
     }
 
     @Bean

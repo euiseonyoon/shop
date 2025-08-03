@@ -27,13 +27,13 @@ class MyLogInAuthenticationSuccessHandler(
         val customUserDetail = authentication.principal as? CustomUserDetails
             ?: throw AuthenticationServiceException("Failed to parse to customized user details.")
 
-        val accountEmail = customUserDetail.account.email!!
+        val accountId = customUserDetail.account.id!!
 
-        val accessToken = jwtHelper.createAccessToken(accountEmail, authentication.authorities.toList())
-        val refreshToken = jwtHelper.createRefreshToken(accountEmail)
+        val accessToken = jwtHelper.createAccessToken(accountId, authentication.authorities.toList())
+        val refreshToken = jwtHelper.createRefreshToken(accountId)
 
         // 새롭게 발급한 refresh token을 redis에 저장하여 상태관리
-        refreshTokenStateHelper.updateWithNewRefreshToken(accountEmail, refreshToken)
+        refreshTokenStateHelper.updateWithNewRefreshToken(accountId, refreshToken)
 
         // 응답 본문에 토큰을 JSON 형식으로 작성합니다.
         response.status = HttpStatus.OK.value() // HTTP 상태 코드를 200 OK로 설정

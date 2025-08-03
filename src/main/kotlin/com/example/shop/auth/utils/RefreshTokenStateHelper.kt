@@ -1,7 +1,7 @@
 package com.example.shop.auth.utils
 
 interface RefreshTokenStateHelper {
-    fun validateRefreshToken(email: String, refreshTokenFromRequest: String)
+    fun validateRefreshToken(accountId: Long, refreshTokenFromRequest: String)
 
-    fun updateWithNewRefreshToken(email: String, newRefreshToken: String)
+    fun updateWithNewRefreshToken(accountId: Long, newRefreshToken: String)
 }

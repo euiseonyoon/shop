@@ -10,9 +10,9 @@ interface MyJwtTokenHelper {
     val authClaimKey: String
     val authStringDelimiter: String
 
-    fun createAccessToken(email: String, authorities: List<GrantedAuthority>): String
+    fun createAccessToken(accountId: Long, authorities: List<GrantedAuthority>): String
 
-    fun createRefreshToken(email: String): String
+    fun createRefreshToken(accountId: Long): String
 
     fun parseAccessToken(accessToken: String): Claims
 
@@ -20,7 +20,7 @@ interface MyJwtTokenHelper {
 
     fun getAuthorityStringList(claims: Claims): List<String>
 
-    fun getAccountEmail(claims: Claims): String
+    fun getSubject(claims: Claims): Long
 
     fun setRefreshTokenOnCookie(response: HttpServletResponse, refreshToken: String)
 

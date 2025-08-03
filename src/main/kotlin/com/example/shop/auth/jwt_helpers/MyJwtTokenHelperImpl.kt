@@ -38,10 +38,10 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     private val refreshSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedRefreshSecretKey)) }
 
 
-    override fun createAccessToken(email: String, authorities: List<GrantedAuthority>): String {
+    override fun createAccessToken(accountId: Long, authorities: List<GrantedAuthority>): String {
         val authoritiesString = authorities.map { it.authority }.joinToString(authStringDelimiter)
         return createToken(
-            email,
+            accountId,
             accessTokenExpirationMs,
             accessSecretKey,
             mapOf(authClaimKey to authoritiesString),
@@ -49,9 +49,9 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
         )
     }
 
-    override fun createRefreshToken(email: String): String {
+    override fun createRefreshToken(accountId: Long): String {
         return createToken(
-            email,
+            accountId,
             refreshTokenExpirationMs,
             refreshSecretKey,
             null,
@@ -74,8 +74,8 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
         return authoritiesString.split(authStringDelimiter)
     }
 
-    override fun getAccountEmail(claims: Claims): String {
-        return claims.subject ?: throw BadJwtException("subject missing from claims.")
+    override fun getSubject(claims: Claims): Long {
+        return claims.subject?.toLong() ?: throw BadJwtException("subject missing from claims.")
     }
 
     override fun setRefreshTokenOnCookie(response: HttpServletResponse, refreshToken: String) {
@@ -111,7 +111,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     }
 
     private fun createToken(
-        email: String,
+        accountId: Long,
         durationMs: Long,
         secretKey: SecretKey,
         claims: Map<String, Any>?,
@@ -123,7 +123,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
         jti?.let { builder.setId(it) }
 
         builder
-            .setSubject(email)
+            .setSubject(accountId.toString())
             .setIssuedAt(Date())
             .setIssuer(issuer)
             .setExpiration(Date(System.currentTimeMillis() + durationMs))

@@ -16,17 +16,16 @@ class TestController {
     @GetMapping("/test")
     fun test(): String {
         val authentication = SecurityContextHolder.getContext().authentication as AccountAuthenticationToken
-        val account: Account = authentication.principal as Account
-        return "hello ${account.email}"
+        val accountId = authentication.principal
+        return "hello ${accountId}"
     }
 
     @GetMapping("/test2")
     fun test2(
         @AuthenticationPrincipal
-        account: Account
+        accountId: Long
     ): String {
-        val authorities = account.getGroupAuthorities()
-        return "hello2 ${account.email}"
+        return "hello2 ${accountId}"
     }
 
     // @EnableMethodSecurity 를 사용해야 한다. SecurityConfig에 적용한다.
@@ -42,7 +41,7 @@ class TestController {
         return "hello4"
     }
 
-    @PreAuthorize("hasRole('${USER_NAME}') and #userId == authentication.principal.id")
+    @PreAuthorize("hasRole('${USER_NAME}') and #userId == authentication.principal")
     @GetMapping("/test5")
     fun test5(userId: Long?): String {
         return "hello5"

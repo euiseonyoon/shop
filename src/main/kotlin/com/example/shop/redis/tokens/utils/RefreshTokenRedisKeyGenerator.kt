@@ -4,8 +4,8 @@ import com.example.shop.redis.utils.RedisKeyGenerator
 import org.springframework.stereotype.Component
 
 @Component
-class RefreshTokenRedisKeyGenerator : RedisKeyGenerator<String> {
+class RefreshTokenRedisKeyGenerator : RedisKeyGenerator<Long> {
     override val prefix = "refresh_token:"
 
-    override fun generate(param: String): String = prefix + param
+    override fun generate(param: Long): String = prefix + param
 }

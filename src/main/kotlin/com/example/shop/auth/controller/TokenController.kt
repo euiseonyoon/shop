@@ -37,23 +37,23 @@ class TokenController(
 
         try {
             val claims = myJwtTokenHelper.parseRefreshToken(refreshTokenFromRequest)
-            val email = myJwtTokenHelper.getAccountEmail(claims)
+            val accountId = myJwtTokenHelper.getSubject(claims)
 
             // request로 부터 추출한 refresh token과 redis에 저장된 refresh token 비교
             // 비교가 비정상적이라면, BadRefreshTokenStateException 예외 발생
-            refreshTokenStateHelper.validateRefreshToken(email, refreshTokenFromRequest)
+            refreshTokenStateHelper.validateRefreshToken(accountId, refreshTokenFromRequest)
 
-            val account = accountService.findWithAuthoritiesByEmail(email)
+            val account = accountService.findWithAuthoritiesById(accountId)
                 ?: throw AuthorizationServiceException("Can't find the account from the database.")
 
             val newAccessToken = myJwtTokenHelper.createAccessToken(
-                email,
+                accountId,
                 customAuthorityUtils.createSimpleGrantedAuthorities(account)
             )
-            val newRefreshToken = myJwtTokenHelper.createRefreshToken(email)
+            val newRefreshToken = myJwtTokenHelper.createRefreshToken(accountId)
 
             // 새롭게 발급한 refresh token을 redis에 저장하여 상태관리
-            refreshTokenStateHelper.updateWithNewRefreshToken(email, newRefreshToken)
+            refreshTokenStateHelper.updateWithNewRefreshToken(accountId, newRefreshToken)
             myJwtTokenHelper.setRefreshTokenOnCookie(response, newRefreshToken)
 
             return GlobalResponse.create(TokenResponse(newAccessToken))
