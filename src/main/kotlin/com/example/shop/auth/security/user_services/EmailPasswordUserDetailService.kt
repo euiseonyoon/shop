@@ -22,15 +22,8 @@ class EmailPasswordUserDetailService(
 
         // 3. create `CustomUserDetail`
         return CustomUserDetails(
-            account.username!!,
-            account.password!!,
+            account,
             accountAllAuthorities,
-            account.enabled,
-            true,
-            true,
-            true,
-            account.oauth,
-            account.nickname
         )
     }
 }

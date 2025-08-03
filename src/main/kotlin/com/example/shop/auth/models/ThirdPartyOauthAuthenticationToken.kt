@@ -3,7 +3,7 @@ package com.example.shop.auth.models
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.oauth2.core.user.OAuth2User
+import org.springframework.security.core.userdetails.UserDetails
 
 class ThirdPartyOauthAuthenticationToken(
     // OIDC인 경우, idToken, Oauth2.0 인경우, accessToken
@@ -12,7 +12,7 @@ class ThirdPartyOauthAuthenticationToken(
     authorities: Collection<GrantedAuthority>,
 ) : AbstractAuthenticationToken(authorities) {
 
-    var authenticatedUser: OAuth2User? = null
+    var authenticatedUser: UserDetails? = null
 
     init {
         isAuthenticated = false

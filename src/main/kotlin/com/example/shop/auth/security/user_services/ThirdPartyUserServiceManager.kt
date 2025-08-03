@@ -1,9 +1,10 @@
 package com.example.shop.auth.security.user_services
 
+import com.example.shop.auth.models.CustomUserDetails
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
 import org.springframework.security.authentication.AuthenticationServiceException
-import org.springframework.security.oauth2.core.user.OAuth2User
+import org.springframework.security.core.userdetails.UserDetails
 
 class ThirdPartyUserServiceManager(
     private val userServiceList: List<ThirdPartyAuthenticationUserService>
@@ -16,7 +17,7 @@ class ThirdPartyUserServiceManager(
     fun loadUser(
         token: String,
         vendor: ThirdPartyAuthenticationVendor,
-    ): OAuth2User {
+    ): UserDetails {
         val userService = findService(vendor)
         return userService.loadUser(token)
     }
