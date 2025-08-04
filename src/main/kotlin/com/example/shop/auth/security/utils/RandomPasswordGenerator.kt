@@ -39,6 +39,4 @@ class RandomPasswordGenerator : PasswordGenerator {
         val randomIndex = RANDOM.nextInt(characterSet.length)
         return characterSet[randomIndex]
     }
-
-
 }
