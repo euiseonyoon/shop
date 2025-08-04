@@ -1,15 +1,16 @@
-package com.example.shop.auth.controller
+package com.example.shop.auth.controllers
 
 import com.example.shop.auth.ADMIN_NAME
 import com.example.shop.auth.USER_NAME
-import com.example.shop.auth.domain.Account
 import com.example.shop.auth.models.AccountAuthenticationToken
+import org.springframework.context.annotation.Profile
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Profile("test")
 @RestController
 class TestController {
 
@@ -30,13 +31,13 @@ class TestController {
 
     // @EnableMethodSecurity 를 사용해야 한다. SecurityConfig에 적용한다.
     @PreAuthorize("hasRole('${USER_NAME}')")
-    @GetMapping("/test3")
+    @GetMapping("/test-user")
     fun test3(): String {
-        return "hello3"
+        return "hello"
     }
 
     @PreAuthorize("hasRole('${ADMIN_NAME}')")
-    @GetMapping("/test4")
+    @GetMapping("/test-admin-only")
     fun test4(): String {
         return "hello4"
     }
