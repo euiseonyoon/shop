@@ -9,4 +9,6 @@ interface ThirdPartyAuthenticationUserService {
     fun supports(vendor: ThirdPartyAuthenticationVendor): Boolean = providerId == vendor
 
     fun loadUser(token: String): UserDetails
+
+    fun getEmail(token: String): String
 }
