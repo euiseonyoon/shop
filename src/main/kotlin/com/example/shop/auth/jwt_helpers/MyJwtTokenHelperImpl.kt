@@ -3,6 +3,9 @@ package com.example.shop.auth.jwt_helpers
 import com.example.shop.auth.ACCESS_TOKEN_EXPIRATION_MS
 import com.example.shop.auth.REFRESH_TOKEN_EXPIRATION_MS
 import com.example.shop.auth.REFRESH_TOKEN_KEY
+import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper.Companion.AUTH_CLAIM_KEY
+import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper.Companion.AUTH_STRING_DELIMITER
+import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper.Companion.EMAIL_CLAIM_KEY
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -22,8 +25,6 @@ import javax.crypto.SecretKey
 class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     override val accessTokenExpirationMs: Long = ACCESS_TOKEN_EXPIRATION_MS
     override val refreshTokenExpirationMs: Long = REFRESH_TOKEN_EXPIRATION_MS
-    override val authClaimKey: String = "auth"
-    override val authStringDelimiter: String = ","
 
     @Value("\${jwt.access_secret}")
     lateinit var encodedAccessSecretKey: String
@@ -38,13 +39,16 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     private val refreshSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedRefreshSecretKey)) }
 
 
-    override fun createAccessToken(accountId: Long, authorities: List<GrantedAuthority>): String {
-        val authoritiesString = authorities.map { it.authority }.joinToString(authStringDelimiter)
+    override fun createAccessToken(accountId: Long, authorities: List<GrantedAuthority>, email: String): String {
+        val authoritiesString = authorities.map { it.authority }.joinToString(AUTH_STRING_DELIMITER)
         return createToken(
             accountId,
             accessTokenExpirationMs,
             accessSecretKey,
-            mapOf(authClaimKey to authoritiesString),
+            mapOf(
+                AUTH_CLAIM_KEY to authoritiesString,
+                EMAIL_CLAIM_KEY to email,
+            ),
             null
         )
     }
@@ -67,11 +71,18 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
         return paresToken(refreshToken, refreshSecretKey)
     }
 
-    override fun getAuthorityStringList(claims: Claims): List<String> {
-        val authoritiesString = claims[authClaimKey] as? String ?:
-            throw BadCredentialsException("Access Token should include authority claim string.")
+    private fun getFromClaims(key: String, claims: Claims): String {
+        return claims[key] as? String ?:
+            throw BadCredentialsException("Could not find $key from the claims.")
+    }
 
-        return authoritiesString.split(authStringDelimiter)
+    override fun getEmail(claims: Claims): String {
+        return getFromClaims(EMAIL_CLAIM_KEY, claims)
+    }
+
+    override fun getAuthorityStringList(claims: Claims): List<String> {
+        val authoritiesString = getFromClaims(AUTH_CLAIM_KEY, claims)
+        return authoritiesString.split(AUTH_STRING_DELIMITER)
     }
 
     override fun getSubject(claims: Claims): Long {

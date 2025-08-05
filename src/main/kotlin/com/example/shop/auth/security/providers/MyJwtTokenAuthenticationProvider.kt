@@ -24,6 +24,7 @@ class MyJwtTokenAuthenticationProvider(
                 SimpleGrantedAuthority(it)
             }
             val accountId = jwtTokenHelper.getSubject(accessTokenClaims)
+            val email = jwtTokenHelper.getEmail(accessTokenClaims)
             /**
              * 아래의 `AccountAuthenticationToken`는 `UsernamePasswordAuthenticationToken` 상속한다.
              * `UsernamePasswordAuthenticationToken` 생성자중, authorities를 사용하는 생성자는
@@ -39,6 +40,7 @@ class MyJwtTokenAuthenticationProvider(
             return AccountAuthenticationToken(
                 accountId = accountId,
                 authorities = authorities,
+                email = email,
             ).apply { isAuthenticated = true }
         } catch (e: JwtException) {
             throw BadCredentialsException("Invalid Access Token: ${e.message}", e)

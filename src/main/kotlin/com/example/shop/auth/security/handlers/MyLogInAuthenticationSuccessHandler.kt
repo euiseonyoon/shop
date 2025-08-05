@@ -28,8 +28,9 @@ class MyLogInAuthenticationSuccessHandler(
             ?: throw AuthenticationServiceException("Failed to parse to customized user details.")
 
         val accountId = customUserDetail.account.id!!
+        val email = customUserDetail.account.email!!
 
-        val accessToken = jwtHelper.createAccessToken(accountId, authentication.authorities.toList())
+        val accessToken = jwtHelper.createAccessToken(accountId, authentication.authorities.toList(), email)
         val refreshToken = jwtHelper.createRefreshToken(accountId)
 
         // 새롭게 발급한 refresh token을 redis에 저장하여 상태관리
