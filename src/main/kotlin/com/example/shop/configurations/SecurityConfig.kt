@@ -4,6 +4,7 @@ import com.example.shop.auth.ADMIN_NAME
 import com.example.shop.auth.EMAIL_PASSWORD_AUTH_URI
 import com.example.shop.auth.OAUTH_AUTH_URI_PATTERN
 import com.example.shop.auth.PERMIT_ALL_END_POINTS
+import com.example.shop.auth.security.filters.RateLimitFilter
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +19,7 @@ import org.springframework.security.web.access.expression.WebExpressionAuthoriza
 import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.context.SecurityContextHolderFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -26,7 +28,9 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-class SecurityConfig {
+class SecurityConfig(
+    private val rateLimitFilter: RateLimitFilter,
+) {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config =
@@ -48,10 +52,9 @@ class SecurityConfig {
             .sessionManagement { session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
+            .addFilterBefore(rateLimitFilter, SecurityContextHolderFilter::class.java)
         return http
     }
-
-
 
     @Bean
     @Order(1)
