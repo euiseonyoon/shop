@@ -32,6 +32,8 @@ repositories {
 }
 
 dependencies {
+    // Api rate limit(분산환경을 고려, redis를 사용한 api rate limit을 사용한다.)
+    implementation("com.bucket4j:bucket4j-redis:8.7.0")
     // Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 

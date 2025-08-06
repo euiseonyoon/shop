@@ -43,3 +43,19 @@ jwt:
 
 auth:
   super_admin: dancedragon25@gmail.com
+
+rate-limit:
+  capacity: 20        # 버킷 최대 토큰 수
+  refill-tokens: 10    # 몇 개씩 리필할지
+  refill-period: 1s   # 리필 주기 (1초)  한번에 최대 20개, 소진된 후 1초에 토큰 10개씩 추가됨 (1 request당 1 token 소모한다면, 1초당 10개 api 가능)
+  keep-after-refill: 10s # 버킷이 `capacity` 만큼 전부 차 있어도, redis 에서 바로 지우지 않고 N초 동안 유지한다.
+  # 아래는 heavy 한 작업들이라서 Api rate 토큰을 더 많이 소모하도록 한다.
+  # `url_pattern`은 `AntPathMatcher`에서 지원하는 형식으로 기입
+  heavy-map:
+    POST:
+      - url_pattern: /login
+        tokens: 5
+      - url_pattern: /login/oauth/*
+        tokens: 5
+      - url_pattern: /token/refresh
+        tokens: 5
