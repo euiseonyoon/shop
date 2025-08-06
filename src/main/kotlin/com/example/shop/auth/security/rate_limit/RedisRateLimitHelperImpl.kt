@@ -5,7 +5,6 @@ import com.example.shop.auth.security.rate_limit.models.RateLimitProperties
 import io.github.bucket4j.Bandwidth
 import io.github.bucket4j.Bucket
 import io.github.bucket4j.BucketConfiguration
-import io.github.bucket4j.distributed.AsyncBucketProxy
 import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Component

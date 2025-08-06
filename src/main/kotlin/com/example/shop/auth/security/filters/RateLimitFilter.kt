@@ -1,5 +1,6 @@
 package com.example.shop.auth.security.filters
 
+import com.example.shop.auth.NO_API_LIMIT_END_POINTS
 import com.example.shop.auth.security.rate_limit.RedisRateLimitHelper
 import com.example.shop.common.apis.GlobalResponse
 import jakarta.servlet.FilterChain
@@ -9,6 +10,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.util.AntPathMatcher
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
@@ -16,6 +18,15 @@ class RateLimitFilter(
     private val json: Json,
     private val redisRateLimitHelper: RedisRateLimitHelper,
 ): OncePerRequestFilter() {
+    private val pathMatcher = AntPathMatcher()
+
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        val path = request.requestURI
+        return NO_API_LIMIT_END_POINTS.any {
+            pathMatcher.match(it, path)
+        }
+    }
+
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,

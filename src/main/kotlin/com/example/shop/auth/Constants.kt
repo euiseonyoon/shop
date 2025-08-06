@@ -14,6 +14,7 @@ const val OAUTH_AUTH_URI_PATTERN = "/login/oauth/*"
 const val TOKEN_REFRESH_URI = "/token/refresh"
 
 val PERMIT_ALL_END_POINTS = listOf("/", HEALTH_CHECK_URI, TOKEN_REFRESH_URI)
+val NO_API_LIMIT_END_POINTS = listOf("/", HEALTH_CHECK_URI)
 
 const val REFRESH_TOKEN_KEY = "refreshToken"
 val ACCESS_TOKEN_EXPIRATION_MS: Long = 1000 * 60 * 30 // 1시간
