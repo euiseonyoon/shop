@@ -1,4 +1,4 @@
-package com.example.shop.configurations
+package com.example.shop.configurations.authentication
 
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.auth.security.user_services.GoogleOidcUserService

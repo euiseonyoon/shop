@@ -1,4 +1,4 @@
-package com.example.shop.configurations
+package com.example.shop.configurations.authorization
 
 import com.example.shop.auth.ADMIN_NAME
 import com.example.shop.auth.ROLE_PREFIX

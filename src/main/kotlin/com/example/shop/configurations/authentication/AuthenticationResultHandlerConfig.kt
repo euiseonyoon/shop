@@ -1,4 +1,4 @@
-package com.example.shop.configurations
+package com.example.shop.configurations.authentication
 
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.security.handlers.MyJwtAuthenticationSuccessHandler

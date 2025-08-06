@@ -1,4 +1,4 @@
-package com.example.shop.configurations
+package com.example.shop.configurations.authentication
 
 import com.example.shop.auth.OAUTH_AUTH_URI_PATTERN
 import com.example.shop.auth.security.filters.EmailPasswordAuthenticationFilter
