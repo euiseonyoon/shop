@@ -1,6 +1,7 @@
 package com.example.shop.auth.controllers
 
 import com.example.shop.auth.ADMIN_NAME
+import com.example.shop.auth.HEALTH_CHECK_URI
 import com.example.shop.auth.USER_NAME
 import com.example.shop.auth.models.AccountAuthenticationToken
 import org.springframework.context.annotation.Profile
@@ -52,5 +53,10 @@ class TestController {
     @GetMapping("/test5")
     fun test5(userId: Long?): String {
         return "hello5"
+    }
+
+    @GetMapping(HEALTH_CHECK_URI)
+    fun healthCheck(): String {
+        return "good"
     }
 }
