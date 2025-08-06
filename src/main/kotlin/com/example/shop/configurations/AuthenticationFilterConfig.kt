@@ -12,13 +12,12 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
 import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
-import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Configuration
-class SecurityFilterConfig {
+class AuthenticationFilterConfig {
     @Bean
     fun emailPasswordAuthenticationFilter(
         authenticationManager: AuthenticationManager,
