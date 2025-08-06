@@ -42,6 +42,12 @@ class TestController {
         return "hello4"
     }
 
+    @PreAuthorize("hasRole('${ADMIN_NAME}')")
+    @GetMapping("/admin/test")
+    fun adminTest(): String {
+        return "hello admin"
+    }
+
     @PreAuthorize("hasRole('${USER_NAME}') and #userId == authentication.principal")
     @GetMapping("/test5")
     fun test5(userId: Long?): String {
