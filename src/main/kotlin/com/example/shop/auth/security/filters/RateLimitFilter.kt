@@ -37,9 +37,10 @@ class RateLimitFilter(
         if (bucket.tryConsume(redisRateLimitHelper.getTokensToConsume(request))) {
             filterChain.doFilter(request, response)
         } else {
-            response.status = 429
+            val desiredHttpStatus = HttpStatus.TOO_MANY_REQUESTS
+            response.status = desiredHttpStatus.value()
             // 임시로 response type을 `String`으로 하였다. 어차피 GlobalResponse.result = null 이기 때문에 전혀 문제 없다.
-            val resBody = GlobalResponse.createErrorRes<String>(response, "Too Many Requests", HttpStatus.TOO_MANY_REQUESTS)
+            val resBody = GlobalResponse.createErrorRes<String>(response, "Too Many Requests", desiredHttpStatus)
             val jsonResponse = json.encodeToString(GlobalResponse.serializer(String.serializer()), resBody)
             response.writer.write(jsonResponse)
             response.writer.flush()
