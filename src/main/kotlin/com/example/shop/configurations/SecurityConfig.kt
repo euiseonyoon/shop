@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.access.expression.DefaultHttpSecurityExpressionHandler
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager
 import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -104,58 +106,63 @@ class SecurityConfig {
             .build()
     }
 
+    /**
+     * 문제:
+     *  MyJwtAuthenticationFilter를 Bean 으로 등록하면 위의 permitAllFilterChain()에 매칭되는 /token/refresh 를 호출해도
+     *  MyJwtAuthenticationFilter.doFilterInternal()을 거친다.
+     *  추측으로는 MyJwtAuthenticationFilter : AuthenticationFilter : OncePerRequestFilter()라서 ?
+     *
+     * OncePerRequestFilter는 기본적으로 모든 request에 한번씩 적용된다.
+     * 그래서 Bean으로 등록해두면 permitAllFilterChain()의 securityMatcher에 매칭되지 않더라도 적용된것이다.
+     * 이걸 원하지 않으면 OncePerRequestFilter는.shouldNotFilter()를 override 한 것을 Bean으로 등록하면 된다.
+     *
+     * 그러지 않으면 아래처럼 OncePerRequestFilter를 Bean 으로 등록하지 않으면 된다.
+     *
+     *     val jwtTokenFilter = MyJwtAuthenticationFilter(authenticationManager, authenticationConverter).apply {
+     *        successHandler = noOpAuthenticationSuccessHandler
+     *     }
+     * */
+
+    /**
+     * 아래처럼  securityContext{}를 통해 SecurityContextRepository를 지정하지 않으면
+     * `DelegatingSecurityContextRepository`가 default로 사용된다.
+     *      DelegatingSecurityContextRepository는
+     *      1. 요청에 세션 ID(JSESSIONID)가 있으면 -> HttpSessionSecurityContextRepository를 사용하여 HttpSession에 인증/인가 정보를 저장한다.
+     *      2. 1번의 경우가 아니면 -> 내부적으로 설정된 다른 SecurityContextRepository에 위임합니다.
+     *
+     * 우리의 경우처럼, stateless한 API를 사용하는 경우,
+     * `RequestAttributeSecurityContextRepository`를 사용해야 한다.
+     *
+     * RequestAttributeSecurityContextRepository()를 Bean으로 정의 한뒤,
+     * 주입받고, 아래 코드 처럼 할 수도 있다.
+     *
+     *             .securityContext { securityContext ->
+     *                 securityContext.securityContextRepository(securityContextRepository)
+     *             }
+     *
+     * 하지만 아래 코드 처럼한다면, DelegatingSecurityContextRepository가 알아서, RequestAttributeSecurityContextRepository를
+     * 사용한다.
+     *              .sessionManagement { session ->
+     *             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+     *         }
+     *
+     * */
     @Bean
     @Order(3)
     fun jwtAuthenticationFilterChain(
         http: HttpSecurity,
         @Qualifier("myJwtAuthenticationFilter")
-        jwtTokenFilter: OncePerRequestFilter
+        jwtTokenFilter: OncePerRequestFilter,
+        @Qualifier("httpSecurityExpressionHandler")
+        expressionHandler: DefaultHttpSecurityExpressionHandler
     ): SecurityFilterChain {
-        /**
-         * 문제:
-         *  MyJwtAuthenticationFilter를 Bean 으로 등록하면 위의 permitAllFilterChain()에 매칭되는 /token/refresh 를 호출해도
-         *  MyJwtAuthenticationFilter.doFilterInternal()을 거친다.
-         *  추측으로는 MyJwtAuthenticationFilter : AuthenticationFilter : OncePerRequestFilter()라서 ?
-         *
-         * OncePerRequestFilter는 기본적으로 모든 request에 한번씩 적용된다.
-         * 그래서 Bean으로 등록해두면 permitAllFilterChain()의 securityMatcher에 매칭되지 않더라도 적용된것이다.
-         * 이걸 원하지 않으면 OncePerRequestFilter는.shouldNotFilter()를 override 한 것을 Bean으로 등록하면 된다.
-         *
-         * 그러지 않으면 아래처럼 OncePerRequestFilter를 Bean 으로 등록하지 않으면 된다.
-         *
-         *     val jwtTokenFilter = MyJwtAuthenticationFilter(authenticationManager, authenticationConverter).apply {
-         *        successHandler = noOpAuthenticationSuccessHandler
-         *     }
-         * */
-
-        /**
-         * 아래처럼  securityContext{}를 통해 SecurityContextRepository를 지정하지 않으면
-         * `DelegatingSecurityContextRepository`가 default로 사용된다.
-         *      DelegatingSecurityContextRepository는
-         *      1. 요청에 세션 ID(JSESSIONID)가 있으면 -> HttpSessionSecurityContextRepository를 사용하여 HttpSession에 인증/인가 정보를 저장한다.
-         *      2. 1번의 경우가 아니면 -> 내부적으로 설정된 다른 SecurityContextRepository에 위임합니다.
-         *
-         * 우리의 경우처럼, stateless한 API를 사용하는 경우,
-         * `RequestAttributeSecurityContextRepository`를 사용해야 한다.
-         *
-         * RequestAttributeSecurityContextRepository()를 Bean으로 정의 한뒤,
-         * 주입받고, 아래 코드 처럼 할 수도 있다.
-         *
-         *             .securityContext { securityContext ->
-         *                 securityContext.securityContextRepository(securityContextRepository)
-         *             }
-         *
-         * 하지만 아래 코드 처럼한다면, DelegatingSecurityContextRepository가 알아서, RequestAttributeSecurityContextRepository를
-         * 사용한다.
-         *              .sessionManagement { session ->
-         *             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-         *         }
-         *
-         * */
+        val superAdminAllowingAuthorizationManager = WebExpressionAuthorizationManager("hasRole('${ADMIN_NAME}')").apply {
+            setExpressionHandler(expressionHandler)
+        }
         return makeBaseHttpSecurity(http)
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/admin/**").hasRole(ADMIN_NAME)
+                    .requestMatchers("/admin/**").access(superAdminAllowingAuthorizationManager)
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtTokenFilter, AuthorizationFilter::class.java)
