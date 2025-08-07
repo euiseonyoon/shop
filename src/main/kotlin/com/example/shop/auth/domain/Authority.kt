@@ -1,5 +1,6 @@
 package com.example.shop.auth.domain
 
+import com.example.shop.common.apis.models.AuthorityDto
 import com.example.shop.constants.ROLE_PREFIX
 import com.example.shop.common.hibernate.BaseCompareEntity
 import jakarta.persistence.Column
@@ -43,5 +44,13 @@ class Authority : BaseCompareEntity<Authority> {
 
     override fun hashCodeGenerator(): Int {
         return roleName?.hashCode() ?: 0
+    }
+
+    fun toDto(): AuthorityDto {
+        return AuthorityDto(
+            this.id!!,
+            this.roleName!!,
+            this.hierarchy!!,
+        )
     }
 }

@@ -1,5 +1,6 @@
 package com.example.shop.auth.domain
 
+import com.example.shop.common.apis.models.GroupAuthorityDto
 import com.example.shop.common.hibernate.BaseCompareEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -38,5 +39,14 @@ class GroupAuthority: BaseCompareEntity<GroupAuthority> {
 
     override fun hashCodeGenerator(): Int {
         return name?.hashCode() ?: 0
+    }
+
+    fun toDto(): GroupAuthorityDto {
+        return GroupAuthorityDto(
+            this.id!!,
+            this.name!!,
+            this.accountGroup!!.id!!,
+            this.accountGroup!!.name!!
+        )
     }
 }

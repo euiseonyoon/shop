@@ -3,7 +3,6 @@ package com.example.shop.auth.services
 import com.example.shop.admin.controllers.models.AccountGroupCreateRequest
 import com.example.shop.admin.controllers.models.AccountGroupUpdateRequest
 import com.example.shop.auth.domain.AccountGroup
-import com.example.shop.auth.extension_functions.toAccountGroupDto
 import com.example.shop.auth.repositories.AccountGroupRepository
 import com.example.shop.common.apis.exceptions.BadRequestException
 import com.example.shop.common.apis.models.AccountGroupDto
@@ -23,12 +22,12 @@ class AccountGroupService(
 
     @Transactional(readOnly = true)
     fun findWithPage(pageable: Pageable): Page<AccountGroupDto> {
-        return accountGroupRepository.findAll(pageable).map { it.toAccountGroupDto() }
+        return accountGroupRepository.findAll(pageable).map { it.toDto() }
     }
 
     @Transactional
     fun createAccountGroup(request: AccountGroupCreateRequest): AccountGroupDto {
-        return accountGroupRepository.save(AccountGroup(request.name)).toAccountGroupDto()
+        return accountGroupRepository.save(AccountGroup(request.name)).toDto()
     }
 
     @Transactional
@@ -36,6 +35,6 @@ class AccountGroupService(
         val accountGroup = accountGroupRepository.findById(request.id).orElse(null) ?:
             throw BadRequestException("Account Group not found with the id of ${request.id}")
         accountGroup.name = request.name
-        return accountGroupRepository.save(accountGroup).toAccountGroupDto()
+        return accountGroupRepository.save(accountGroup).toDto()
     }
 }

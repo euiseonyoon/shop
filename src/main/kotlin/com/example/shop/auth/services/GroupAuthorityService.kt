@@ -5,7 +5,6 @@ import com.example.shop.admin.controllers.models.GroupAuthorityDeleteRequest
 import com.example.shop.admin.controllers.models.GroupAuthorityUpdateRequest
 import com.example.shop.auth.domain.AccountGroup
 import com.example.shop.auth.domain.GroupAuthority
-import com.example.shop.auth.extension_functions.toGroupAuthorityDto
 import com.example.shop.auth.repositories.AccountGroupRepository
 import com.example.shop.auth.repositories.GroupAuthorityRepository
 import com.example.shop.common.apis.exceptions.BadRequestException
@@ -22,7 +21,7 @@ class GroupAuthorityService(
 ) {
     @Transactional(readOnly = true)
     fun findWithPage(pageable: Pageable): Page<GroupAuthorityDto> {
-        return groupAuthorityRepository.findAll(pageable).map { it.toGroupAuthorityDto() }
+        return groupAuthorityRepository.findAll(pageable).map { it.toDto() }
     }
 
     @Transactional
@@ -40,7 +39,7 @@ class GroupAuthorityService(
         val groupAuthority = GroupAuthority(groupAuthorityName)
         groupAuthority.accountGroup = group
 
-        return groupAuthorityRepository.save(groupAuthority).toGroupAuthorityDto()
+        return groupAuthorityRepository.save(groupAuthority).toDto()
     }
 
     @Transactional
@@ -54,7 +53,7 @@ class GroupAuthorityService(
                 groupAuthority.accountGroup = accountGroup
             }
         }
-        return groupAuthorityRepository.save(groupAuthority).toGroupAuthorityDto()
+        return groupAuthorityRepository.save(groupAuthority).toDto()
     }
 
     @Transactional

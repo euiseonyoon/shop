@@ -1,5 +1,6 @@
 package com.example.shop.auth.domain
 
+import com.example.shop.common.apis.models.AccountGroupDto
 import com.example.shop.common.hibernate.BaseCompareEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -46,5 +47,9 @@ class AccountGroup: BaseCompareEntity<AccountGroup> {
 
     override fun hashCodeGenerator(): Int {
         return name?.hashCode() ?: 0
+    }
+
+    fun toDto(): AccountGroupDto {
+        return AccountGroupDto(this.id!!, this.name!!)
     }
 }
