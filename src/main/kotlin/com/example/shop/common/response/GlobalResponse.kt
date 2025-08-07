@@ -1,4 +1,4 @@
-package com.example.shop.common.apis
+package com.example.shop.common.response
 
 import com.example.shop.common.exceptions.CustomExceptionInterface
 import jakarta.servlet.http.HttpServletResponse

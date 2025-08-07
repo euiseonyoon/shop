@@ -9,7 +9,7 @@ import com.example.shop.auth.models.TokenResponse
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
 import com.example.shop.auth.services.AccountService
-import com.example.shop.common.apis.GlobalResponse
+import com.example.shop.common.response.GlobalResponse
 import com.example.shop.redis.tokens.repositories.RefreshTokenRedisRepository
 import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
 import kotlinx.serialization.json.Json

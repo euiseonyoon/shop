@@ -10,7 +10,7 @@ import com.example.shop.auth.models.TokenResponse
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.auth.security.utils.PasswordGenerator
 import com.example.shop.auth.services.AccountService
-import com.example.shop.common.apis.GlobalResponse
+import com.example.shop.common.response.GlobalResponse
 import com.example.shop.constants.ADMIN_URI_PREFIX
 import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN
 import kotlinx.serialization.json.Json

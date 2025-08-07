@@ -7,7 +7,7 @@ import com.example.shop.auth.models.TokenResponse
 import com.example.shop.auth.security.utils.MyJwtTokenExtractor
 import com.example.shop.auth.services.AccountService
 import com.example.shop.auth.utils.RefreshTokenStateHelper
-import com.example.shop.common.apis.GlobalResponse
+import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.logger.LogSupport
 import com.example.shop.common.utils.CustomAuthorityUtils
 import com.example.shop.constants.TOKEN_REFRESH_URI

@@ -7,7 +7,7 @@ import com.example.shop.auth.security.rate_limit.RedisRateLimitHelper
 import com.example.shop.auth.security.rate_limit.models.HeavyRateLimitUriToken
 import com.example.shop.auth.security.rate_limit.models.RateLimitProperties
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
-import com.example.shop.common.apis.GlobalResponse
+import com.example.shop.common.response.GlobalResponse
 import com.example.shop.constants.HEALTH_CHECK_URI
 import com.example.shop.constants.NO_API_LIMIT_END_POINTS
 import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN

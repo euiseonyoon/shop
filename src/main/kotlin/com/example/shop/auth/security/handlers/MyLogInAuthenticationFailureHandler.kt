@@ -1,7 +1,7 @@
 package com.example.shop.auth.security.handlers
 
 import com.example.shop.auth.models.TokenResponse
-import com.example.shop.common.apis.GlobalResponse
+import com.example.shop.common.response.GlobalResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.serialization.json.Json

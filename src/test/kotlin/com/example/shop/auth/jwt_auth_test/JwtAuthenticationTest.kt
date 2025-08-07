@@ -6,7 +6,7 @@ import com.example.shop.auth.login_test.email_password.TestPasswordGenerator
 import com.example.shop.auth.models.TokenResponse
 import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
 import com.example.shop.auth.security.utils.PasswordGenerator
-import com.example.shop.common.apis.GlobalResponse
+import com.example.shop.common.response.GlobalResponse
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
