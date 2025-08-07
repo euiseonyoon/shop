@@ -2,6 +2,7 @@ package com.example.shop.auth.domain
 
 import com.example.shop.common.apis.models.AccountGroupDto
 import com.example.shop.common.hibernate.BaseCompareEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -18,10 +19,10 @@ class AccountGroup: BaseCompareEntity<AccountGroup> {
     @Column(nullable = false, unique = true)
     var name: String? = null
 
-    @OneToMany(mappedBy = "accountGroup")
+    @OneToMany(mappedBy = "accountGroup", cascade = [CascadeType.ALL])
     val groupMemberMap: MutableSet<GroupMember> = mutableSetOf()
 
-    @OneToMany(mappedBy = "accountGroup")
+    @OneToMany(mappedBy = "accountGroup", cascade = [CascadeType.ALL])
     val authorities: MutableSet<GroupAuthority> = mutableSetOf()
 
     constructor()
