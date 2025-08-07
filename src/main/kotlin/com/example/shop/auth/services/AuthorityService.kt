@@ -1,10 +1,12 @@
 package com.example.shop.auth.services
 
 import com.example.shop.admin.controllers.models.AuthorityCreateRequest
+import com.example.shop.admin.controllers.models.AuthorityUpdateRequest
 import com.example.shop.common.apis.models.AuthorityDto
 import com.example.shop.auth.domain.Authority
 import com.example.shop.auth.extension_functions.toAuthorityDto
 import com.example.shop.auth.repositories.AuthorityRepository
+import com.example.shop.common.apis.exceptions.BadRequestException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -33,6 +35,14 @@ class AuthorityService(
     @Transactional
     fun createAuthority(request: AuthorityCreateRequest): AuthorityDto {
         val authority = Authority(request.name, request.hierarchy)
+        return authorityRepository.save(authority).toAuthorityDto()
+    }
+
+    @Transactional
+    fun updateAuthorityHierarchy(request: AuthorityUpdateRequest): AuthorityDto {
+        val authority = authorityRepository.findById(request.id).orElse(null) ?:
+            throw BadRequestException("Authority not found with id of ${request.id}")
+        authority.hierarchy = request.hierarchy
         return authorityRepository.save(authority).toAuthorityDto()
     }
 }
