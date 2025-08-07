@@ -1,6 +1,6 @@
 package com.example.shop.auth.security.super_admin
 
-import com.example.shop.auth.ROLE_SUPER_ADMIN
+import com.example.shop.constants.ROLE_SUPER_ADMIN
 import com.example.shop.auth.models.AccountAuthenticationToken
 import org.springframework.expression.EvaluationContext
 import org.springframework.security.core.Authentication

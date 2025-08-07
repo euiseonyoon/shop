@@ -1,6 +1,6 @@
 package com.example.shop.auth.domain
 
-import com.example.shop.auth.ROLE_PREFIX
+import com.example.shop.constants.ROLE_PREFIX
 import com.example.shop.common.hibernate.BaseCompareEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

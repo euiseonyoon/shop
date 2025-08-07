@@ -1,6 +1,6 @@
 package com.example.shop.redis.tokens.repositories
 
-import com.example.shop.auth.REFRESH_TOKEN_EXPIRATION_MS
+import com.example.shop.constants.REFRESH_TOKEN_EXPIRATION_MS
 import com.example.shop.redis.repositories.GenericRedisRepository
 import com.example.shop.redis.tokens.utils.RefreshTokenRedisKeyGenerator
 import kotlinx.serialization.builtins.serializer

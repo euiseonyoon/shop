@@ -1,11 +1,11 @@
 package com.example.shop.auth.token_refresh
 
-import com.example.shop.auth.REFRESH_TOKEN_KEY
-import com.example.shop.auth.TOKEN_REFRESH_URI
+import com.example.shop.constants.REFRESH_TOKEN_KEY
 import com.example.shop.auth.common.AuthTestUtil
 import com.example.shop.auth.exceptions.BadRefreshTokenStateException
 import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
 import com.example.shop.auth.utils.RefreshTokenStateHelper
+import com.example.shop.constants.TOKEN_REFRESH_URI
 import jakarta.servlet.http.Cookie
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test

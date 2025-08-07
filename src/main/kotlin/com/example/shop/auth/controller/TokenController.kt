@@ -1,6 +1,5 @@
 package com.example.shop.auth.controller
 
-import com.example.shop.auth.TOKEN_REFRESH_URI
 import com.example.shop.auth.exceptions.BadRefreshTokenStateException
 import com.example.shop.auth.exceptions.RefreshTokenMissingException
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
@@ -11,6 +10,7 @@ import com.example.shop.auth.utils.RefreshTokenStateHelper
 import com.example.shop.common.apis.GlobalResponse
 import com.example.shop.common.logger.LogSupport
 import com.example.shop.common.utils.CustomAuthorityUtils
+import com.example.shop.constants.TOKEN_REFRESH_URI
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
@@ -27,6 +27,7 @@ class TokenController(
     private val customAuthorityUtils: CustomAuthorityUtils,
     private val refreshTokenStateHelper: RefreshTokenStateHelper,
 ) : LogSupport() {
+
     @PostMapping(TOKEN_REFRESH_URI)
     fun refreshTokens(
         request: HttpServletRequest,

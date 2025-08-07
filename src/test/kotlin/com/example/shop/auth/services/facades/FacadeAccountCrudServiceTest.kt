@@ -1,7 +1,7 @@
 package com.example.shop.auth.services.facades
 
-import com.example.shop.auth.ROLE_ADMIN
-import com.example.shop.auth.ROLE_USER
+import com.example.shop.constants.ROLE_ADMIN
+import com.example.shop.constants.ROLE_USER
 import com.example.shop.auth.common.TestAccountGroupFactory
 import com.example.shop.auth.common.TestAuthorityFactory
 import com.example.shop.auth.common.TestGroupAuthorityFactory

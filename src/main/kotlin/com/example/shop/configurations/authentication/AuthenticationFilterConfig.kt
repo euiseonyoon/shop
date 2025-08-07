@@ -1,9 +1,9 @@
 package com.example.shop.configurations.authentication
 
-import com.example.shop.auth.OAUTH_AUTH_URI_PATTERN
 import com.example.shop.auth.security.filters.EmailPasswordAuthenticationFilter
 import com.example.shop.auth.security.filters.MyJwtAuthenticationFilter
 import com.example.shop.auth.security.filters.ThirdPartyOauthAuthenticationFilter
+import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean

@@ -1,10 +1,11 @@
 package com.example.shop.configurations
 
-import com.example.shop.auth.ADMIN_NAME
-import com.example.shop.auth.EMAIL_PASSWORD_AUTH_URI
-import com.example.shop.auth.OAUTH_AUTH_URI_PATTERN
-import com.example.shop.auth.PERMIT_ALL_END_POINTS
+import com.example.shop.constants.ADMIN_NAME
 import com.example.shop.auth.security.filters.RateLimitFilter
+import com.example.shop.constants.ADMIN_URI_PREFIX
+import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
+import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN
+import com.example.shop.constants.PERMIT_ALL_END_POINTS
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -159,13 +160,13 @@ class SecurityConfig(
         @Qualifier("httpSecurityExpressionHandler")
         expressionHandler: DefaultHttpSecurityExpressionHandler
     ): SecurityFilterChain {
-        val superAdminAllowingAuthorizationManager = WebExpressionAuthorizationManager("hasRole('${ADMIN_NAME}')").apply {
+        val superAdminAllowingAuthorizationManager = WebExpressionAuthorizationManager("hasRole('$ADMIN_NAME')").apply {
             setExpressionHandler(expressionHandler)
         }
         return makeBaseHttpSecurity(http)
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/admin/**").access(superAdminAllowingAuthorizationManager)
+                    .requestMatchers("$ADMIN_URI_PREFIX/**").access(superAdminAllowingAuthorizationManager)
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtTokenFilter, AuthorizationFilter::class.java)

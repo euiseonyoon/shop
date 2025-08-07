@@ -1,8 +1,5 @@
 package com.example.shop.rate_limit
 
-import com.example.shop.auth.HEALTH_CHECK_URI
-import com.example.shop.auth.NO_API_LIMIT_END_POINTS
-import com.example.shop.auth.OAUTH_AUTH_URI_PATTERN
 import com.example.shop.auth.common.AuthTestUtil
 import com.example.shop.auth.models.ThirdPartyOauthTokenLoginRequest
 import com.example.shop.auth.models.TokenResponse
@@ -11,6 +8,9 @@ import com.example.shop.auth.security.rate_limit.models.HeavyRateLimitUriToken
 import com.example.shop.auth.security.rate_limit.models.RateLimitProperties
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.common.apis.GlobalResponse
+import com.example.shop.constants.HEALTH_CHECK_URI
+import com.example.shop.constants.NO_API_LIMIT_END_POINTS
+import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

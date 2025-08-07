@@ -1,7 +1,7 @@
 package com.example.shop.auth.security.filters
 
-import com.example.shop.auth.EMAIL_PASSWORD_AUTH_URI
 import com.example.shop.auth.models.EmailPasswordLoginRequest
+import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.serialization.json.Json

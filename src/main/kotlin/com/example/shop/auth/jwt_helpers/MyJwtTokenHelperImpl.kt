@@ -1,8 +1,8 @@
 package com.example.shop.auth.jwt_helpers
 
-import com.example.shop.auth.ACCESS_TOKEN_EXPIRATION_MS
-import com.example.shop.auth.REFRESH_TOKEN_EXPIRATION_MS
-import com.example.shop.auth.REFRESH_TOKEN_KEY
+import com.example.shop.constants.ACCESS_TOKEN_EXPIRATION_MS
+import com.example.shop.constants.REFRESH_TOKEN_EXPIRATION_MS
+import com.example.shop.constants.REFRESH_TOKEN_KEY
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper.Companion.AUTH_CLAIM_KEY
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper.Companion.AUTH_STRING_DELIMITER
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper.Companion.EMAIL_CLAIM_KEY

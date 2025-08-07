@@ -1,6 +1,6 @@
 package com.example.shop.auth.services
 
-import com.example.shop.auth.ROLE_USER
+import com.example.shop.constants.ROLE_USER
 import com.example.shop.auth.common.TestAccountGroupFactory
 import com.example.shop.auth.common.TestAuthorityFactory
 import com.example.shop.auth.common.TestGroupAuthorityFactory

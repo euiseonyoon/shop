@@ -1,6 +1,6 @@
 package com.example.shop.auth.security.utils
 
-import com.example.shop.auth.REFRESH_TOKEN_KEY
+import com.example.shop.constants.REFRESH_TOKEN_KEY
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Component

@@ -1,6 +1,6 @@
 package com.example.shop.auth.security.filters
 
-import com.example.shop.auth.PERMIT_ALL_END_POINTS
+import com.example.shop.constants.PERMIT_ALL_END_POINTS
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest

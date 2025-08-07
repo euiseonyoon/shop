@@ -1,9 +1,9 @@
 package com.example.shop.configurations.authorization
 
-import com.example.shop.auth.ADMIN_NAME
-import com.example.shop.auth.ROLE_PREFIX
-import com.example.shop.auth.SUPER_ADMIN_NAME
-import com.example.shop.auth.USER_NAME
+import com.example.shop.constants.ADMIN_NAME
+import com.example.shop.constants.ROLE_PREFIX
+import com.example.shop.constants.SUPER_ADMIN_NAME
+import com.example.shop.constants.USER_NAME
 import com.example.shop.auth.security.super_admin.SuperAdminHttpSecurityExpressionHandler
 import com.example.shop.auth.security.super_admin.SuperAdminMethodSecurityExpressionHandler
 import org.springframework.beans.factory.annotation.Value

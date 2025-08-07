@@ -1,7 +1,5 @@
 package com.example.shop.auth.login_test.oauth2.google
 
-import com.example.shop.auth.EMAIL_PASSWORD_AUTH_URI
-import com.example.shop.auth.OAUTH_AUTH_URI_PATTERN
 import com.example.shop.auth.TestConstants.Companion.TEST_EMAIL
 import com.example.shop.auth.TestConstants.Companion.TEST_PSWD
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
@@ -13,6 +11,8 @@ import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthentic
 import com.example.shop.auth.security.utils.PasswordGenerator
 import com.example.shop.auth.services.AccountService
 import com.example.shop.redis.tokens.repositories.RefreshTokenRedisRepository
+import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
+import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito

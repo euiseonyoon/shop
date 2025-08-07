@@ -1,7 +1,6 @@
 package com.example.shop.auth.common
 
-import com.example.shop.auth.EMAIL_PASSWORD_AUTH_URI
-import com.example.shop.auth.REFRESH_TOKEN_KEY
+import com.example.shop.constants.REFRESH_TOKEN_KEY
 import com.example.shop.auth.TestConstants.Companion.TEST_EMAIL
 import com.example.shop.auth.TestConstants.Companion.TEST_PSWD
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
@@ -12,6 +11,7 @@ import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRe
 import com.example.shop.auth.services.AccountService
 import com.example.shop.common.apis.GlobalResponse
 import com.example.shop.redis.tokens.repositories.RefreshTokenRedisRepository
+import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertNotNull

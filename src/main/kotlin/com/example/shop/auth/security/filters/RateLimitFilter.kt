@@ -1,8 +1,8 @@
 package com.example.shop.auth.security.filters
 
-import com.example.shop.auth.NO_API_LIMIT_END_POINTS
 import com.example.shop.auth.security.rate_limit.RedisRateLimitHelper
 import com.example.shop.common.apis.GlobalResponse
+import com.example.shop.constants.NO_API_LIMIT_END_POINTS
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

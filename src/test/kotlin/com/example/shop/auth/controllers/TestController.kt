@@ -1,9 +1,9 @@
 package com.example.shop.auth.controllers
 
-import com.example.shop.auth.ADMIN_NAME
-import com.example.shop.auth.HEALTH_CHECK_URI
-import com.example.shop.auth.USER_NAME
+import com.example.shop.constants.ADMIN_NAME
+import com.example.shop.constants.USER_NAME
 import com.example.shop.auth.models.AccountAuthenticationToken
+import com.example.shop.constants.HEALTH_CHECK_URI
 import org.springframework.context.annotation.Profile
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -31,25 +31,25 @@ class TestController {
     }
 
     // @EnableMethodSecurity 를 사용해야 한다. SecurityConfig에 적용한다.
-    @PreAuthorize("hasRole('${USER_NAME}')")
+    @PreAuthorize("hasRole('$USER_NAME')")
     @GetMapping("/test-user")
     fun test3(): String {
         return "hello"
     }
 
-    @PreAuthorize("hasRole('${ADMIN_NAME}')")
+    @PreAuthorize("hasRole('$ADMIN_NAME')")
     @GetMapping("/test-admin-only")
     fun test4(): String {
         return "hello4"
     }
 
-    @PreAuthorize("hasRole('${ADMIN_NAME}')")
+    @PreAuthorize("hasRole('$ADMIN_NAME')")
     @GetMapping("/admin/test")
     fun adminTest(): String {
         return "hello admin"
     }
 
-    @PreAuthorize("hasRole('${USER_NAME}') and #userId == authentication.principal")
+    @PreAuthorize("hasRole('$USER_NAME') and #userId == authentication.principal")
     @GetMapping("/test5")
     fun test5(userId: Long?): String {
         return "hello5"

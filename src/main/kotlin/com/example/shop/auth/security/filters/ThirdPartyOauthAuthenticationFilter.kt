@@ -30,11 +30,11 @@ class ThirdPartyOauthAuthenticationFilter(
 
         try {
             // 요청 URI에서 벤더 ID를 추출
-            // 예: /login/oauth/google -> "google"
+            // 예: /auth/login/oauth/google -> "google"
             val requestUri = request.requestURI
             val pathSegments = requestUri.split("/")
             val vendor = ThirdPartyAuthenticationVendor.fromString(
-                pathSegments.getOrNull(3)
+                pathSegments.last()
                     ?: throw AuthenticationServiceException("Missing provider ID in URL: $requestUri")
             )
 

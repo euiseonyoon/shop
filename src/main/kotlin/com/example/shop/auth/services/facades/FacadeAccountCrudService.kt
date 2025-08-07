@@ -1,11 +1,10 @@
 package com.example.shop.auth.services.facades
 
-import com.example.shop.auth.ROLE_ADMIN
-import com.example.shop.auth.ROLE_USER
+import com.example.shop.constants.ROLE_ADMIN
+import com.example.shop.constants.ROLE_USER
 import com.example.shop.auth.domain.Account
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 @Service
 class FacadeAccountCrudService(

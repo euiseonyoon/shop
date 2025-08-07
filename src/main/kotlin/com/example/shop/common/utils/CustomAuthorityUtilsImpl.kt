@@ -1,6 +1,6 @@
 package com.example.shop.common.utils
 
-import com.example.shop.auth.ROLE_PREFIX
+import com.example.shop.constants.ROLE_PREFIX
 import com.example.shop.auth.domain.Account
 import com.example.shop.common.utils.exceptions.AuthorityPrefixException
 import org.springframework.security.authentication.AuthenticationServiceException
