@@ -26,18 +26,19 @@ class AccountAndGroupService(
         rawPassword: String,
         nickname: String?,
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
-        roleName: String,
+        roleInfo: Pair<String, Int>,
         groupNames: Set<String>,
         assignGroupStrictly: Boolean,
         createRoleIfNotExist: Boolean,
     ): Account {
+        val roleName = roleInfo.first
         customAuthorityUtils.validateAuthorityPrefix(roleName)
 
         val authority = authorityService.findByRoleName(roleName) ?: run {
             if (!createRoleIfNotExist) {
                 throw AuthorityNotFoundException("$roleName authority not found.")
             }
-            authorityService.createNewAuthority(roleName)
+            authorityService.createNewAuthority(roleInfo.first, roleInfo.second)
         }
 
         val savedAccount = accountService.createAccount(email, rawPassword, nickname, thirdPartyOauthVendor, authority)

@@ -21,12 +21,16 @@ class Authority : BaseCompareEntity<Authority> {
     @Column(nullable = false, unique = true)
     var roleName: String? = null
 
+    @Column(nullable = false, unique = true)
+    var hierarchy: Int? = null
+
     constructor()
-    constructor(roleName: String) {
+    constructor(roleName: String, hierarchy: Int) {
         require(roleName.startsWith(ROLE_PREFIX)) {
             "Authority should start with $ROLE_PREFIX"
         }
         this.roleName = roleName
+        this.hierarchy = hierarchy
     }
 
     override fun compareDetail(other: Authority): Boolean {

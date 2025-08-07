@@ -13,5 +13,10 @@ class AuthorityService(
     fun findByRoleName(name: String): Authority? = authorityRepository.findByRoleName(name)
 
     @Transactional
-    fun createNewAuthority(name: String): Authority = authorityRepository.save(Authority(name))
+    fun createNewAuthority(name: String, hierarchy: Int): Authority = authorityRepository.save(Authority(name, hierarchy))
+
+    @Transactional(readOnly = true)
+    fun findAllByHierarchyAsc(): List<Authority> {
+        return authorityRepository.findAllByOrderByHierarchyAsc()
+    }
 }

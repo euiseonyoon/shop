@@ -1,11 +1,10 @@
 package com.example.shop.configurations.authorization
 
-import com.example.shop.constants.ADMIN_NAME
 import com.example.shop.constants.ROLE_PREFIX
-import com.example.shop.constants.SUPER_ADMIN_NAME
-import com.example.shop.constants.USER_NAME
 import com.example.shop.auth.security.super_admin.SuperAdminHttpSecurityExpressionHandler
 import com.example.shop.auth.security.super_admin.SuperAdminMethodSecurityExpressionHandler
+import com.example.shop.auth.services.AuthorityService
+import com.example.shop.auth.utils.RoleHierarchyHelper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,6 +15,16 @@ import org.springframework.security.web.access.expression.DefaultHttpSecurityExp
 
 @Configuration
 class RoleConfig {
+    @Bean
+    fun roleHierarchy(
+        authorityService: AuthorityService,
+        roleHierarchyHelper: RoleHierarchyHelper,
+    ): RoleHierarchy {
+        val roleNamesInHierarchyAsc = roleHierarchyHelper.getRoleNamesInHierarchyAsc()
+        val hierarchyString = roleNamesInHierarchyAsc.joinToString(" > ")
+        return RoleHierarchyImpl.fromHierarchy(hierarchyString)
+    }
+
     /**
      * pre-post method security(@PreAuthorize, @PostAuthorize, @PreFilter, @PostFilter)를 사용한다면 추가해야한다.
      *
@@ -31,11 +40,12 @@ class RoleConfig {
      * */
     @Bean
     fun methodSecurityExpressionHandler(
+        roleHierarchy : RoleHierarchy,
         @Value("\${auth.super_admin}")
         superAdminEmail: String
     ): MethodSecurityExpressionHandler {
         val expressionHandler = SuperAdminMethodSecurityExpressionHandler(superAdminEmail).apply {
-            setRoleHierarchy((roleHierarchy()))
+            setRoleHierarchy((roleHierarchy))
             setDefaultRolePrefix(ROLE_PREFIX)
         }
         return expressionHandler
@@ -43,33 +53,14 @@ class RoleConfig {
 
     @Bean
     fun httpSecurityExpressionHandler(
+        roleHierarchy : RoleHierarchy,
         @Value("\${auth.super_admin}")
         superAdminEmail: String
     ): DefaultHttpSecurityExpressionHandler {
         val expressionHandler = SuperAdminHttpSecurityExpressionHandler(superAdminEmail).apply {
-            setRoleHierarchy((roleHierarchy()))
+            setRoleHierarchy((roleHierarchy))
             setDefaultRolePrefix(ROLE_PREFIX)
         }
         return expressionHandler
-    }
-
-    /**
-     * 참고: https://docs.spring.io/spring-security/reference/servlet/authorization/architecture.html#authz-hierarchical-roles
-     *
-     * static bean
-     * 장점:
-     *      static @Bean은 스프링 컨테이너 초기화 시점에 다른 빈보다 먼저 등록되어, 빈 설정 정보 조작이나 초기화 로직 실행에 유용합니다.
-     * 주의점:
-     *      static @Bean 메서드에서는 스프링 컨테이너가 관리하는 빈에 대한 의존성 주입을 받을 수 없습니다. 필요한 빈은 static 변수나 BeanFactory를 통해 직접 가져와야 합니다.
-     * */
-    companion object {
-        @JvmStatic
-        @Bean
-        fun roleHierarchy(): RoleHierarchy {
-            return RoleHierarchyImpl.withDefaultRolePrefix()
-                .role(SUPER_ADMIN_NAME).implies(ADMIN_NAME)
-                .role(ADMIN_NAME).implies(USER_NAME)
-                .build()
-        }
     }
 }

@@ -4,12 +4,20 @@ import com.example.shop.constants.ROLE_ADMIN
 import com.example.shop.constants.ROLE_USER
 import com.example.shop.auth.domain.Account
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
+import com.example.shop.auth.utils.RoleHierarchyHelper
+import com.example.shop.constants.ADMIN_HIERARCHY
+import com.example.shop.constants.DEFAULT_USER_HIERARCHY
 import org.springframework.stereotype.Service
 
 @Service
 class FacadeAccountCrudService(
-    private val accountAndGroupService: AccountAndGroupService
+    private val accountAndGroupService: AccountAndGroupService,
+    private val roleHierarchyHelper: RoleHierarchyHelper,
 ) {
+    private fun getDefaultRoleHierarchy(roleName: String): Int? {
+        return roleHierarchyHelper.getRoleHierarchy(roleName)
+    }
+
     fun createUserAccount(
         email: String,
         rawPassword: String,
@@ -22,7 +30,7 @@ class FacadeAccountCrudService(
             rawPassword = rawPassword,
             nickname = nickname,
             thirdPartyOauthVendor = thirdPartyOauthVendor,
-            roleName = ROLE_USER,
+            roleInfo = ROLE_USER to (getDefaultRoleHierarchy(ROLE_USER) ?: DEFAULT_USER_HIERARCHY),
             groupNames = groupNames,
             assignGroupStrictly = false,
             createRoleIfNotExist = true,
@@ -41,7 +49,7 @@ class FacadeAccountCrudService(
             rawPassword = rawPassword,
             nickname = nickname,
             thirdPartyOauthVendor = null,
-            roleName = ROLE_ADMIN,
+            roleInfo = ROLE_ADMIN to (getDefaultRoleHierarchy(ROLE_ADMIN) ?: ADMIN_HIERARCHY),
             groupNames = groupNames,
             assignGroupStrictly = true,
             createRoleIfNotExist = false,

@@ -9,6 +9,8 @@ import com.example.shop.auth.domain.Account
 import com.example.shop.auth.domain.AccountGroup
 import com.example.shop.auth.domain.GroupAuthority
 import com.example.shop.auth.exceptions.AccountGroupPartiallyNotFoundException
+import com.example.shop.constants.ADMIN_HIERARCHY
+import com.example.shop.constants.DEFAULT_USER_HIERARCHY
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.BeforeEach
@@ -64,7 +66,7 @@ class FacadeAccountCrudServiceTest {
     @Transactional
     fun `test user creation success`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_USER)).first()
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_USER to DEFAULT_USER_HIERARCHY)).first()
         val email = "test@gmail.com"
         val rawPassword = "test"
         val nickname = "RyanAtBurst"
@@ -91,7 +93,7 @@ class FacadeAccountCrudServiceTest {
     @Transactional
     fun `test user creation fail`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN)).first()
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN to ADMIN_HIERARCHY)).first()
         val email = "test@gmail.com"
         val rawPassword = "test"
         val nickname = "RyanAtBurst"
@@ -117,7 +119,7 @@ class FacadeAccountCrudServiceTest {
     @Transactional
     fun `test admin creation success`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN)).first()
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN to ADMIN_HIERARCHY)).first()
         val email = "test@gmail.com"
         val rawPassword = "test"
         val nickname = "RyanAtBurst"
@@ -143,7 +145,7 @@ class FacadeAccountCrudServiceTest {
     @Transactional
     fun `test admin creation fail`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN)).first()
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN to ADMIN_HIERARCHY)).first()
         val email = "test@gmail.com"
         val rawPassword = "test"
         val nickname = "RyanAtBurst"

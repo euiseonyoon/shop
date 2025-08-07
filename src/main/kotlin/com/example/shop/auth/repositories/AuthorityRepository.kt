@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface AuthorityRepository : JpaRepository<Authority, Long> {
     // roleName 은 unique
     fun findByRoleName(roleName: String): Authority?
+
+    fun findAllByOrderByHierarchyAsc(): List<Authority>
 }

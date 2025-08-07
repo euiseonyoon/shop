@@ -7,6 +7,7 @@ import com.example.shop.auth.common.TestGroupAuthorityFactory
 import com.example.shop.auth.domain.Account
 import com.example.shop.auth.domain.GroupMember
 import com.example.shop.common.logger.LogSupport
+import com.example.shop.constants.DEFAULT_USER_HIERARCHY
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.Test
@@ -38,7 +39,7 @@ class AccountServiceTest : LogSupport() {
     @Transactional
     fun `test account repository extension`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_USER)).first()
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_USER to DEFAULT_USER_HIERARCHY)).first()
 
         val groups = testAccountGroupFactory.createAccountGroup(em, listOf("group1", "group2"))
         val firstGroup = groups.first()
