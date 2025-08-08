@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class AccountAndGroupService(
+class AccountAndAuthorityRelatedService(
     private val accountService: AccountService,
     private val accountGroupService: AccountGroupService,
     private val groupMemberService: GroupMemberService,

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class FacadeAccountCrudService(
-    private val accountAndGroupService: AccountAndGroupService,
+    private val accountAndAuthorityRelatedService: AccountAndAuthorityRelatedService,
     private val roleHierarchyHelper: RoleHierarchyHelper,
 ) {
     private fun getDefaultRoleHierarchy(roleName: String): Int? {
@@ -25,7 +25,7 @@ class FacadeAccountCrudService(
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
         groupNames: Set<String>,
     ): Account {
-        return accountAndGroupService.createAccountAndAssignGroup(
+        return accountAndAuthorityRelatedService.createAccountAndAssignGroup(
             email = email,
             rawPassword = rawPassword,
             nickname = nickname,
@@ -44,7 +44,7 @@ class FacadeAccountCrudService(
         nickname: String?,
         groupNames: Set<String>,
     ): Account {
-        return accountAndGroupService.createAccountAndAssignGroup(
+        return accountAndAuthorityRelatedService.createAccountAndAssignGroup(
             email = email,
             rawPassword = rawPassword,
             nickname = nickname,
