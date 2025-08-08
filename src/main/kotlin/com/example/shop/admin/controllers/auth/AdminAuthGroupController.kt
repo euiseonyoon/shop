@@ -4,7 +4,6 @@ import com.example.shop.admin.controllers.models.AccountGroupCreateRequest
 import com.example.shop.admin.controllers.models.AccountGroupUpdateRequest
 import com.example.shop.auth.services.AccountGroupService
 import com.example.shop.common.apis.models.AccountGroupDto
-import com.example.shop.common.apis.models.AuthorityDto
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.response.PagedResponse
 import com.example.shop.constants.ROLE_SUPER_ADMIN
