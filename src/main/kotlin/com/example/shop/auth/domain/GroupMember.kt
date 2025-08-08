@@ -14,7 +14,7 @@ import org.hibernate.proxy.HibernateProxy
 @Entity
 @Table(
     uniqueConstraints = [
-        UniqueConstraint(columnNames = ["group_id", "account_id"])
+        UniqueConstraint(columnNames = ["account_id", "account_group_id"])
     ]
 )
 class GroupMember: BaseCompareEntity<GroupMember> {
