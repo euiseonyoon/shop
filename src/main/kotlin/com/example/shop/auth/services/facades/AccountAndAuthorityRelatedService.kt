@@ -12,7 +12,7 @@ import com.example.shop.auth.services.AuthorityService
 import com.example.shop.auth.services.GroupMemberService
 import com.example.shop.common.apis.models.AuthorityDto
 import com.example.shop.common.utils.CustomAuthorityUtils
-import org.springframework.data.redis.core.RedisTemplate
+import com.example.shop.redis.authority_refresh.AuthorityRefreshEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -23,7 +23,7 @@ class AccountAndAuthorityRelatedService(
     private val groupMemberService: GroupMemberService,
     private val authorityService: AuthorityService,
     private val customAuthorityUtils: CustomAuthorityUtils,
-    private val redisTemplate: RedisTemplate<String, ByteArray>,
+    private val authorityRefreshEventPublisher: AuthorityRefreshEventPublisher,
 ) {
     @Transactional
     fun createAccountAndAssignGroup(
@@ -61,8 +61,9 @@ class AccountAndAuthorityRelatedService(
     fun createAuthority(request: AuthorityCreateRequest): AuthorityDto {
         val createdAuthorityDto = authorityService.createAuthority(request.name, request.hierarchy).toDto()
 
-        val message = "AuthorityCreateInfo={name:${request.name}, hierarchy:${request.hierarchy}}"
-        redisTemplate.convertAndSend("role-hierarchy-channel", message.toByteArray())
+        authorityRefreshEventPublisher.publishAuthorityRefreshEvent(
+            "AuthorityCreateInfo={name:${request.name}, hierarchy:${request.hierarchy}}"
+        )
 
         return createdAuthorityDto
     }
@@ -71,8 +72,9 @@ class AccountAndAuthorityRelatedService(
     fun updateAuthorityHierarchy(request: AuthorityUpdateRequest): AuthorityDto {
         val updatedAuthorityDto = authorityService.updateAuthorityHierarchy(request.id, request.hierarchy).toDto()
 
-        val message = "AuthorityUpdateInfo={id:${request.id}, hierarchy:${request.hierarchy}}"
-        redisTemplate.convertAndSend("role-hierarchy-channel", message.toByteArray())
+        authorityRefreshEventPublisher.publishAuthorityRefreshEvent(
+            "AuthorityUpdateInfo={id:${request.id}, hierarchy:${request.hierarchy}}"
+        )
 
         return updatedAuthorityDto
     }

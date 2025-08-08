@@ -16,3 +16,5 @@ const val DEFAULT_USER_HIERARCHY: Int = 100
 const val REFRESH_TOKEN_KEY = "refreshToken"
 val ACCESS_TOKEN_EXPIRATION_MS: Long = 1000 * 60 * 30 // 1시간
 val REFRESH_TOKEN_EXPIRATION_MS: Long = 1000 * 60 * 60 * 24 * 7 // 7일
+
+const val REDIS_AUTHORITY_REFRESH_CHANNEL = "authority-refresh-channel"
