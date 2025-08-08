@@ -28,6 +28,7 @@ class AdminAuthRoleController(
 
     // 1. Authority 조회
     // GET /admin/auth/authority?page=0&size=10&sort=hierarchy,asc
+    @PreAuthorize("hasRole('${ROLE_SUPER_ADMIN}')")
     @GetMapping("")
     fun getRoles(pageable: Pageable): GlobalResponse<PagedResponse<AuthorityDto>> {
         val result = authorityService.findWithPage(pageable)

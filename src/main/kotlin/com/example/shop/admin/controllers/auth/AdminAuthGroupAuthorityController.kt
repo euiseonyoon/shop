@@ -30,13 +30,14 @@ class AdminAuthGroupAuthorityController(
         const val URI = AdminAuthController.URI + "/group-authority"
     }
 
+    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN')")
     @GetMapping("")
     fun getGroupAuthorities(pageable: Pageable): GlobalResponse<PagedResponse<GroupAuthorityDto>> {
         val result = groupAuthorityService.findWithPage(pageable)
         return GlobalResponse.create(PagedResponse.fromPage(result))
     }
 
-    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN)'")
+    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN')")
     @PostMapping("")
     fun createGroupAuthority(
         @RequestBody(required = true) @Valid request: GroupAuthorityCreateRequest
