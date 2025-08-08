@@ -1,8 +1,8 @@
 package com.example.shop.admin.controllers.auth
 
-import com.example.shop.admin.controllers.models.GroupAuthorityCreateRequest
-import com.example.shop.admin.controllers.models.GroupAuthorityDeleteRequest
-import com.example.shop.admin.controllers.models.GroupAuthorityUpdateRequest
+import com.example.shop.admin.models.auth.GroupAuthorityCreateRequest
+import com.example.shop.admin.models.auth.GroupAuthorityDeleteRequest
+import com.example.shop.admin.models.auth.GroupAuthorityUpdateRequest
 import com.example.shop.auth.services.GroupAuthorityService
 import com.example.shop.common.apis.models.GroupAuthorityDto
 import com.example.shop.common.response.GlobalResponse

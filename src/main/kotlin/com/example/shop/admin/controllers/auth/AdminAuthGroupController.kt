@@ -1,7 +1,7 @@
 package com.example.shop.admin.controllers.auth
 
-import com.example.shop.admin.controllers.models.AccountGroupCreateRequest
-import com.example.shop.admin.controllers.models.AccountGroupUpdateRequest
+import com.example.shop.admin.models.auth.AccountGroupCreateRequest
+import com.example.shop.admin.models.auth.AccountGroupUpdateRequest
 import com.example.shop.auth.services.AccountGroupService
 import com.example.shop.common.apis.models.AccountGroupDto
 import com.example.shop.common.response.GlobalResponse

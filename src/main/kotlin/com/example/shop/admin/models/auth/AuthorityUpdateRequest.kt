@@ -1,4 +1,4 @@
-package com.example.shop.admin.controllers.models
+package com.example.shop.admin.models.auth
 
 data class AuthorityUpdateRequest(
     val id: Long,

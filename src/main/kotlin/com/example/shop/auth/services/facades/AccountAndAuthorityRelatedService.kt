@@ -1,7 +1,7 @@
 package com.example.shop.auth.services.facades
 
-import com.example.shop.admin.controllers.models.AuthorityCreateRequest
-import com.example.shop.admin.controllers.models.AuthorityUpdateRequest
+import com.example.shop.admin.models.auth.AuthorityCreateRequest
+import com.example.shop.admin.models.auth.AuthorityUpdateRequest
 import com.example.shop.auth.domain.Account
 import com.example.shop.auth.exceptions.AccountGroupPartiallyNotFoundException
 import com.example.shop.auth.exceptions.AuthorityNotFoundException

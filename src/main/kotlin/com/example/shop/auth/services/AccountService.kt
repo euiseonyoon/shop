@@ -1,6 +1,6 @@
 package com.example.shop.auth.services
 
-import com.example.shop.admin.controllers.models.AdminAccountUpdateRequest
+import com.example.shop.admin.models.account.AdminAccountUpdateRequest
 import com.example.shop.auth.domain.Account
 import com.example.shop.auth.domain.Authority
 import com.example.shop.auth.domain.GroupMember

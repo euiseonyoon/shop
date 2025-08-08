@@ -1,4 +1,4 @@
-package com.example.shop.admin.controllers.models
+package com.example.shop.admin.models.auth
 
 import jakarta.validation.constraints.NotBlank
 

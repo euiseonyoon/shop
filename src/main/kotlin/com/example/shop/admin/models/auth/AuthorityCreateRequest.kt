@@ -1,4 +1,4 @@
-package com.example.shop.admin.controllers.models
+package com.example.shop.admin.models.auth
 
 import com.example.shop.constants.ROLE_PREFIX
 import jakarta.validation.constraints.Pattern

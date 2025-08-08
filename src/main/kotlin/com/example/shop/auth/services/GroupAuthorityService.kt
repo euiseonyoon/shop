@@ -1,8 +1,8 @@
 package com.example.shop.auth.services
 
-import com.example.shop.admin.controllers.models.GroupAuthorityCreateRequest
-import com.example.shop.admin.controllers.models.GroupAuthorityDeleteRequest
-import com.example.shop.admin.controllers.models.GroupAuthorityUpdateRequest
+import com.example.shop.admin.models.auth.GroupAuthorityCreateRequest
+import com.example.shop.admin.models.auth.GroupAuthorityDeleteRequest
+import com.example.shop.admin.models.auth.GroupAuthorityUpdateRequest
 import com.example.shop.auth.domain.AccountGroup
 import com.example.shop.auth.domain.GroupAuthority
 import com.example.shop.auth.repositories.AccountGroupRepository

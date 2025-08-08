@@ -1,7 +1,7 @@
 package com.example.shop.auth.services
 
-import com.example.shop.admin.controllers.models.AccountGroupCreateRequest
-import com.example.shop.admin.controllers.models.AccountGroupUpdateRequest
+import com.example.shop.admin.models.auth.AccountGroupCreateRequest
+import com.example.shop.admin.models.auth.AccountGroupUpdateRequest
 import com.example.shop.auth.domain.AccountGroup
 import com.example.shop.auth.repositories.AccountGroupRepository
 import com.example.shop.common.apis.exceptions.BadRequestException

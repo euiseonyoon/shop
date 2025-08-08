@@ -1,7 +1,7 @@
 package com.example.shop.admin.controllers.auth
 
-import com.example.shop.admin.controllers.models.AuthorityCreateRequest
-import com.example.shop.admin.controllers.models.AuthorityUpdateRequest
+import com.example.shop.admin.models.auth.AuthorityCreateRequest
+import com.example.shop.admin.models.auth.AuthorityUpdateRequest
 import com.example.shop.common.apis.models.AuthorityDto
 import com.example.shop.auth.services.AuthorityService
 import com.example.shop.auth.services.facades.AccountAndAuthorityRelatedService

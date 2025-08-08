@@ -1,6 +1,6 @@
 package com.example.shop.common.apis.validators
 
-import com.example.shop.admin.controllers.models.GroupAuthorityUpdateRequest
+import com.example.shop.admin.models.auth.GroupAuthorityUpdateRequest
 import com.example.shop.common.apis.annotations.AtLeastOneNotNull
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext

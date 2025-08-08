@@ -1,6 +1,6 @@
 package com.example.shop.admin.controllers.account
 
-import com.example.shop.admin.controllers.models.AdminAccountUpdateRequest
+import com.example.shop.admin.models.account.AdminAccountUpdateRequest
 import com.example.shop.auth.domain.extension_functions.toAdminAccountDto
 import com.example.shop.common.apis.models.AccountSearchCriteria
 import com.example.shop.auth.services.AccountService
