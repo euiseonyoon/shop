@@ -4,6 +4,7 @@ import com.example.shop.admin.models.account.AdminAccountUpdateRequest
 import com.example.shop.auth.domain.extension_functions.toAdminAccountDto
 import com.example.shop.common.apis.models.AccountSearchCriteria
 import com.example.shop.auth.services.AccountService
+import com.example.shop.auth.services.facades.AccountAndAuthorityRelatedService
 import com.example.shop.common.apis.models.AdminAccountDto
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.response.PagedResponse
@@ -21,7 +22,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(ADMIN_ACCOUNT_URI_PREFIX)
 class AdminAccountController(
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val accountAndAuthorityRelatedService: AccountAndAuthorityRelatedService,
 ) {
     @PreAuthorize("hasRole('$ROLE_ADMIN')")
     @GetMapping("")
@@ -45,7 +47,7 @@ class AdminAccountController(
     fun updateAccount(
         @RequestBody(required = true) request: AdminAccountUpdateRequest
     ): GlobalResponse<AdminAccountDto> {
-        return accountService.adminUpdateAccount(request).toAdminAccountDto().let {
+        return accountAndAuthorityRelatedService.adminUpdateAccount(request).toAdminAccountDto().let {
             GlobalResponse.create(it)
         }
     }
