@@ -2,6 +2,7 @@ package com.example.shop.auth.domain
 
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.common.hibernate.BaseCompareEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -42,7 +43,7 @@ class Account: BaseCompareEntity<Account>() {
     @JoinColumn(name = "authority_id", nullable = false)
     var authority: Authority? = null
 
-    @OneToMany(mappedBy = "account")
+    @OneToMany(mappedBy = "account", cascade = [CascadeType.ALL])
     val groupMemberMap: MutableSet<GroupMember> = mutableSetOf()
 
     fun getGroups(): List<AccountGroup> {
