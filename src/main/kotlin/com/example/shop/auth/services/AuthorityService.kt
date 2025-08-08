@@ -8,12 +8,14 @@ import com.example.shop.auth.repositories.AuthorityRepository
 import com.example.shop.common.apis.exceptions.BadRequestException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AuthorityService(
     private val authorityRepository: AuthorityRepository,
+    private val redisTemplate: RedisTemplate<String, ByteArray>
 ) {
     @Transactional(readOnly = true)
     fun findByRoleName(name: String): Authority? = authorityRepository.findByRoleName(name)
@@ -37,11 +39,22 @@ class AuthorityService(
         return authorityRepository.save(authority).toDto()
     }
 
-    @Transactional
+
     fun updateAuthorityHierarchy(request: AuthorityUpdateRequest): AuthorityDto {
+        val updatedAuthority = updateAuthorityHierarchyDb(request).toDto()
+
+        val message = "AuthorityUpdateInfo={id:${request.id}, hierarchy:${request.hierarchy}}"
+        redisTemplate.convertAndSend("role-hierarchy-channel", message.toByteArray())
+        println("역할 계층 변경 메시지가 Redis에 발행되었습니다.")
+
+        return updatedAuthority
+    }
+
+    @Transactional
+    private fun updateAuthorityHierarchyDb(request: AuthorityUpdateRequest): Authority {
         val authority = authorityRepository.findById(request.id).orElse(null) ?:
-            throw BadRequestException("Authority not found with id of ${request.id}")
+        throw BadRequestException("Authority not found with id of ${request.id}")
         authority.hierarchy = request.hierarchy
-        return authorityRepository.save(authority).toDto()
+        return authorityRepository.save(authority)
     }
 }

@@ -12,12 +12,16 @@ import org.springframework.stereotype.Component
 
 @Component
 class RoleHierarchyHelper(
-    authorityService: AuthorityService
+    private val authorityService: AuthorityService
 ) {
     private lateinit var roleHierarchyMap: Map<String, Int>
     private lateinit var roleNamesHierarchyAsc: List<String>
 
     init {
+        set()
+    }
+
+    fun set() {
         val roles = authorityService.findAllByHierarchyAsc()
 
         val hierarchyMap = roles.associate { it.roleName!! to it.hierarchy!! }.toMutableMap()
