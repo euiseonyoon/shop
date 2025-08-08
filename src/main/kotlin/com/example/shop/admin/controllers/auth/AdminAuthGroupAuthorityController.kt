@@ -36,7 +36,7 @@ class AdminAuthGroupAuthorityController(
         return GlobalResponse.create(PagedResponse.fromPage(result))
     }
 
-    @PreAuthorize("hasRole($ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN)'")
     @PostMapping("")
     fun createGroupAuthority(
         @RequestBody(required = true) @Valid request: GroupAuthorityCreateRequest
@@ -46,7 +46,7 @@ class AdminAuthGroupAuthorityController(
         }
     }
 
-    @PreAuthorize("hasRole($ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN')")
     @PatchMapping("")
     fun updateGroupAuthority(
         @RequestBody(required = true) @Validated request: GroupAuthorityUpdateRequest
@@ -56,7 +56,7 @@ class AdminAuthGroupAuthorityController(
         }
     }
 
-    @PreAuthorize("hasRole($ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN')")
     @DeleteMapping("")
     fun deleteGroupAuthorities(
         @RequestBody(required = true) @Valid request: GroupAuthorityDeleteRequest

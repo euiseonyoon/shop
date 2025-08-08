@@ -33,7 +33,7 @@ class AdminAuthGroupController(
         return GlobalResponse.create(PagedResponse.fromPage(result))
     }
 
-    @PreAuthorize("hasRole($ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN')")
     @PostMapping("")
     fun createGroup(
         @RequestBody(required = true) @Valid request: AccountGroupCreateRequest
@@ -43,7 +43,7 @@ class AdminAuthGroupController(
         }
     }
 
-    @PreAuthorize("hasRole($ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN')")
     @PatchMapping("")
     fun updateAccountGroup(
         @RequestBody(required = true) @Valid request: AccountGroupUpdateRequest

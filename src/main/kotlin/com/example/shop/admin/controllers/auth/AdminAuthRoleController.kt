@@ -34,7 +34,7 @@ class AdminAuthRoleController(
         return GlobalResponse.create(PagedResponse.fromPage(result))
     }
 
-    @PreAuthorize("hasRole(${ROLE_SUPER_ADMIN})")
+    @PreAuthorize("hasRole('${ROLE_SUPER_ADMIN}')")
     @PostMapping("")
     fun createRole(
         @RequestBody(required = true) @Valid request: AuthorityCreateRequest
@@ -44,7 +44,7 @@ class AdminAuthRoleController(
         }
     }
 
-    @PreAuthorize("hasRole(${ROLE_SUPER_ADMIN})")
+    @PreAuthorize("hasRole('${ROLE_SUPER_ADMIN}')")
     @PatchMapping("")
     fun updateRole(
         @RequestBody(required = true) @Valid request: AuthorityUpdateRequest
