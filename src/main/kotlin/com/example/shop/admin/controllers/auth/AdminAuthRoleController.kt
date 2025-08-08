@@ -4,6 +4,7 @@ import com.example.shop.admin.controllers.models.AuthorityCreateRequest
 import com.example.shop.admin.controllers.models.AuthorityUpdateRequest
 import com.example.shop.common.apis.models.AuthorityDto
 import com.example.shop.auth.services.AuthorityService
+import com.example.shop.auth.services.facades.AccountAndAuthorityRelatedService
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.response.PagedResponse
 import com.example.shop.constants.ROLE_SUPER_ADMIN
@@ -20,7 +21,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(AdminAuthRoleController.URI)
 class AdminAuthRoleController(
-    private val authorityService: AuthorityService
+    private val authorityService: AuthorityService,
+    private val accountAndAuthorityRelatedService: AccountAndAuthorityRelatedService,
 ) {
     companion object {
         const val URI = AdminAuthController.URI + "/authority"
@@ -40,7 +42,7 @@ class AdminAuthRoleController(
     fun createRole(
         @RequestBody(required = true) @Valid request: AuthorityCreateRequest
     ): GlobalResponse<AuthorityDto> {
-        return authorityService.createAuthority(request).let {
+        return accountAndAuthorityRelatedService.createAuthority(request).let {
             GlobalResponse.create(it)
         }
     }
@@ -50,7 +52,7 @@ class AdminAuthRoleController(
     fun updateRole(
         @RequestBody(required = true) @Valid request: AuthorityUpdateRequest
     ): GlobalResponse<AuthorityDto> {
-        return authorityService.updateAuthorityHierarchy(request).let {
+        return accountAndAuthorityRelatedService.updateAuthorityHierarchy(request).let {
             GlobalResponse.create(it)
         }
     }
