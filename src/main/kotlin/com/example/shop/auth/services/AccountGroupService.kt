@@ -21,20 +21,20 @@ class AccountGroupService(
     }
 
     @Transactional(readOnly = true)
-    fun findWithPage(pageable: Pageable): Page<AccountGroupDto> {
-        return accountGroupRepository.findAll(pageable).map { it.toDto() }
+    fun findWithPage(pageable: Pageable): Page<AccountGroup> {
+        return accountGroupRepository.findAll(pageable)
     }
 
     @Transactional
-    fun createAccountGroup(request: AccountGroupCreateRequest): AccountGroupDto {
-        return accountGroupRepository.save(AccountGroup(request.name)).toDto()
+    fun createAccountGroup(request: AccountGroupCreateRequest): AccountGroup {
+        return accountGroupRepository.save(AccountGroup(request.name))
     }
 
     @Transactional
-    fun updateAccountGroup(request: AccountGroupUpdateRequest): AccountGroupDto {
+    fun updateAccountGroup(request: AccountGroupUpdateRequest): AccountGroup {
         val accountGroup = accountGroupRepository.findById(request.id).orElse(null) ?:
             throw BadRequestException("Account Group not found with the id of ${request.id}")
         accountGroup.name = request.name
-        return accountGroupRepository.save(accountGroup).toDto()
+        return accountGroupRepository.save(accountGroup)
     }
 }

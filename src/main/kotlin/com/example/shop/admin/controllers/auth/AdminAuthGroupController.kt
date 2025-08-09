@@ -29,7 +29,7 @@ class AdminAuthGroupController(
     @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN')")
     @GetMapping("")
     fun getGroups(pageable: Pageable): GlobalResponse<PagedResponse<AccountGroupDto>> {
-        val result = groupService.findWithPage(pageable)
+        val result = groupService.findWithPage(pageable).map { it.toDto() }
         return GlobalResponse.create(PagedResponse.fromPage(result))
     }
 
@@ -39,7 +39,7 @@ class AdminAuthGroupController(
         @RequestBody(required = true) @Valid request: AccountGroupCreateRequest
     ): GlobalResponse<AccountGroupDto> {
         return groupService.createAccountGroup(request).let {
-            GlobalResponse.create(it)
+            GlobalResponse.create(it.toDto())
         }
     }
 
@@ -49,7 +49,7 @@ class AdminAuthGroupController(
         @RequestBody(required = true) @Valid request: AccountGroupUpdateRequest
     ): GlobalResponse<AccountGroupDto> {
         return groupService.updateAccountGroup(request).let {
-            GlobalResponse.create(it)
+            GlobalResponse.create(it.toDto())
         }
     }
 }

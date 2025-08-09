@@ -33,7 +33,7 @@ class AdminAuthRoleController(
     @PreAuthorize("hasRole('${ROLE_SUPER_ADMIN}')")
     @GetMapping("")
     fun getRoles(pageable: Pageable): GlobalResponse<PagedResponse<AuthorityDto>> {
-        val result = authorityService.findWithPage(pageable)
+        val result = authorityService.findWithPage(pageable).map { it.toDto() }
         return GlobalResponse.create(PagedResponse.fromPage(result))
     }
 

@@ -25,8 +25,8 @@ class AuthorityService(
     }
 
     @Transactional(readOnly = true)
-    fun findWithPage(pageable: Pageable): Page<AuthorityDto> {
-        return authorityRepository.findAll(pageable).map { it.toDto() }
+    fun findWithPage(pageable: Pageable): Page<Authority> {
+        return authorityRepository.findAll(pageable)
     }
 
     @Transactional

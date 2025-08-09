@@ -20,12 +20,12 @@ class GroupAuthorityService(
     private val accountGroupRepository: AccountGroupRepository,
 ) {
     @Transactional(readOnly = true)
-    fun findWithPage(pageable: Pageable): Page<GroupAuthorityDto> {
-        return groupAuthorityRepository.findAll(pageable).map { it.toDto() }
+    fun findWithPage(pageable: Pageable): Page<GroupAuthority> {
+        return groupAuthorityRepository.findAll(pageable)
     }
 
     @Transactional
-    fun createGroupAuthority(request: GroupAuthorityCreateRequest): GroupAuthorityDto {
+    fun createGroupAuthority(request: GroupAuthorityCreateRequest): GroupAuthority {
         val groupName = request.groupName
         val groupAuthorityName = request.name
         val group = accountGroupRepository.findByNameIn(listOf(groupName)).firstOrNull().let {
@@ -39,11 +39,11 @@ class GroupAuthorityService(
         val groupAuthority = GroupAuthority(groupAuthorityName)
         groupAuthority.accountGroup = group
 
-        return groupAuthorityRepository.save(groupAuthority).toDto()
+        return groupAuthorityRepository.save(groupAuthority)
     }
 
     @Transactional
-    fun updateGroupAuthority(request: GroupAuthorityUpdateRequest): GroupAuthorityDto {
+    fun updateGroupAuthority(request: GroupAuthorityUpdateRequest): GroupAuthority {
         val groupAuthority = groupAuthorityRepository.findById(request.id).orElse(null) ?:
             throw BadRequestException("Group Authority not found with the id of ${request.id}")
 
@@ -53,7 +53,7 @@ class GroupAuthorityService(
                 groupAuthority.accountGroup = accountGroup
             }
         }
-        return groupAuthorityRepository.save(groupAuthority).toDto()
+        return groupAuthorityRepository.save(groupAuthority)
     }
 
     @Transactional
