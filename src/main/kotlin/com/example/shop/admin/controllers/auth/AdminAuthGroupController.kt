@@ -26,7 +26,7 @@ class AdminAuthGroupController(
         const val URI = AdminAuthController.URI + "/account-group"
     }
 
-    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN)'")
+    @PreAuthorize("hasRole('$ROLE_SUPER_ADMIN')")
     @GetMapping("")
     fun getGroups(pageable: Pageable): GlobalResponse<PagedResponse<AccountGroupDto>> {
         val result = groupService.findWithPage(pageable)
