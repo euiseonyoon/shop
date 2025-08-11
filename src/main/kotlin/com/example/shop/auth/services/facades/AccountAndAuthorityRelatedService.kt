@@ -62,7 +62,6 @@ class AccountAndAuthorityRelatedService(
         return savedAccount
     }
 
-    @Transactional
     fun createAuthority(request: AuthorityCreateRequest): AuthorityDto {
         val createdAuthorityDto = authorityService.createAuthority(request.name, request.hierarchy).toDto()
 
@@ -73,7 +72,6 @@ class AccountAndAuthorityRelatedService(
         return createdAuthorityDto
     }
 
-    @Transactional
     fun updateAuthorityHierarchy(request: AuthorityUpdateRequest): AuthorityDto {
         val updatedAuthorityDto = authorityService.updateAuthorityHierarchy(request.id, request.hierarchy).toDto()
 
