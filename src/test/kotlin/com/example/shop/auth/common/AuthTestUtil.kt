@@ -32,13 +32,20 @@ class AuthTestUtil {
         fun makePostCall(
             mockMvc: MockMvc,
             uri: String,
-            loginRequestJson: String?,
+            requestBodyJson: String?,
+            headersMap: Map<String, String>?,
         ): ResultActions {
             val requestBuilder = post(uri)
                 .contentType(MediaType.APPLICATION_JSON)
 
-            loginRequestJson?.let {
+            requestBodyJson?.let {
                 requestBuilder.content(it)
+            }
+
+            headersMap?.let {
+                headersMap.forEach { (header, value) ->
+                    requestBuilder.header(header, value)
+                }
             }
 
             return mockMvc.perform(requestBuilder)
@@ -49,7 +56,7 @@ class AuthTestUtil {
             uri: String,
             loginRequestJson: String,
         ): MvcResult {
-            return makePostCall(mockMvc, uri, loginRequestJson)
+            return makePostCall(mockMvc, uri, loginRequestJson, null)
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.result.accessToken").exists())
             .andExpect(cookie().exists(REFRESH_TOKEN_KEY))
@@ -127,7 +134,7 @@ class AuthTestUtil {
                 EmailPasswordLoginRequest.serializer(),
                 EmailPasswordLoginRequest(email = TEST_EMAIL, password = TEST_PSWD)
             )
-            return makePostCall(mockMvc, EMAIL_PASSWORD_AUTH_URI, loginRequestJson).andReturn()
+            return makePostCall(mockMvc, EMAIL_PASSWORD_AUTH_URI, loginRequestJson, null).andReturn()
         }
     }
 }

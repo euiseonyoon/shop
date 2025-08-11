@@ -50,7 +50,6 @@ dependencies {
     // SrpingBoot @ConfigurationProperties
     kapt("org.springframework.boot:spring-boot-configuration-processor")
 
-
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Security
@@ -76,6 +75,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    // test에서 redis를 사용하기 위해서.
+    testImplementation("org.testcontainers:testcontainers:1.19.8")
+    testImplementation("org.testcontainers:junit-jupiter:1.19.8")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

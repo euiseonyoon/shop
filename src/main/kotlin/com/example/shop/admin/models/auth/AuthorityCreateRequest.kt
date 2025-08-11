@@ -2,7 +2,9 @@ package com.example.shop.admin.models.auth
 
 import com.example.shop.constants.ROLE_PREFIX
 import jakarta.validation.constraints.Pattern
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class AuthorityCreateRequest(
     @field:Pattern(regexp = "^${ROLE_PREFIX}[A-Z_0-9]+\$", message = "Role name must start with '${ROLE_PREFIX}'")
     val name: String,

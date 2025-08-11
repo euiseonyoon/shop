@@ -120,7 +120,8 @@ class GoogleLoginTest {
         AuthTestUtil.makePostCall(
             mockMvc,
             OAUTH_AUTH_URI_PATTERN.replace("*", "google"),
-            inputJsonRequest
+            inputJsonRequest,
+            null,
         ).andExpect(status().isUnauthorized)
     }
 }

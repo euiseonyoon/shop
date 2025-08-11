@@ -94,7 +94,7 @@ class EmailPasswordLoginTest {
 
         // WHEN & THEN
         AuthTestUtil
-            .makePostCall(mockMvc, EMAIL_PASSWORD_AUTH_URI, loginRequestJson)
+            .makePostCall(mockMvc, EMAIL_PASSWORD_AUTH_URI, loginRequestJson, null)
             .andExpect(status().isUnauthorized)
     }
 }
