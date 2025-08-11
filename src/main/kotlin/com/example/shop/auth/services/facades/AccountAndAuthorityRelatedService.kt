@@ -85,7 +85,7 @@ class AccountAndAuthorityRelatedService(
     @Transactional
     fun adminUpdateAccount(request: AdminAccountUpdateRequest): Account {
         val account = accountService.findWithAuthoritiesById(request.accountId) ?:
-        throw BadRequestException("Account not found with the id of ${request.accountId}")
+            throw BadRequestException("Account not found with the id of ${request.accountId}")
 
         if (request.enabled != null) {
             account.enabled = request.enabled
@@ -93,7 +93,7 @@ class AccountAndAuthorityRelatedService(
 
         if (request.authorityName != null) {
             val newAuthority = authorityService.findByRoleName(request.authorityName) ?:
-            throw BadRequestException("Authority not found with the name of ${request.authorityName}")
+                throw BadRequestException("Authority not found with the name of ${request.authorityName}")
 
             account.authority = newAuthority
         }
