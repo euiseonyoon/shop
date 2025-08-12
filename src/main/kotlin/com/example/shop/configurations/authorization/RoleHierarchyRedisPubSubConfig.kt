@@ -3,6 +3,7 @@ package com.example.shop.configurations.authorization
 import com.example.shop.auth.utils.RoleHierarchyHelper
 import com.example.shop.constants.REDIS_AUTHORITY_REFRESH_CHANNEL
 import com.example.shop.redis.authority_refresh.AuthorityRefreshEventPublisher
+import com.example.shop.redis.authority_refresh.AuthorityRefreshEventPublisherImpl
 import com.example.shop.redis.authority_refresh.AuthorityRefreshMessageSubscriber
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -43,6 +44,6 @@ class RoleHierarchyRedisPubSubConfig {
     fun authorityRefreshEventPublisher(
         redisTemplate: RedisTemplate<String, ByteArray>,
     ): AuthorityRefreshEventPublisher {
-        return AuthorityRefreshEventPublisher(redisTemplate)
+        return AuthorityRefreshEventPublisherImpl(redisTemplate)
     }
 }
