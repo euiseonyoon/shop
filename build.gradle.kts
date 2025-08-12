@@ -32,6 +32,11 @@ repositories {
 }
 
 dependencies {
+    // circuit-breaker (resillience4j)
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.3.0")
+    implementation ("org.springframework.boot:spring-boot-starter-actuator")
+    implementation ("org.springframework.boot:spring-boot-starter-aop")
+
     // validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
 

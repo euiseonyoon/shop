@@ -3,7 +3,6 @@ package com.example.shop.auth.security.rate_limit
 import io.github.bucket4j.Bucket
 import io.github.bucket4j.BucketConfiguration
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.util.AntPathMatcher
 
 interface RedisRateLimitHelper {
     fun resolveBucket(request: HttpServletRequest): Bucket
@@ -11,4 +10,8 @@ interface RedisRateLimitHelper {
     fun getTokensToConsume(request: HttpServletRequest): Long
 
     fun getBucketConfiguration(): BucketConfiguration
+
+    fun getEmptyBucketConfiguration(): BucketConfiguration
+
+    fun fallBackIfBucketFromRedisFailed(request: HttpServletRequest): Bucket
 }

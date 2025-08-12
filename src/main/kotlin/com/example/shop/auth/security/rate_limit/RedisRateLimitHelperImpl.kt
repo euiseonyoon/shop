@@ -2,10 +2,14 @@ package com.example.shop.auth.security.rate_limit
 
 import com.example.shop.auth.security.rate_limit.models.HeavyRateLimitUriToken
 import com.example.shop.auth.security.rate_limit.models.RateLimitProperties
+import com.example.shop.common.logger.LogSupport
+import com.example.shop.constants.REDIS_OPEN_TO_HALF_OPEN_TIME
+import com.example.shop.constants.REDIS_CIRCUIT_BREAKER
 import io.github.bucket4j.Bandwidth
 import io.github.bucket4j.Bucket
 import io.github.bucket4j.BucketConfiguration
 import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Component
 import org.springframework.util.AntPathMatcher
@@ -16,13 +20,22 @@ import java.util.function.Supplier
 class RedisRateLimitHelperImpl(
     private val lettuceBasedProxyManager: LettuceBasedProxyManager<String>,
     private val rateLimitProperties: RateLimitProperties
-): RedisRateLimitHelper {
+): RedisRateLimitHelper, LogSupport() {
     private val pathMatcher = AntPathMatcher()
 
     private val bucketConfig: BucketConfiguration by lazy {
         val limit = Bandwidth.builder()
             .capacity(rateLimitProperties.capacity)
             .refillGreedy(rateLimitProperties.refillTokens, rateLimitProperties.refillPeriod)
+            .build()
+
+        BucketConfiguration.builder().addLimit(limit).build()
+    }
+
+    private val emptyBucketConfig: BucketConfiguration by lazy {
+        val limit = Bandwidth.builder()
+            .capacity(0)
+            .refillGreedy(0, REDIS_OPEN_TO_HALF_OPEN_TIME)
             .build()
 
         BucketConfiguration.builder().addLimit(limit).build()
@@ -36,6 +49,16 @@ class RedisRateLimitHelperImpl(
 
     override fun getBucketConfiguration(): BucketConfiguration = this.bucketConfig
 
+    override fun getEmptyBucketConfiguration(): BucketConfiguration = this.emptyBucketConfig
+
+    override fun fallBackIfBucketFromRedisFailed(request: HttpServletRequest): Bucket {
+        logger.error("Failed to get rate limit bucket from redis.")
+        val key = resolveUserKey(request)
+
+        return lettuceBasedProxyManager.builder().build(key, Supplier { getEmptyBucketConfiguration() })
+    }
+
+    @CircuitBreaker(name = REDIS_CIRCUIT_BREAKER, fallbackMethod = "fallBackIfBucketFromRedisFailed")
     override fun resolveBucket(request: HttpServletRequest): Bucket {
         val key = resolveUserKey(request)
         /***

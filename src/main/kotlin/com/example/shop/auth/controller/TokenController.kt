@@ -1,6 +1,7 @@
 package com.example.shop.auth.controller
 
 import com.example.shop.auth.exceptions.BadRefreshTokenStateException
+import com.example.shop.auth.exceptions.FailedToRetrieveRefreshTokenException
 import com.example.shop.auth.exceptions.RefreshTokenMissingException
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.models.TokenResponse
@@ -92,6 +93,10 @@ class TokenController(
             is BadRefreshTokenStateException -> {
                 // Request로 부터 추출한 refresh token과 redis에 저장된 refresh token을 비교 검증했을때, 비정상적인 경우.
                 myJwtTokenHelper.deleteRefreshTokenFromCookie(response)
+                return GlobalResponse.createErrorRes(response, e, null)
+            }
+            is FailedToRetrieveRefreshTokenException -> {
+                // Redis로 부터 refresh token을 가져오지 못한 경우
                 return GlobalResponse.createErrorRes(response, e, null)
             }
             else -> throw e
