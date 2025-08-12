@@ -33,7 +33,7 @@ import kotlin.test.assertTrue
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(EasyAccessTokenTestConfig::class, TestRedisContainerConfig::class)
-class AdminAuthGroupControllerTest {
+class AdminAuthAuthorityControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -62,7 +62,7 @@ class AdminAuthGroupControllerTest {
     lateinit var adminEmail: String
 
     @Test
-    fun `test account group create`() {
+    fun `test authority create`() {
         // GIVEN
         Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmail(any())
         val roleName = ROLE_PREFIX + "STAFF"
