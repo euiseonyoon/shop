@@ -3,6 +3,12 @@ spring:
     redis:
       host: localhost
       port: 6379
+      lettuce:
+        pool:
+          max-active: 8    # 풀에서 사용할 수 있는 최대 연결 수
+          max-idle: 8      # 풀에 유지할 최대 유휴(idle) 연결 수
+          min-idle: 2      # 풀에 유지할 최소 유휴(idle) 연결 수
+        shutdown-timeout: 100ms # 클라이언트 종료 시 대기하는 시간
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
