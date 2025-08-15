@@ -15,6 +15,7 @@ import com.example.shop.auth.services.AuthorityService
 import com.example.shop.auth.services.GroupMemberService
 import com.example.shop.common.apis.exceptions.BadRequestException
 import com.example.shop.common.apis.models.AuthorityDto
+import com.example.shop.common.logger.LogSupport
 import com.example.shop.common.utils.CustomAuthorityUtils
 import com.example.shop.redis.authority_refresh.AuthorityRefreshEventPublisher
 import org.springframework.stereotype.Service
@@ -29,7 +30,7 @@ class AccountAndAuthorityRelatedService(
     private val customAuthorityUtils: CustomAuthorityUtils,
     private val authorityRefreshEventPublisher: AuthorityRefreshEventPublisher,
     private val groupMemberRepository: GroupMemberRepository,
-) {
+) : LogSupport() {
     @Transactional
     fun createAccountAndAssignGroup(
         email: String,
@@ -65,9 +66,13 @@ class AccountAndAuthorityRelatedService(
     fun createAuthority(request: AuthorityCreateRequest): AuthorityDto {
         val createdAuthorityDto = authorityService.createAuthority(request.name, request.hierarchy).toDto()
 
-        authorityRefreshEventPublisher.publishAuthorityRefreshEvent(
-            "AuthorityCreateInfo={name:${request.name}, hierarchy:${request.hierarchy}}"
-        )
+        try {
+            authorityRefreshEventPublisher.publishAuthorityRefreshEvent(
+                "AuthorityCreateInfo={name:${request.name}, hierarchy:${request.hierarchy}}"
+            )
+        } catch (e: Throwable) {
+            logger.error("Failed to create Authority(role) refresh event.")
+        }
 
         return createdAuthorityDto
     }
@@ -75,9 +80,13 @@ class AccountAndAuthorityRelatedService(
     fun updateAuthorityHierarchy(request: AuthorityUpdateRequest): AuthorityDto {
         val updatedAuthorityDto = authorityService.updateAuthorityHierarchy(request.id, request.hierarchy).toDto()
 
-        authorityRefreshEventPublisher.publishAuthorityRefreshEvent(
-            "AuthorityUpdateInfo={id:${request.id}, hierarchy:${request.hierarchy}}"
-        )
+        try {
+            authorityRefreshEventPublisher.publishAuthorityRefreshEvent(
+                "AuthorityUpdateInfo={id:${request.id}, hierarchy:${request.hierarchy}}"
+            )
+        } catch (e: Throwable) {
+            logger.error("Failed to create Authority(role) refresh event.")
+        }
 
         return updatedAuthorityDto
     }

@@ -12,6 +12,7 @@ import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.logger.LogSupport
 import com.example.shop.common.utils.CustomAuthorityUtils
 import com.example.shop.constants.TOKEN_REFRESH_URI
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
@@ -95,6 +96,7 @@ class TokenController(
                 myJwtTokenHelper.deleteRefreshTokenFromCookie(response)
                 return GlobalResponse.createErrorRes(response, e, null)
             }
+            is CallNotPermittedException,
             is FailedToRetrieveRefreshTokenException -> {
                 // Redis로 부터 refresh token을 가져오지 못한 경우
                 return GlobalResponse.createErrorRes(response, e, null)

@@ -46,7 +46,7 @@ class RefreshTokenStateHelperImpl(
 
     @CircuitBreaker(name = REDIS_CIRCUIT_BREAKER, fallbackMethod = "fallBackIfRedisUnavailable")
     override fun updateWithNewRefreshToken(accountId: Long, newRefreshToken: String) {
-        refreshTokenRedisRepository.save(accountId, newRefreshToken)
+        refreshTokenRedisRepository.save(accountId, newRefreshToken, null)
     }
 
     // 1. 원래 메서드의 파라미터를 모두 받음

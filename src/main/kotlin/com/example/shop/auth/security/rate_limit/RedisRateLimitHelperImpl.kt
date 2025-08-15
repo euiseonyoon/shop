@@ -58,9 +58,16 @@ class RedisRateLimitHelperImpl(
         return lettuceBasedProxyManager.builder().build(key, Supplier { getEmptyBucketConfiguration() })
     }
 
-    @CircuitBreaker(name = REDIS_CIRCUIT_BREAKER, fallbackMethod = "fallBackIfBucketFromRedisFailed")
     override fun resolveBucket(request: HttpServletRequest): Bucket {
-        val key = resolveUserKey(request)
+        return try {
+            getBucketFromRedis(resolveUserKey(request))
+        } catch (e: Throwable) {
+            fallBackIfBucketFromRedisFailed(request)
+        }
+    }
+
+    @CircuitBreaker(name = REDIS_CIRCUIT_BREAKER, fallbackMethod = "fallBackIfBucketFromRedisFailed")
+    fun getBucketFromRedis(key: String): Bucket {
         /***
          * LettuceBasedProxyManager.isAsyncModeSupported = true,
          * 따라서 io.github.bucket4j.distributed.proxy.ProxyManager.asAsync()를 사용해도 괜찮다.
