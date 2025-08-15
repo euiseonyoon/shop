@@ -19,7 +19,8 @@ class Resilience4JConfig {
             .custom()
             .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
             .slidingWindowSize(20)
-            .failureRateThreshold(5F) // 1개 fail 까지는 CLOSED, 2개 fail 부터는 OPEN
+            // .minimumNumberOfCalls(20) 따로 설정하지 않으면 slidingWindowSize와 동일, 최소 20개의 call이 만들어진후에 circuit breaker의 state 변경
+            .failureRateThreshold(5F)
             .slowCallRateThreshold(5F)
             .slowCallDurationThreshold(Duration.ofMillis(500))
             // The time that the CircuitBreaker should wait before transitioning from open to half-open.
