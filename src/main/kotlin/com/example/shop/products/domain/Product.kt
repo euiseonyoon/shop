@@ -16,7 +16,7 @@ import jakarta.validation.constraints.Min
 @Entity
 @Table(
     indexes = [
-        Index(name = "idx_product_count", columnList = "count"),
+        Index(name = "idx_product_stock", columnList = "stock"),
         Index(name = "idx_product_price", columnList = "price"),
         Index(name = "idx_product_category", columnList = "category"),
         Index(name = "idx_product_is_enabled", columnList = "is_enabled")
@@ -37,7 +37,7 @@ class Product {
 
     @Column(nullable = false)
     @Min(0)
-    var count: Int? = null
+    var stock: Int? = null
 
     @Column(nullable = false)
     @Min(0)
