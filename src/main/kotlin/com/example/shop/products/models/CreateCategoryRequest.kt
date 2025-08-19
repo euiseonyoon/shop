@@ -1,5 +1,8 @@
 package com.example.shop.products.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class CreateCategoryRequest(
     val name: String,
     val isEnabled: Boolean? = null,

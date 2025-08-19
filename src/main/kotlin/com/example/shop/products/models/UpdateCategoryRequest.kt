@@ -1,7 +1,9 @@
 package com.example.shop.products.models
 
 import com.example.shop.common.apis.exceptions.BadRequestException
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class UpdateCategoryRequest(
     val id: Long,
     val name: String? = null,
