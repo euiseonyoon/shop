@@ -5,4 +5,5 @@ import com.example.shop.products.respositories.extensions.CategoryRepositoryExte
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface CategoryRepository : JpaRepository<Category, Long>, CategoryRepositoryExtension {
+    fun findAllByParent(parent: Category): List<Category>
 }
