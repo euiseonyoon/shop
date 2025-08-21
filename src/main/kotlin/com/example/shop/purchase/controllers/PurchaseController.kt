@@ -43,4 +43,13 @@ class PurchaseController(
             GlobalResponse.create(it)
         }
     }
+
+    @PostMapping("/cart")
+    fun purchaseCartItems(
+        authentication: Authentication,
+    ): GlobalResponse<Purchase?> {
+        return purchaseService.purchaseByCart(authentication).let {
+            GlobalResponse.create(it)
+        }
+    }
 }

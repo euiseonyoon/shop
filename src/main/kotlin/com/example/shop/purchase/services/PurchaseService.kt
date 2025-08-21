@@ -2,14 +2,12 @@ package com.example.shop.purchase.services
 
 import com.example.shop.auth.models.AccountAuthenticationToken
 import com.example.shop.auth.repositories.AccountRepository
+import com.example.shop.cart.services.CartService
 import com.example.shop.common.apis.exceptions.BadRequestException
 import com.example.shop.products.respositories.ProductRepository
-import com.example.shop.products.services.ProductService
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseProduct
-import com.example.shop.purchase.enums.PurchaseStatus
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
-import com.example.shop.purchase.repositories.PurchaseProductRepository
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -23,6 +21,7 @@ class PurchaseService(
     private val purchaseRepository: PurchaseRepository,
     private val accountRepository: AccountRepository,
     private val productRepository: ProductRepository,
+    private val cartService: CartService,
 ) {
     @Transactional(readOnly = true)
     fun getMyPurchases(
@@ -51,6 +50,26 @@ class PurchaseService(
         }
 
         purchase.addPurchaseProducts(listOf(purchaseProduct))
+        return purchaseRepository.save(purchase)
+    }
+
+    @Transactional
+    fun purchaseByCart(authentication: Authentication): Purchase? {
+        val cart = cartService.getMyCart(authentication) ?: return null
+        val purchaseProducts = cart.cartItems!!.map { cartItem ->
+            PurchaseProduct().apply {
+                this.product = cartItem.product!!
+                this.quantity = cartItem.quantity!!
+            }
+        }
+        val purchase = Purchase().apply {
+            this.account = cart.account!!
+        }
+        purchase.addPurchaseProducts(purchaseProducts)
+
+        cart.isPurchased = true
+        cartService.saveCart(cart)
+
         return purchaseRepository.save(purchase)
     }
 }
