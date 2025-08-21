@@ -11,11 +11,6 @@ data class GlobalResponse<T>(
     val result: T?,
     val errorMsg: String?
 ) {
-    init {
-        require((result == null) xor (errorMsg == null)) {
-            "Either result or errorMsg must be not null."
-        }
-    }
 
     companion object {
         fun <T> create(isError: Boolean, result: T?, errorMsg: String?) = GlobalResponse(isError, result, errorMsg)
