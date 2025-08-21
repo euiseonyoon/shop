@@ -59,6 +59,12 @@ class CartItemService(
         val cart = cartService.getMyCart(authentication) ?: return null
         val cartItemToRemove = cartItemRepository.getCartItem(cart.id!!, request.productId) ?: return cart
         cart.cartItems?.remove(cartItemToRemove)
+
+        if (cart.cartItems!!.isEmpty()) {
+            cartRepository.delete(cart)
+            return null
+        }
+
         return cartRepository.save(cart)
     }
 
