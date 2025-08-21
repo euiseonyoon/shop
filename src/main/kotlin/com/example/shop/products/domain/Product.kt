@@ -18,7 +18,7 @@ import jakarta.validation.constraints.Min
     indexes = [
         Index(name = "idx_product_stock", columnList = "stock"),
         Index(name = "idx_product_price", columnList = "price"),
-        Index(name = "idx_product_category", columnList = "category"),
+        Index(name = "idx_product_category", columnList = "category_id"),
         Index(name = "idx_product_is_enabled", columnList = "is_enabled")
     ]
 )
@@ -44,7 +44,7 @@ class Product {
     var price: Int? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false, name = "category_id")
     var category: Category? = null
 
     @Column(nullable = false)

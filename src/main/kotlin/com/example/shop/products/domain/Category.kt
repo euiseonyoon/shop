@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Index
+import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.SequenceGenerator
 import jakarta.persistence.Table
@@ -17,7 +18,7 @@ import org.hibernate.annotations.ColumnDefault
 @Table(
     indexes = [
         Index(name = "idx_category_name", columnList = "name"),
-        Index(name = "idx_category_parent", columnList = "parent"),
+        Index(name = "idx_category_parent", columnList = "parent_id"),
         Index(name = "idx_category_enable", columnList = "is_enabled"),
         Index(name = "idx_category_full_path", columnList = "full_path"),
     ]
@@ -36,6 +37,7 @@ class Category {
     var name: String? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
     var parent: Category? = null
 
     @Column(nullable = false)
