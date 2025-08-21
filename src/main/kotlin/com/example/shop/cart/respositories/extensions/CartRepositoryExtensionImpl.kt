@@ -13,9 +13,9 @@ class CartRepositoryExtensionImpl : QuerydslRepositorySupport(Cart::class.java),
 
     override fun getNotPurchasedCartByAccountId(accountId: Long): Cart? {
         return from(cart)
-            .join(cart.cartItems, cartItem).fetchJoin()
             .where(cart.isPurchased.eq(false))
             .where(cart.account.id.eq(accountId))
+            .join(cart.cartItems, cartItem).fetchJoin()
             .fetchOne()
     }
 }
