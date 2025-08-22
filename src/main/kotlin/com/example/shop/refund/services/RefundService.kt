@@ -11,6 +11,7 @@ import com.example.shop.refund.repositories.RefundRepository
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.OffsetDateTime
 
 @Service
 class RefundService(
@@ -46,7 +47,10 @@ class RefundService(
                 RefundStatus.REFUNDED -> { throw BadRequestException("The refund request is already refunded.") }
                 RefundStatus.DENIED -> { throw BadRequestException("The refund is denied. reason: ${foundRefund.etc}") }
                 RefundStatus.CANCELED -> {
-                    foundRefund.apply { this.status = RefundStatus.REQUESTED }
+                    foundRefund.apply {
+                        this.status = RefundStatus.REQUESTED
+                        this.updatedAt = OffsetDateTime.now()
+                    }
                 }
             }
         }

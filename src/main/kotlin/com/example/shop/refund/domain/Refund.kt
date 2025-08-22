@@ -32,7 +32,7 @@ class Refund {
     @Column(nullable = false)
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 
-    val updatedAt: OffsetDateTime? = null
+    var updatedAt: OffsetDateTime? = null
 
     // 만약 환불거절될떄나 특정 내용을 남겨야 할 때 사용.
     var etc: String? = null
