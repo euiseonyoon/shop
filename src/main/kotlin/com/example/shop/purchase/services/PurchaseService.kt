@@ -44,9 +44,12 @@ class PurchaseService(
         val product = productRepository.findById(request.productId).orElseThrow(
             Supplier { BadRequestException("Product Not found.") }
         )
+        product.stock = product.stock!! - request.quantity
+        val savedProduct = productRepository.save(product)
+
         val purchaseProduct = PurchaseProduct().apply {
             this.quantity = request.quantity
-            this.product = product
+            this.product = savedProduct
         }
 
         purchase.addPurchaseProducts(listOf(purchaseProduct))
@@ -57,8 +60,11 @@ class PurchaseService(
     fun purchaseByCart(authentication: Authentication): Purchase? {
         val cart = cartService.getMyCart(authentication) ?: return null
         val purchaseProducts = cart.cartItems!!.map { cartItem ->
+            cartItem.product!!.stock = cartItem.product!!.stock!! - cartItem.quantity!!
+            val savedProduct = productRepository.save(cartItem.product!!)
+
             PurchaseProduct().apply {
-                this.product = cartItem.product!!
+                this.product = savedProduct
                 this.quantity = cartItem.quantity!!
             }
         }
