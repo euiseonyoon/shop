@@ -6,6 +6,7 @@ import com.example.shop.purchase.repositories.PurchaseRepository
 import com.example.shop.refund.domain.Refund
 import com.example.shop.refund.enums.RefundStatus
 import com.example.shop.refund.event.RefundEventPublisher
+import com.example.shop.refund.models.RefundCancelRequest
 import com.example.shop.refund.models.RefundRequest
 import com.example.shop.refund.repositories.RefundRepository
 import org.springframework.security.core.Authentication
@@ -53,6 +54,32 @@ class RefundService(
                     }
                 }
             }
+        }
+
+        return refundRepository.save(refund).also {
+            refundEventPublisher.notifyAdminRefundRequested(refund)
+        }
+    }
+
+    @Transactional
+    fun cancelRefund(request: RefundCancelRequest, authentication: Authentication): Refund {
+        val auth = authentication as AccountAuthenticationToken
+        val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, auth.accountId) ?:
+            throw BadRequestException("Purchase not found.")
+
+        val refundToCancel = purchase.refund ?: throw BadRequestException("There is no refund to cancel.")
+
+        val refund = when(refundToCancel.status) {
+            RefundStatus.REQUESTED -> {
+                refundToCancel.apply {
+                    this.status = RefundStatus.CANCELED
+                    this.updatedAt = OffsetDateTime.now()
+                }
+            }
+            RefundStatus.REFUNDED, RefundStatus.DENIED -> {
+                throw BadRequestException("The refund can't be canceled. it is already processed")
+            }
+            RefundStatus.CANCELED -> { return refundToCancel }
         }
 
         return refundRepository.save(refund).also {
