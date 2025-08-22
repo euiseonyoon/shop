@@ -17,7 +17,10 @@ class PurchaseRepositoryExtensionImpl : QuerydslRepositorySupport(Purchase::clas
         accountId: Long,
     ): Purchase? {
         val purchase = QPurchase.purchase
+        val refund = QRefund.refund
+
         return from(purchase)
+            .leftJoin(purchase.refund, refund).fetchJoin()
             .where(purchase.id.eq(purchaseId))
             .where(purchase.account.id.eq(accountId))
             .fetchOne()

@@ -2,7 +2,6 @@ package com.example.shop.refund.services
 
 import com.example.shop.auth.models.AccountAuthenticationToken
 import com.example.shop.common.apis.exceptions.BadRequestException
-import com.example.shop.purchase.enums.PurchaseStatus
 import com.example.shop.purchase.repositories.PurchaseRepository
 import com.example.shop.refund.domain.Refund
 import com.example.shop.refund.enums.RefundStatus
@@ -28,7 +27,7 @@ class RefundService(
         val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, auth.accountId) ?:
             throw BadRequestException("Purchase not found.")
 
-        val foundRefund = refundRepository.searchByPurchaseId(purchase.id!!)
+        val foundRefund = purchase.refund
 
         // 해당 purchase에 대한 refund 요청 없었음 -> 새로운 refund 요청 생성
         val refund = if (foundRefund == null) {
