@@ -2,6 +2,7 @@ package com.example.shop.purchase.domain
 
 import com.example.shop.auth.domain.Account
 import com.example.shop.purchase.enums.PurchaseStatus
+import com.example.shop.refund.domain.Refund
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -13,6 +14,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import java.time.OffsetDateTime
 
 @Entity
@@ -36,6 +38,9 @@ class Purchase {
 
     @OneToMany(mappedBy = "purchase", cascade = [CascadeType.ALL])
     var purchaseProducts: MutableSet<PurchaseProduct> = mutableSetOf()
+
+    @OneToOne(mappedBy = "purchase", fetch = FetchType.LAZY)
+    var refund: Refund? = null
 
     fun addPurchaseProducts(purchaseProducts: List<PurchaseProduct>) {
         this.purchaseProducts.addAll(purchaseProducts)
