@@ -5,6 +5,7 @@ import com.example.shop.common.response.PagedResponse
 import com.example.shop.constants.ROLE_USER
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
+import com.example.shop.purchase.models.RefundRequest
 import com.example.shop.purchase.services.PurchaseService
 import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
@@ -50,6 +51,16 @@ class PurchaseController(
         authentication: Authentication,
     ): GlobalResponse<Purchase?> {
         return purchaseService.purchaseByCart(authentication).let {
+            GlobalResponse.create(it)
+        }
+    }
+
+    @PostMapping("/refund")
+    fun updatePurchaseStatus(
+        @RequestBody request: RefundRequest,
+        authentication: Authentication
+    ): GlobalResponse<Purchase> {
+        return purchaseService.requestRefund(request, authentication).let {
             GlobalResponse.create(it)
         }
     }

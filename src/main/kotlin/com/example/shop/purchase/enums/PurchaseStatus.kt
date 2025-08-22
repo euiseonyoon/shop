@@ -5,6 +5,4 @@ enum class PurchaseStatus {
     DELIVERED,
     REFUND_REQUESTED,
     REFUNDED,
-    CANCEL_REQUESTED,
-    CANCELED,
 }

@@ -11,6 +11,17 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class PurchaseRepositoryExtensionImpl : QuerydslRepositorySupport(Purchase::class.java), PurchaseRepositoryExtension {
+    override fun searachAccountPurchase(
+        purchaseId: Long,
+        accountId: Long,
+    ): Purchase? {
+        val purchase = QPurchase.purchase
+        return from(purchase)
+            .where(purchase.id.eq(purchaseId))
+            .where(purchase.account.id.eq(accountId))
+            .fetchOne()
+    }
+
     override fun searchWithPurchaseProduct(
         purchaseIds: List<Long>?,
         accountId: Long,

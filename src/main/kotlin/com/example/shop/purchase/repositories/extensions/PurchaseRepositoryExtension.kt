@@ -6,4 +6,6 @@ import org.springframework.data.domain.Pageable
 
 interface PurchaseRepositoryExtension {
     fun searchWithPurchaseProduct(purchaseIds: List<Long>?, accountId: Long, pageable: Pageable): Page<Purchase>
+
+    fun searachAccountPurchase(purchaseId: Long, accountId: Long): Purchase?
 }
