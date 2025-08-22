@@ -7,9 +7,7 @@ import com.example.shop.common.apis.exceptions.BadRequestException
 import com.example.shop.products.respositories.ProductRepository
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseProduct
-import com.example.shop.purchase.enums.PurchaseStatus
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
-import com.example.shop.purchase.models.RefundRequest
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -81,16 +79,4 @@ class PurchaseService(
         return purchaseRepository.save(purchase)
     }
 
-    @Transactional
-    fun requestRefund(
-        request: RefundRequest,
-        authentication: Authentication
-    ): Purchase {
-        val auth = authentication as AccountAuthenticationToken
-        val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, auth.accountId) ?:
-            throw BadRequestException("Purchase not found.")
-
-        purchase.purchaseStatus = PurchaseStatus.REFUND_REQUESTED
-        return purchaseRepository.save(purchase)
-    }
 }

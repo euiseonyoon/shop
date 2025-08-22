@@ -5,14 +5,12 @@ import com.example.shop.common.response.PagedResponse
 import com.example.shop.constants.ROLE_USER
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
-import com.example.shop.purchase.models.RefundRequest
 import com.example.shop.purchase.services.PurchaseService
 import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -51,16 +49,6 @@ class PurchaseController(
         authentication: Authentication,
     ): GlobalResponse<Purchase?> {
         return purchaseService.purchaseByCart(authentication).let {
-            GlobalResponse.create(it)
-        }
-    }
-
-    @PostMapping("/refund")
-    fun updatePurchaseStatus(
-        @RequestBody request: RefundRequest,
-        authentication: Authentication
-    ): GlobalResponse<Purchase> {
-        return purchaseService.requestRefund(request, authentication).let {
             GlobalResponse.create(it)
         }
     }
