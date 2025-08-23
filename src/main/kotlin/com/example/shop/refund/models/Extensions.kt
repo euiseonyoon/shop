@@ -7,6 +7,7 @@ fun Refund.toRequestDto(): RefundRequestDto {
         purchaseId = this.purchase!!.id!!,
         status = this.status.name,
         createdAt = this.createdAt.toString(),
-        updatedAt = this.updatedAt?.toString()
+        updatedAt = this.updatedAt?.toString(),
+        etc = this.etc
     )
 }

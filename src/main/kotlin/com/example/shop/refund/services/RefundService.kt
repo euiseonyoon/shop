@@ -6,6 +6,7 @@ import com.example.shop.purchase.repositories.PurchaseRepository
 import com.example.shop.refund.domain.Refund
 import com.example.shop.refund.enums.RefundStatus
 import com.example.shop.refund.event.RefundEventPublisher
+import com.example.shop.refund.models.AdminUpdateRefundRequest
 import com.example.shop.refund.models.RefundCancelRequest
 import com.example.shop.refund.models.RefundRequest
 import com.example.shop.refund.repositories.RefundRepository
@@ -84,6 +85,30 @@ class RefundService(
 
         return refundRepository.save(refund).also {
             refundEventPublisher.notifyAdminRefundRequested(refund)
+        }
+    }
+
+    @Transactional
+    fun updateRefundStatusAsAdmin(
+        request: AdminUpdateRefundRequest,
+        authentication: Authentication,
+    ): Refund {
+        val refund = refundRepository.findById(request.refundId).orElseThrow {
+            throw BadRequestException("Refund not found.")
+        }
+        if (refund.status == request.status) {
+            return if (refund.etc != null) {
+                refund.etc = request.etc
+                refundRepository.save(refund)
+            } else {
+                refund
+            }
+        }
+
+        refund.status = request.status
+        refund.etc = refund.etc
+        return refundRepository.save(refund).also {
+            refundEventPublisher.notifyUserRefundResult(refund)
         }
     }
 }

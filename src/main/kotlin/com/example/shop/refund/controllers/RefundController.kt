@@ -1,7 +1,9 @@
 package com.example.shop.refund.controllers
 
 import com.example.shop.common.response.GlobalResponse
+import com.example.shop.constants.ROLE_ADMIN
 import com.example.shop.constants.ROLE_USER
+import com.example.shop.refund.models.AdminUpdateRefundRequest
 import com.example.shop.refund.models.RefundCancelRequest
 import com.example.shop.refund.models.RefundRequest
 import com.example.shop.refund.models.RefundRequestDto
@@ -38,6 +40,17 @@ class RefundController(
         authentication: Authentication,
     ): GlobalResponse<RefundRequestDto> {
         return refundService.cancelRefund(request, authentication).let {
+            GlobalResponse.create(it.toRequestDto())
+        }
+    }
+
+    @PreAuthorize("hasRole('$ROLE_ADMIN')")
+    @PatchMapping("/admin")
+    fun updateRefund(
+        @RequestBody request: AdminUpdateRefundRequest,
+        authentication: Authentication
+    ): GlobalResponse<RefundRequestDto> {
+        return refundService.updateRefundStatusAsAdmin(request, authentication).let {
             GlobalResponse.create(it.toRequestDto())
         }
     }
