@@ -22,9 +22,10 @@ class RateLimitFilter(
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val path = request.requestURI
-        return NO_API_LIMIT_END_POINTS.any {
+        val result = NO_API_LIMIT_END_POINTS.any {
             pathMatcher.match(it, path)
         }
+        return result
     }
 
     override fun doFilterInternal(
