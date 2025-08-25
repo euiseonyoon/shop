@@ -15,8 +15,8 @@ import jakarta.persistence.Table
 @Entity
 @Table(
     indexes = [
-        Index(name = "idx_account_id", columnList = "account_id"),
-        Index(name = "idx_is_purchased", columnList = "is_purchased"),
+        Index(name = "idx_cart_account_id", columnList = "account_id"),
+        Index(name = "idx_cart_is_purchased", columnList = "is_purchased"),
     ]
 )
 class Cart {

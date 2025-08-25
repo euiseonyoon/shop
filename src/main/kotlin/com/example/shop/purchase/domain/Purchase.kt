@@ -33,8 +33,8 @@ class Purchase {
     var updatedAt: OffsetDateTime? = null
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "purchase_status")
-    var purchaseStatus: PurchaseStatus = PurchaseStatus.PAID
+    @Column(nullable = false)
+    var status: PurchaseStatus = PurchaseStatus.PAID
 
     @OneToMany(mappedBy = "purchase", cascade = [CascadeType.ALL])
     var purchaseProducts: MutableSet<PurchaseProduct> = mutableSetOf()
