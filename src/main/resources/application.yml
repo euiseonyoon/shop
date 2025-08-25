@@ -69,3 +69,12 @@ rate-limit:
         tokens: 5
       - url_pattern: /token/refresh
         tokens: 5
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+    operationsSorter: alpha
+    display-request-duration: true
+
