@@ -13,19 +13,26 @@ import org.springframework.security.core.context.SecurityContextHolderStrategy
 import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
+import org.springframework.util.AntPathMatcher
 
 class MyJwtAuthenticationFilter(
     private val authenticationManager: AuthenticationManager,
     private val authenticationConverter: AuthenticationConverter, // request -> Authentication으로 바꾸는것
     successHandler: AuthenticationSuccessHandler
 ) : AuthenticationFilter(authenticationManager, authenticationConverter) {
+    private val matcher = AntPathMatcher()
+
     init {
         this.successHandler = successHandler
     }
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         // permitAll 엔드포인트는 필터를 거치지 않도록 설정
-        return PERMIT_ALL_END_POINTS.contains(request.servletPath)
+        val path = request.requestURI
+        val result = PERMIT_ALL_END_POINTS.any { pattern ->
+            matcher.match(pattern, path)
+        }
+        return result
     }
 
     /**
