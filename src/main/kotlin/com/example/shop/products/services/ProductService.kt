@@ -10,6 +10,8 @@ import com.example.shop.products.models.UpdateProductRequest
 import com.example.shop.products.models.toEntity
 import com.example.shop.products.respositories.CategoryRepository
 import com.example.shop.products.respositories.ProductRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 class ProductService(
     private val productRepository: ProductRepository,
     private val categoryRepository: CategoryRepository,
+    private val categoryService: CategoryService,
     private val jpaBatchHelper: JpaBatchHelper,
 ) {
     @Transactional
@@ -42,8 +45,9 @@ class ProductService(
     }
 
     @Transactional(readOnly = true)
-    fun findByIds(ids: List<Long>): List<Product> {
-        return productRepository.findAllById(ids).toList()
+    fun findByCategoryId(categoryId: Long, includeChildren: Boolean, pageable: Pageable): Page<Product> {
+        val categoryIds = categoryService.getByIdIncludeChildren(categoryId, includeChildren).map { it.id!! }
+        return productRepository.findAllByCategoryIdIn(categoryIds, pageable)
     }
 
     @Transactional

@@ -1,11 +1,13 @@
 package com.example.shop.products.controllers
 
 import com.example.shop.common.response.GlobalResponse
+import com.example.shop.common.response.PagedResponse
 import com.example.shop.constants.ROLE_ADMIN
 import com.example.shop.products.domain.Product
 import com.example.shop.products.models.CreateProductRequest
 import com.example.shop.products.models.UpdateProductRequest
 import com.example.shop.products.services.ProductService
+import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -32,10 +34,12 @@ class ProductController(
 
     @GetMapping
     fun getProducts(
-        @RequestParam(required = true) ids: List<Long>
-    ): GlobalResponse<List<Product>> {
-        return productService.findByIds(ids).let {
-            GlobalResponse.create(it)
+        @RequestParam(required = true) categoryId: Long,
+        @RequestParam(required = true) includeChildren: Boolean,
+        pageable: Pageable,
+    ): GlobalResponse<PagedResponse<Product>> {
+        return productService.findByCategoryId(categoryId, includeChildren, pageable).let {
+            GlobalResponse.create(PagedResponse.fromPage(it))
         }
     }
 

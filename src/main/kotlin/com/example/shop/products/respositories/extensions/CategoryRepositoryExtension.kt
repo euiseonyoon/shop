@@ -6,4 +6,6 @@ import org.springframework.data.domain.Pageable
 
 interface CategoryRepositoryExtension {
     fun searchWithIdsOrNames(names: List<String>?, ids: List<Long>?, pageable: Pageable): Page<Category>
+
+    fun searchByIdIncludeChildren(id: Long, includeChildren: Boolean): List<Category>
 }

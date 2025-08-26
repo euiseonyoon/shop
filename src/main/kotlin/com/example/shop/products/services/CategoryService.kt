@@ -156,4 +156,9 @@ class CategoryService(
         }
         return false
     }
+
+    @Transactional(readOnly = true)
+    fun getByIdIncludeChildren(categoryId: Long, includeChildren: Boolean): List<Category> {
+        return categoryRepository.searchByIdIncludeChildren(categoryId, includeChildren)
+    }
 }
