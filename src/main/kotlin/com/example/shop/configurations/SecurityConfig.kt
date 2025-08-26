@@ -6,6 +6,7 @@ import com.example.shop.constants.ADMIN_URI_PREFIX
 import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
 import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN
 import com.example.shop.constants.PERMIT_ALL_END_POINTS
+import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
