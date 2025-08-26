@@ -4,6 +4,8 @@ import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.QPurchase
 import com.example.shop.purchase.domain.QPurchaseProduct
 import com.example.shop.refund.domain.QRefund
+import com.querydsl.core.BooleanBuilder
+import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -11,7 +13,9 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository
 
 @Repository
-class PurchaseRepositoryExtensionImpl : QuerydslRepositorySupport(Purchase::class.java), PurchaseRepositoryExtension {
+class PurchaseRepositoryExtensionImpl(
+    private val queryFactory: JPAQueryFactory
+) : QuerydslRepositorySupport(Purchase::class.java), PurchaseRepositoryExtension {
     override fun searachAccountPurchase(
         purchaseId: Long,
         accountId: Long,
@@ -35,17 +39,25 @@ class PurchaseRepositoryExtensionImpl : QuerydslRepositorySupport(Purchase::clas
         val purchaseProduct = QPurchaseProduct.purchaseProduct
         val refund = QRefund.refund
 
-        val query = from(purchase)
+        val builder = BooleanBuilder()
+        if (!purchaseIds.isNullOrEmpty()) {
+            builder.or(purchase.id.`in`(purchaseIds))
+        }
+
+        val totalCount = queryFactory.select(purchase.count())
+            .from(purchase)
+            .where(purchase.account.id.eq(accountId))
+            .where(builder)
+            .fetchOne() ?: 0L
+
+        val pagedQuery = queryFactory.selectFrom(purchase)
             .leftJoin(purchase.refund, refund).fetchJoin()
             .join(purchase.purchaseProducts, purchaseProduct).fetchJoin()
             .where(purchase.account.id.eq(accountId))
+            .where(builder)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
 
-        if (!purchaseIds.isNullOrEmpty()) {
-            query.where(purchase.id.`in`(purchaseIds))
-        }
-
-        val totalCount = query.fetchCount()
-        val pagedQuery = getQuerydsl()!!.applyPagination(pageable, query)
         val content = pagedQuery.fetch()
 
         return PageImpl(content, pageable, totalCount)
