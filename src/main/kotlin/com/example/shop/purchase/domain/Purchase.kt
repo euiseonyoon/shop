@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
+import kotlinx.serialization.Serializable
 import java.time.OffsetDateTime
 
 @Entity

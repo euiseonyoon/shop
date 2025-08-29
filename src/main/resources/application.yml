@@ -37,14 +37,9 @@ spring:
         order_inserts: true
         order_updates: true
     show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092,localhost:9093,localhost:9094
 
-    security:
-      oauth2:
-        client:
-          registration:
-            google:
-              client-id: google-client-id
-              client-secret: google-client-secret
 
 jwt:
   access_secret: DadFufN4Oui8Bfv3ScFj6R9fyJ9hD45E6AGFsXgFsRhT4YSdSb
