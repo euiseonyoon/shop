@@ -1,16 +1,18 @@
 package com.example.shop.configurations.kafka
 
-import com.example.shop.auth.security.events.models.AutoRegisteredAccountEvent
+import com.example.shop.constants.AUTO_REGISTERED_ACCOUNT_TOPIC
+import com.example.shop.constants.NOTIFY_ADMIN_REFUND_TOPIC
+import com.example.shop.constants.NOTIFY_USER_REFUND_TOPIC
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import org.apache.kafka.clients.admin.AdminClientConfig
+import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.errors.SerializationException
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
-import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -18,9 +20,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
+import org.springframework.kafka.config.TopicBuilder
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
+import org.springframework.kafka.core.KafkaAdmin
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import kotlin.reflect.full.hasAnnotation
@@ -29,7 +33,7 @@ import kotlin.reflect.full.hasAnnotation
 @Configuration
 class KafkaConfig(
     @Value("\${spring.kafka.bootstrap-servers}")
-    private val kafka_bootstrap_servers: String,
+    private val kafkaBootstrapServers: String,
     private val json: Json,
 ) {
     // NOTE: spring boot를 사용하면 kafkaAdmin은 자동으로 빈으로 등록된다.
@@ -43,7 +47,7 @@ class KafkaConfig(
     @Bean
     fun producerFactory(kSerializerKafkaSerializer: Serializer<Any>): ProducerFactory<String, Any> {
         val configProps: MutableMap<String, Any> = HashMap()
-        configProps[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = kafka_bootstrap_servers
+        configProps[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = kafkaBootstrapServers
 
         return DefaultKafkaProducerFactory(configProps, StringSerializer(), kSerializerKafkaSerializer)
     }
@@ -72,7 +76,7 @@ class KafkaConfig(
     @Bean
     fun consumerFactory(): ConsumerFactory<String, ByteArray> {
         val configProps: MutableMap<String, Any> = HashMap()
-        configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = kafka_bootstrap_servers
+        configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = kafkaBootstrapServers
         configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = ByteArrayDeserializer::class.java
 
@@ -86,5 +90,29 @@ class KafkaConfig(
         val factory = ConcurrentKafkaListenerContainerFactory<String, ByteArray>()
         factory.consumerFactory = consumerFactory
         return factory
+    }
+
+    @Bean
+    fun autoRegisteredTopic(): NewTopic {
+        return TopicBuilder.name(AUTO_REGISTERED_ACCOUNT_TOPIC)
+            .partitions(3) // 토픽의 파티션 수
+            .replicas(3) // 토픽의 복제본 수
+            .build()
+    }
+
+    @Bean
+    fun refundNotifyAdminTopic(): NewTopic {
+        return TopicBuilder.name(NOTIFY_ADMIN_REFUND_TOPIC)
+            .partitions(3)
+            .replicas(3)
+            .build()
+    }
+
+    @Bean
+    fun refundNotifyUserTopic(): NewTopic {
+        return TopicBuilder.name(NOTIFY_USER_REFUND_TOPIC)
+            .partitions(3)
+            .replicas(3)
+            .build()
     }
 }
