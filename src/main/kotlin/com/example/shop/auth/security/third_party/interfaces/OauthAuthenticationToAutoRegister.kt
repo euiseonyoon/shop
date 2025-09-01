@@ -8,5 +8,5 @@ interface OauthAuthenticationToAutoRegister {
 
     fun generatePassword(length: Int? = null): String
 
-    fun publishAutoRegisteredAccountEvent(newUserInfo: AccountFindOrCreateResult)
+    fun sendAutoRegisteredAccountKafkaMessage(newUserInfo: AccountFindOrCreateResult)
 }

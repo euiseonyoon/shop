@@ -5,7 +5,7 @@ import com.example.shop.common.apis.exceptions.BadRequestException
 import com.example.shop.purchase.repositories.PurchaseRepository
 import com.example.shop.refund.domain.Refund
 import com.example.shop.refund.enums.RefundStatus
-import com.example.shop.refund.event.RefundEventPublisher
+import com.example.shop.refund.kafka.RefundKafkaSender
 import com.example.shop.refund.models.AdminUpdateRefundRequest
 import com.example.shop.refund.models.RefundCancelRequest
 import com.example.shop.refund.models.RefundRequest
@@ -19,7 +19,7 @@ import java.time.OffsetDateTime
 class RefundService(
     private val refundRepository: RefundRepository,
     private val purchaseRepository: PurchaseRepository,
-    private val refundEventPublisher: RefundEventPublisher,
+    private val refundKafkaSender: RefundKafkaSender,
 ) {
     @Transactional
     fun requestRefund(
@@ -58,7 +58,7 @@ class RefundService(
         }
 
         return refundRepository.save(refund).also {
-            refundEventPublisher.notifyAdminRefundRequested(refund)
+            refundKafkaSender.notifyAdminRefundRequested(refund)
         }
     }
 
@@ -84,7 +84,7 @@ class RefundService(
         }
 
         return refundRepository.save(refund).also {
-            refundEventPublisher.notifyAdminRefundRequested(refund)
+            refundKafkaSender.notifyAdminRefundRequested(refund)
         }
     }
 
@@ -108,7 +108,7 @@ class RefundService(
         refund.status = request.status
         refund.etc = refund.etc
         return refundRepository.save(refund).also {
-            refundEventPublisher.notifyUserRefundResult(refund)
+            refundKafkaSender.notifyUserRefundResult(refund)
         }
     }
 }

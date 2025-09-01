@@ -1,6 +1,6 @@
 package com.example.shop.kafka
 
-import com.example.shop.auth.security.events.models.AutoRegisteredAccountEvent
+import com.example.shop.auth.security.kafka.models.AutoRegisteredAccountKafkaDto
 import com.example.shop.constants.AUTO_REGISTERED_ACCOUNT_TOPIC
 import com.example.shop.constants.NOTIFY_ADMIN_REFUND_TOPIC
 import com.example.shop.constants.NOTIFY_USER_REFUND_TOPIC
@@ -52,7 +52,7 @@ class KafkaMessageListener(
     fun handleAutoRegisteredAccount(messageBytes: ByteArray) {
         val jsonString = String(messageBytes, StandardCharsets.UTF_8)
         val autoRegisteredUserInfo = try {
-            json.decodeFromString(AutoRegisteredAccountEvent.serializer(), jsonString)
+            json.decodeFromString(AutoRegisteredAccountKafkaDto.serializer(), jsonString)
         } catch (e: Exception) {
             throw e
         }

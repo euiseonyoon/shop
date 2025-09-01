@@ -1,12 +1,13 @@
 package com.example.shop.auth.security.user_services
 
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
-import com.example.shop.auth.security.events.interfaces.AutoRegisteredAccountEventPublisher
+import com.example.shop.auth.security.kafka.models.AutoRegisteredAccountKafkaDto
 import com.example.shop.auth.security.third_party.interfaces.OauthAuthenticationToAutoRegister
 import com.example.shop.auth.security.third_party.models.AccountFindOrCreateResult
 import com.example.shop.auth.security.utils.PasswordGenerator
 import com.example.shop.auth.services.AccountService
 import com.example.shop.auth.services.facades.FacadeAccountCrudService
+import com.example.shop.kafka.KafkaMessageSender
 import org.springframework.stereotype.Service
 
 @Service
@@ -14,14 +15,16 @@ class OauthAuthenticatedUserAutoRegisterer(
     private val accountService: AccountService,
     private val facadeAccountCrudService: FacadeAccountCrudService,
     private val passwordGenerator: PasswordGenerator,
-    private val autoRegisteredAccountEventPublisher: AutoRegisteredAccountEventPublisher,
+    private val kafkaMessageSender: KafkaMessageSender,
 ) : OauthAuthenticationToAutoRegister {
     override fun generatePassword(length: Int?): String {
         return passwordGenerator.generatePassword(length)
     }
 
-    override fun publishAutoRegisteredAccountEvent(newUserInfo: AccountFindOrCreateResult) {
-        this.autoRegisteredAccountEventPublisher.publishAutoRegisteredEvent(newUserInfo)
+    override fun sendAutoRegisteredAccountKafkaMessage(newUserInfo: AccountFindOrCreateResult) {
+        kafkaMessageSender.sendAutoRegisterMessage(
+            AutoRegisteredAccountKafkaDto(newUserInfo.account.email!!, newUserInfo.account.password!!)
+        )
     }
 
     override fun findOrCreateUser(
@@ -38,6 +41,6 @@ class OauthAuthenticatedUserAutoRegisterer(
             facadeAccountCrudService.createUserAccount(email, generatedPassword, null, providerId, emptySet())
 
         return AccountFindOrCreateResult(createdAccount, generatedPassword, true)
-            .also { publishAutoRegisteredAccountEvent(it) }
+            .also { sendAutoRegisteredAccountKafkaMessage(it) }
     }
 }
