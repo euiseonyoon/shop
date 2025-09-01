@@ -20,6 +20,18 @@ Configuration:
               AppenderRef:
                   - ref: Console
 
+            - name: org.apache.kafka
+              level: info
+              additivity: false
+              AppenderRef:
+                - ref: Console
+
+            - name: org.springframework.kafka
+              level: info
+              additivity: false
+              AppenderRef:
+                - ref: Console
+
             - name: shop
               level: debug
               additivity: false
