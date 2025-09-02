@@ -36,6 +36,8 @@ class KafkaConfig(
     // NOTE: spring boot를 사용하면 kafkaAdmin은 자동으로 빈으로 등록된다.
     // ListenerContainer는 consumer를 사용해서 kafka 로부터 메시지를 계속 polling 해주는 역할을 한다.
 
+    val NOTIFY_PARTITION_COUNT = 3
+
     @Bean
     fun kafkaTemplate(producerFactory: ProducerFactory<String, Any>): KafkaTemplate<String, Any> {
         return KafkaTemplate(producerFactory)
@@ -94,22 +96,26 @@ class KafkaConfig(
     }
 
     @Bean
-    fun kafkaListenerContainerFactory(
+    fun notifyTopicListenerContainerFactory(
         consumerFactory: ConsumerFactory<String, ByteArray>
     ): ConcurrentKafkaListenerContainerFactory<String, ByteArray> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, ByteArray>()
 
         // 컨테이너의 ACK 모드를 수동(MANUAL)으로 설정
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
-
         factory.consumerFactory = consumerFactory
+        // MSA 환경에서는 조정을 할 필요가 있다.
+        // 현재 코드베이스에서 3개의 컨수머가 1개의 컨수머 그룹을 만든다. 그래서 아래의 notifyTopic의 partition 수와 동일해서 상관없다.
+        // 하지만 MSA 환경에서 이러한 서버가 2대 실행된다면  서버당 3개의 컨수머  총  6개의 컨수머가 만들어진다.
+        // 하지만 notifyTopic의 파티션은 3개이므로 3개의 컨수머는 idle이다.
+        factory.setConcurrency(NOTIFY_PARTITION_COUNT)
         return factory
     }
 
     @Bean
     fun notifyTopic(): NewTopic {
         return TopicBuilder.name(NOTIFY_TOPIC)
-            .partitions(3)
+            .partitions(NOTIFY_PARTITION_COUNT)
             .replicas(3)
             .build()
     }

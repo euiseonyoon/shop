@@ -19,7 +19,7 @@ class KafkaMessageListener(
     @KafkaListener(
         topics = [NOTIFY_TOPIC],
         groupId = "notify_group",
-        containerFactory = "kafkaListenerContainerFactory"
+        containerFactory = "notifyTopicListenerContainerFactory"
     )
     fun listenNotifyKafka(messageBytes: ByteArray, ack: Acknowledgment) {
         val jsonString = String(messageBytes, StandardCharsets.UTF_8)
