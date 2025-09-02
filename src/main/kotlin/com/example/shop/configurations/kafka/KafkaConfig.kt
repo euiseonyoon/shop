@@ -1,5 +1,6 @@
 package com.example.shop.configurations.kafka
 
+import com.example.shop.constants.NOTIFY_DLQ_TOPIC
 import com.example.shop.constants.NOTIFY_TOPIC
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -115,6 +116,14 @@ class KafkaConfig(
     @Bean
     fun notifyTopic(): NewTopic {
         return TopicBuilder.name(NOTIFY_TOPIC)
+            .partitions(NOTIFY_PARTITION_COUNT)
+            .replicas(3)
+            .build()
+    }
+
+    @Bean
+    fun notifyDlqTopic(): NewTopic {
+        return TopicBuilder.name(NOTIFY_DLQ_TOPIC)
             .partitions(NOTIFY_PARTITION_COUNT)
             .replicas(3)
             .build()
