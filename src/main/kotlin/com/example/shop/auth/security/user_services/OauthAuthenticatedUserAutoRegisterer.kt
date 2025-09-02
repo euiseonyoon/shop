@@ -1,13 +1,15 @@
 package com.example.shop.auth.security.user_services
 
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
-import com.example.shop.auth.security.kafka.models.AutoRegisteredAccountKafkaDto
 import com.example.shop.auth.security.third_party.interfaces.OauthAuthenticationToAutoRegister
 import com.example.shop.auth.security.third_party.models.AccountFindOrCreateResult
 import com.example.shop.auth.security.utils.PasswordGenerator
 import com.example.shop.auth.services.AccountService
 import com.example.shop.auth.services.facades.FacadeAccountCrudService
 import com.example.shop.kafka.KafkaMessageSender
+import com.example.shop.kafka.notify_topic.enums.NotifyType
+import com.example.shop.kafka.notify_topic.models.NotifyKafkaContent
+import com.example.shop.kafka.notify_topic.models.NotifyKafkaMessage
 import org.springframework.stereotype.Service
 
 @Service
@@ -22,8 +24,14 @@ class OauthAuthenticatedUserAutoRegisterer(
     }
 
     override fun sendAutoRegisteredAccountKafkaMessage(newUserInfo: AccountFindOrCreateResult) {
-        kafkaMessageSender.sendAutoRegisterMessage(
-            AutoRegisteredAccountKafkaDto(newUserInfo.account.email!!, newUserInfo.account.password!!)
+        kafkaMessageSender.sendNotifyMessage(
+            NotifyKafkaMessage(
+                type = NotifyType.AUTO_REGISTERED_ACCOUNT,
+                content = NotifyKafkaContent.AutoRegisteredAccountKafkaDto(
+                    email = newUserInfo.account.email!!,
+                    rawPassword = newUserInfo.account.password!!
+                )
+            )
         )
     }
 

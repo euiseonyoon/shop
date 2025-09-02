@@ -1,8 +1,6 @@
 package com.example.shop.configurations.kafka
 
-import com.example.shop.constants.AUTO_REGISTERED_ACCOUNT_TOPIC
-import com.example.shop.constants.NOTIFY_ADMIN_REFUND_TOPIC
-import com.example.shop.constants.NOTIFY_USER_REFUND_TOPIC
+import com.example.shop.constants.NOTIFY_TOPIC
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -109,24 +107,8 @@ class KafkaConfig(
     }
 
     @Bean
-    fun autoRegisteredTopic(): NewTopic {
-        return TopicBuilder.name(AUTO_REGISTERED_ACCOUNT_TOPIC)
-            .partitions(3) // 토픽의 파티션 수
-            .replicas(3) // 토픽의 복제본 수
-            .build()
-    }
-
-    @Bean
-    fun refundNotifyAdminTopic(): NewTopic {
-        return TopicBuilder.name(NOTIFY_ADMIN_REFUND_TOPIC)
-            .partitions(3)
-            .replicas(3)
-            .build()
-    }
-
-    @Bean
-    fun refundNotifyUserTopic(): NewTopic {
-        return TopicBuilder.name(NOTIFY_USER_REFUND_TOPIC)
+    fun notifyTopic(): NewTopic {
+        return TopicBuilder.name(NOTIFY_TOPIC)
             .partitions(3)
             .replicas(3)
             .build()
