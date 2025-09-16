@@ -25,9 +25,8 @@ class CartItemService(
     private val cartItemRepository: CartItemRepository,
 ) {
     @Transactional
-    fun addItemToCart(request: AddToCartRequest, authentication: Authentication): Cart {
-        val auth = (authentication as AccountAuthenticationToken)
-        val account = accountRepository.findById(auth.accountId).orElseThrow(
+    fun addItemToCart(request: AddToCartRequest, accountId: Long): Cart {
+        val account = accountRepository.findById(accountId).orElseThrow(
             Supplier { BadRequestException("Account Not found.") }
         )
         val cart = cartService.getOrCreateUnPurchaseCart(account)
@@ -55,8 +54,8 @@ class CartItemService(
     }
 
     @Transactional
-    fun removeItemFromCart(request: RemoveFromCartRequest, authentication: Authentication): Cart? {
-        val cart = cartService.getMyCart(authentication) ?: return null
+    fun removeItemFromCart(request: RemoveFromCartRequest, accountId: Long): Cart? {
+        val cart = cartService.getMyCart(accountId) ?: return null
         val cartItemToRemove = cartItemRepository.getCartItem(cart.id!!, request.productId) ?: return cart
         cart.cartItems?.remove(cartItemToRemove)
 
@@ -71,9 +70,9 @@ class CartItemService(
     @Transactional
     fun updateQuantity(
         request: UpdateCartQuantityRequest,
-        authentication: Authentication
+        accountId: Long,
     ): Cart? {
-        val cart = cartService.getMyCart(authentication) ?: return null
+        val cart = cartService.getMyCart(accountId) ?: return null
 
         val cartItemToUpdate = cart.cartItems!!.find { it.product?.id == request.productId } ?: return cart
         cartItemToUpdate.quantity = request.quantity

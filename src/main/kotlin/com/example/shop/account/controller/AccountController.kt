@@ -7,6 +7,7 @@ import com.example.shop.common.response.GlobalResponse
 import com.example.shop.constants.ROLE_USER
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -18,12 +19,13 @@ import org.springframework.web.bind.annotation.RestController
 class AccountController(
     private val addressService: AddressService,
 ) {
+    // authentication 여기
     @PostMapping("/address")
     fun addAddress(
         @RequestBody request: AddAddressRequest,
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<Address> {
-        return addressService.addAddress(request, authentication).let {
+        return addressService.addAddress(request, accountId).let {
             GlobalResponse.create(it)
         }
     }

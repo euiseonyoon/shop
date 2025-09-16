@@ -24,10 +24,9 @@ class RefundService(
     @Transactional
     fun requestRefund(
         request: RefundRequest,
-        authentication: Authentication
+        accountId: Long
     ): Refund {
-        val auth = authentication as AccountAuthenticationToken
-        val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, auth.accountId) ?:
+        val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, accountId) ?:
             throw BadRequestException("Purchase not found.")
 
         val foundRefund = purchase.refund
@@ -63,9 +62,8 @@ class RefundService(
     }
 
     @Transactional
-    fun cancelRefund(request: RefundCancelRequest, authentication: Authentication): Refund {
-        val auth = authentication as AccountAuthenticationToken
-        val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, auth.accountId) ?:
+    fun cancelRefund(request: RefundCancelRequest, accountId: Long): Refund {
+        val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, accountId) ?:
             throw BadRequestException("Purchase not found.")
 
         val refundToCancel = purchase.refund ?: throw BadRequestException("There is no refund to cancel.")
@@ -91,7 +89,6 @@ class RefundService(
     @Transactional
     fun updateRefundStatusAsAdmin(
         request: AdminUpdateRefundRequest,
-        authentication: Authentication,
     ): Refund {
         val refund = refundRepository.findById(request.refundId).orElseThrow {
             throw BadRequestException("Refund not found.")

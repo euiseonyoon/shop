@@ -16,10 +16,7 @@ class CartService(
     fun saveCart(cart: Cart): Cart = cartRepository.save(cart)
 
     @Transactional
-    fun getMyCart(authentication: Authentication): Cart? {
-        val auth = (authentication as AccountAuthenticationToken)
-        return cartRepository.getNotPurchasedCartByAccountId(auth.accountId)
-    }
+    fun getMyCart(accountId: Long): Cart? = cartRepository.getNotPurchasedCartByAccountId(accountId)
 
     @Transactional
     fun getOrCreateUnPurchaseCart(account: Account) : Cart {

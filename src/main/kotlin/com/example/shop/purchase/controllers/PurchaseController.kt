@@ -10,6 +10,7 @@ import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -46,9 +47,9 @@ class PurchaseController(
 
     @PostMapping("/cart")
     fun purchaseCartItems(
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<Purchase?> {
-        return purchaseService.purchaseByCart(authentication).let {
+        return purchaseService.purchaseByCart(accountId).let {
             GlobalResponse.create(it)
         }
     }

@@ -19,10 +19,9 @@ class AddressService(
     @Transactional
     fun addAddress(
         request: AddAddressRequest,
-        authentication: Authentication,
+        accountId: Long,
     ): Address {
-        val auth = authentication as AccountAuthenticationToken
-        val account = accountRepository.findById(auth.accountId).orElseThrow(
+        val account = accountRepository.findById(accountId).orElseThrow(
             Supplier { BadRequestException("Account not found.") }
         )
 

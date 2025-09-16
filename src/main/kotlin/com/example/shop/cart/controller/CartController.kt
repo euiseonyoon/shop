@@ -12,6 +12,7 @@ import com.example.shop.constants.ROLE_USER
 import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -27,39 +28,45 @@ class CartController(
     private val cartService: CartService,
     private val cartItemService: CartItemService,
 ) {
+    // authentication 여기
     @GetMapping
-    fun getMyCart(authentication: Authentication): GlobalResponse<CartDto?> {
-        return cartService.getMyCart(authentication).let {
+    fun getMyCart(
+        @AuthenticationPrincipal accountId: Long,
+    ): GlobalResponse<CartDto?> {
+        return cartService.getMyCart(accountId).let {
             GlobalResponse.create(it?.toDto())
         }
     }
 
+    // authentication 여기
     @PostMapping
     fun addToCart(
         @RequestBody @Valid request: AddToCartRequest,
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<CartDto> {
-        return cartItemService.addItemToCart(request, authentication).let {
+        return cartItemService.addItemToCart(request, accountId).let {
             GlobalResponse.create(it.toDto())
         }
     }
 
+    // authentication 여기
     @DeleteMapping
     fun removeFromCart(
         @RequestBody request: RemoveFromCartRequest,
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<CartDto?> {
-        return cartItemService.removeItemFromCart(request, authentication).let {
+        return cartItemService.removeItemFromCart(request, accountId).let {
             GlobalResponse.create(it?.toDto())
         }
     }
 
+    // authentication 여기
     @PatchMapping
     fun updateQuantity(
         @RequestBody @Valid request: UpdateCartQuantityRequest,
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<CartDto?> {
-        return cartItemService.updateQuantity(request, authentication).let {
+        return cartItemService.updateQuantity(request, accountId).let {
             GlobalResponse.create(it?.toDto())
         }
     }

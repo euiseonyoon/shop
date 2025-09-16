@@ -11,6 +11,7 @@ import com.example.shop.refund.models.toRequestDto
 import com.example.shop.refund.services.RefundService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,24 +23,26 @@ import org.springframework.web.bind.annotation.RestController
 class RefundController(
     private val refundService: RefundService,
 ) {
+    // authentication 여기
     @PreAuthorize("hasRole('$ROLE_USER')")
     @PostMapping
     fun requestRefund(
         @RequestBody request: RefundRequest,
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<RefundRequestDto> {
-        return refundService.requestRefund(request, authentication).let {
+        return refundService.requestRefund(request, accountId).let {
             GlobalResponse.create(it.toRequestDto())
         }
     }
 
+    // authentication 여기
     @PreAuthorize("hasRole('$ROLE_USER')")
     @PatchMapping
     fun cancelRefund(
         @RequestBody request: RefundCancelRequest,
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<RefundRequestDto> {
-        return refundService.cancelRefund(request, authentication).let {
+        return refundService.cancelRefund(request, accountId).let {
             GlobalResponse.create(it.toRequestDto())
         }
     }
@@ -48,9 +51,8 @@ class RefundController(
     @PatchMapping("/admin")
     fun updateRefund(
         @RequestBody request: AdminUpdateRefundRequest,
-        authentication: Authentication
     ): GlobalResponse<RefundRequestDto> {
-        return refundService.updateRefundStatusAsAdmin(request, authentication).let {
+        return refundService.updateRefundStatusAsAdmin(request).let {
             GlobalResponse.create(it.toRequestDto())
         }
     }

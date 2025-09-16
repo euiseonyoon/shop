@@ -57,8 +57,8 @@ class PurchaseService(
     }
 
     @Transactional
-    fun purchaseByCart(authentication: Authentication): Purchase? {
-        val cart = cartService.getMyCart(authentication) ?: return null
+    fun purchaseByCart(accountId: Long): Purchase? {
+        val cart = cartService.getMyCart(accountId) ?: return null
         val purchaseProducts = cart.cartItems!!.map { cartItem ->
             cartItem.product!!.stock = cartItem.product!!.stock!! - cartItem.quantity!!
             val savedProduct = productRepository.save(cartItem.product!!)
