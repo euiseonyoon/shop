@@ -1,14 +1,11 @@
 package com.example.shop.cart.domain
 
-import com.example.shop.auth.domain.Account
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
 import jakarta.persistence.Index
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
@@ -19,17 +16,44 @@ import jakarta.persistence.Table
         Index(name = "idx_cart_is_purchased", columnList = "is_purchased"),
     ]
 )
-class Cart {
+class Cart(
     @Id
     @GeneratedValue
-    val id: Long? = null
+    val id: Long = 0,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
-    var account: Account? = null
+    @Column(name = "account_id", nullable = false)
+    val accountId: Long,
 
-    @OneToMany(mappedBy = "cart", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var cartItems: MutableSet<CartItem>? = mutableSetOf()
-
+    @Column(name = "is_purchased")
     var isPurchased: Boolean = false
+) {
+    @OneToMany(mappedBy = "cart", cascade = [CascadeType.ALL], orphanRemoval = true)
+    private val cartItems: MutableSet<CartItem> = mutableSetOf()
+
+    val items: List<CartItem>
+        get() = cartItems.toList()
+
+    fun findItem(productId: Long): CartItem? = cartItems.find { it.productId == productId }
+
+    fun addItem(productId: Long, quantity: Int) {
+        cartItems.add(
+            CartItem(
+                cart = this,
+                productId = productId,
+                quantity = quantity,
+            )
+        )
+    }
+
+    fun removeItem(cartItemToRemove: CartItem) {
+        cartItems.remove(cartItemToRemove)
+    }
+
+    fun setItemQuantity(cartItem: CartItem, quantity: Int) {
+        cartItem.quantity = quantity
+    }
+
+    fun incrementItemQuantity(cartItem: CartItem, quantity: Int) {
+        cartItem.quantity += quantity
+    }
 }

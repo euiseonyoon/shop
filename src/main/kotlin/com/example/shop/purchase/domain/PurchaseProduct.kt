@@ -40,4 +40,13 @@ class PurchaseProduct {
     @Min(1)
     @Column(name = "count", nullable = false)
     var quantity: Int? = null
+
+    companion object {
+        fun create(product: Product, quantity: Int): PurchaseProduct {
+            return PurchaseProduct().apply {
+                this.product = product
+                this.quantity = quantity
+            }
+        }
+    }
 }

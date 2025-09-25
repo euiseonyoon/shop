@@ -2,8 +2,10 @@ package com.example.shop.purchase.services
 
 import com.example.shop.auth.models.AccountAuthenticationToken
 import com.example.shop.auth.repositories.AccountRepository
+import com.example.shop.cart.domain.CartItem
 import com.example.shop.cart.services.CartService
 import com.example.shop.common.apis.exceptions.BadRequestException
+import com.example.shop.products.domain.Product
 import com.example.shop.products.respositories.ProductRepository
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseProduct
@@ -56,25 +58,44 @@ class PurchaseService(
         return purchaseRepository.save(purchase)
     }
 
+    fun checkProductsBeforePurchase(cartItems: List<CartItem>, products: List<Product>): Map<Long, Product>{
+        val productIdMap: Map<Long, Product> = products.associateBy { it.id!! }
+
+        val notAvailableProducts = cartItems.mapNotNull { cartItem ->
+            val product = productIdMap[cartItem.productId]
+            when {
+                product == null -> Pair(cartItem.productId, "상품을 찾을 수 없습니다.")
+                product.stock!! < cartItem.quantity -> Pair(cartItem.productId, "상품의 재고 수량이 부족합니다.")
+                else -> null
+            }
+        }
+        if (notAvailableProducts.isNotEmpty()) {
+            throw Exception("장바구니 구매 오류.")
+        }
+
+        return productIdMap
+    }
+
     @Transactional
     fun purchaseByCart(accountId: Long): Purchase? {
         val cart = cartService.getMyCart(accountId) ?: return null
-        val purchaseProducts = cart.cartItems!!.map { cartItem ->
-            cartItem.product!!.stock = cartItem.product!!.stock!! - cartItem.quantity!!
-            val savedProduct = productRepository.save(cartItem.product!!)
+        val productsInCart = productRepository.findAllByIdIn(cart.items.map { it.productId })
 
-            PurchaseProduct().apply {
-                this.product = savedProduct
-                this.quantity = cartItem.quantity!!
-            }
+        val productIdMap = checkProductsBeforePurchase(cart.items.toList(), productsInCart)
+
+        val purchaseProducts = cart.items.map { cartItem ->
+            val product = productIdMap[cartItem.productId]!!
+            product.stock = product.stock!! - cartItem.quantity
+            PurchaseProduct.create(product, cartItem.quantity)
         }
+
         val purchase = Purchase().apply {
-            this.account = cart.account!!
+            // TODO: 추후 Purchase.account -> Purchase.accountId로 수정한다.
+            this.account = accountRepository.findById(cart.accountId).get()
         }
         purchase.addPurchaseProducts(purchaseProducts)
 
         cart.isPurchased = true
-        cartService.saveCart(cart)
 
         return purchaseRepository.save(purchase)
     }

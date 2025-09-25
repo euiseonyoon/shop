@@ -4,6 +4,6 @@ import com.example.shop.products.domain.Product
 
 data class CartItemDto(
     val cartItemId: Long,
-    val product: Product,
+    val productId: Long,
     val quantity: Int,
 )

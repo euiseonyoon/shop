@@ -1,15 +1,14 @@
 package com.example.shop.cart.domain
 
-import com.example.shop.products.domain.Product
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import jakarta.validation.constraints.Min
 
 @Entity
 @Table(
@@ -17,25 +16,19 @@ import jakarta.persistence.UniqueConstraint
         UniqueConstraint(columnNames = ["cart_id", "product_id"])
     ]
 )
-class CartItem {
+class CartItem(
     @Id
     @GeneratedValue
-    val id: Long? = null
+    val id: Long = 0,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
-    var cart: Cart? = null
+    val cart: Cart,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    var product: Product? = null
+    @Column(name = "product_id", nullable = false)
+    val productId: Long,
 
-    @Column(nullable = false)
-    var quantity: Int? = null
-
-    constructor()
-    constructor(product: Product, quantity: Int) {
-        this.product = product
-        this.quantity = quantity
-    }
-}
+    @Min(1)
+    @Column(name = "quantity", nullable = false)
+    var quantity: Int,
+)

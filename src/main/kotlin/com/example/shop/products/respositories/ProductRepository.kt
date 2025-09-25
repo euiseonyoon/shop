@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface ProductRepository : JpaRepository<Product, Long> {
     fun findAllByCategoryIdIn(categoryIds: List<Long>, pageable: Pageable): Page<Product>
+
+    fun findAllByIdIn(productIds: List<Long>): List<Product>
 }

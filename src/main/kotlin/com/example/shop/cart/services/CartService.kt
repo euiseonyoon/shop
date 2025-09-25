@@ -13,18 +13,15 @@ class CartService(
     private val cartRepository: CartRepository,
 ) {
     @Transactional
-    fun saveCart(cart: Cart): Cart = cartRepository.save(cart)
-
-    @Transactional
     fun getMyCart(accountId: Long): Cart? = cartRepository.getNotPurchasedCartByAccountId(accountId)
 
     @Transactional
-    fun getOrCreateUnPurchaseCart(account: Account) : Cart {
-        val unPurchasedCart = cartRepository.getNotPurchasedCartByAccountId(account.id!!)
+    fun getOrCreateUnPurchaseCart(accountId: Long): Cart {
+        val unPurchasedCart = cartRepository.getNotPurchasedCartByAccountId(accountId)
         if (unPurchasedCart != null) {
             return unPurchasedCart
         }
 
-        return cartRepository.save(Cart().apply { this.account = account })
+        return cartRepository.save(Cart(accountId = accountId, isPurchased = false))
     }
 }
