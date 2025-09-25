@@ -5,26 +5,15 @@ import com.example.shop.products.domain.Category
 import com.example.shop.products.domain.Product
 
 fun CreateCategoryRequest.toCategoryEntity(parent: Category?): Category {
-    val categoryEntity = Category()
-
-    categoryEntity.parent = parent
-    categoryEntity.name = this.name
-    categoryEntity.isEnabled = this.isEnabled ?: true
-    categoryEntity.isLast = this.children.isNullOrEmpty()
-    categoryEntity.fullPath = if (parent == null) {
-        this.name
-    } else {
-        parent.fullPath!! + CATEGORY_PATH_DELIMITER + this.name
-    }
-    return categoryEntity
+    return Category(
+        parent = parent,
+        name = this.name,
+        isEnabled = this.isEnabled ?: true,
+        isLast = this.children.isNullOrEmpty(),
+        fullPath = parent?.let { parent.fullPath + CATEGORY_PATH_DELIMITER + this.name } ?: this.name
+    )
 }
 
 fun CreateProductRequest.toEntity(category: Category): Product {
-    val product = Product()
-    product.name = this.name
-    product.stock = this.stock
-    product.price = this.price
-    product.category = category
-    product.isEnabled = this.isEnabled
-    return product
+    return Product(name, stock, price, category, isEnabled)
 }

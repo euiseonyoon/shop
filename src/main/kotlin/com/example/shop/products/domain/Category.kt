@@ -23,7 +23,24 @@ import org.hibernate.annotations.ColumnDefault
         Index(name = "idx_category_full_path", columnList = "full_path"),
     ]
 )
-class Category {
+class Category(
+    @Column(nullable = false, unique = true)
+    var name: String,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    var parent: Category? = null,
+
+    @Column(nullable = false)
+    var fullPath: String,
+
+    @Column(nullable = false)
+    var isLast: Boolean = true,
+
+    @Column(nullable = false)
+    @ColumnDefault("true")
+    var isEnabled: Boolean = true
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_seq_gen")
     @SequenceGenerator(
@@ -31,22 +48,5 @@ class Category {
         sequenceName = "category_id_seq",
         allocationSize = 1
     )
-    val id: Long? = null
-
-    @Column(nullable = false, unique = true)
-    var name: String? = null
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    var parent: Category? = null
-
-    @Column(nullable = false)
-    var fullPath: String? = null
-
-    @Column(nullable = false)
-    var isLast: Boolean = true
-
-    @Column(nullable = false)
-    @ColumnDefault("true")
-    var isEnabled: Boolean = true
+    val id: Long = 0
 }

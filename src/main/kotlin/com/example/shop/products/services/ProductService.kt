@@ -22,6 +22,12 @@ class ProductService(
     private val categoryService: CategoryService,
     private val jpaBatchHelper: JpaBatchHelper,
 ) {
+    @Transactional(readOnly = true)
+    fun findById(productId: Long): Product? = productRepository.findById(productId).orElse(null)
+
+    @Transactional(readOnly = true)
+    fun findByIds(productIds: List<Long>): List<Product> = productRepository.findAllByIdIn(productIds)
+
     @Transactional
     fun createMany(req: List<CreateProductRequest>): List<Product> {
         val categories = checkCategories(req.map { it.categoryId }.toSet())
@@ -33,9 +39,7 @@ class ProductService(
     }
 
     private fun checkCategories(categoryIds: Set<Long>): Map<Long, Category> {
-        val categories = categoryRepository.findAllById(categoryIds)
-            .associateBy { it.id!! }
-
+        val categories = categoryRepository.findAllById(categoryIds).associateBy { it.id }
         val missingIds = categoryIds - categories.keys
         if (missingIds.isNotEmpty()) {
             throw BadRequestException("존재하지 않는 카테고리 ID: $missingIds")
@@ -46,7 +50,7 @@ class ProductService(
 
     @Transactional(readOnly = true)
     fun findByCategoryId(categoryId: Long, includeChildren: Boolean, pageable: Pageable): Page<Product> {
-        val categoryIds = categoryService.getByIdIncludeChildren(categoryId, includeChildren).map { it.id!! }
+        val categoryIds = categoryService.getByIdIncludeChildren(categoryId, includeChildren).map { it.id }
         return productRepository.findAllByCategoryIdIn(categoryIds, pageable)
     }
 

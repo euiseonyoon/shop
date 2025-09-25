@@ -3,11 +3,12 @@ package com.example.shop.purchase.services
 import com.example.shop.auth.models.AccountAuthenticationToken
 import com.example.shop.cart.domain.CartItem
 import com.example.shop.cart.services.CartService
-import com.example.shop.common.apis.exceptions.BadRequestException
+import com.example.shop.common.apis.exceptions.NotFoundException
 import com.example.shop.products.domain.Product
-import com.example.shop.products.respositories.ProductRepository
+import com.example.shop.products.services.ProductService
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseProduct
+import com.example.shop.purchase.exceptions.PurchaseByCartException
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.data.domain.Page
@@ -15,12 +16,11 @@ import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.function.Supplier
 
 @Service
 class PurchaseService(
     private val purchaseRepository: PurchaseRepository,
-    private val productRepository: ProductRepository,
+    private val productService: ProductService,
     private val cartService: CartService,
 ) {
     @Transactional(readOnly = true)
@@ -36,13 +36,10 @@ class PurchaseService(
     @Transactional
     fun purchaseDirectly(request: PurchaseDirectlyRequest, accountId: Long): Purchase {
         val purchase = Purchase(accountId)
-        val product = productRepository.findById(request.productId).orElseThrow(
-            Supplier { BadRequestException("Product Not found.") }
-        )
-        product.stock = product.stock!! - request.quantity
-        productRepository.save(product).also {
-            purchase.addPurchaseProduct(PurchaseProduct(purchase, it.id!!, request.quantity))
-        }
+        val product = productService.findById(request.productId)?.decrementStock(request.quantity)
+            ?: throw NotFoundException("Product Not found.")
+
+        purchase.addPurchaseProduct(PurchaseProduct(purchase, product.id, request.quantity))
 
         return purchaseRepository.save(purchase)
     }
@@ -50,7 +47,7 @@ class PurchaseService(
     @Transactional
     fun purchaseByCart(accountId: Long): Purchase? {
         val cart = cartService.getMyCart(accountId) ?: return null
-        val productsInCart = productRepository.findAllByIdIn(cart.items.map { it.productId })
+        val productsInCart = productService.findByIds(cart.items.map { it.productId })
 
         val purchase = Purchase(cart.accountId).also {
             it.addPurchaseProducts(makePurchaseProducts(it, cart.items, productsInCart))
@@ -75,10 +72,12 @@ class PurchaseService(
             val product = productIdMap[cartItem.productId]
             when {
                 product == null -> validationErrors[cartItem.productId] = "상품을 찾을 수 없습니다."
-                product.stock!! < cartItem.quantity -> validationErrors[cartItem.productId] = "상품의 재고 수량이 부족합니다."
+                product.isStockInsufficient(cartItem.quantity) ->
+                    validationErrors[cartItem.productId] = "상품의 재고 수량이 부족합니다."
                 else -> {
-                    product.stock = product.stock!! - cartItem.quantity
-                    purchaseProducts.add(PurchaseProduct(purchase, product.id!!, cartItem.quantity))
+                    purchaseProducts.add(
+                        PurchaseProduct(purchase, product.decrementStock(cartItem.quantity).id, cartItem.quantity)
+                    )
                 }
             }
         }
@@ -89,8 +88,11 @@ class PurchaseService(
 
     private fun throwPurchaseByCartException(validationErrors: Map<Long, String>) {
         if (validationErrors.isNotEmpty()) {
-            throw Exception("장바구니 구매 오류.")
+            val baseMessage = "장바구니 구매 오류. 상세 원인은 다음과 같습니다."
+            val errorDetails = validationErrors.entries.joinToString(separator = ", ") { (productId, reason) ->
+                "상품ID: ${productId}, 원인: ${reason}"
+            }
+            throw PurchaseByCartException("$baseMessage $errorDetails")
         }
     }
-
 }

@@ -134,7 +134,7 @@ class CategoryService(
                     .orElseThrow { IllegalArgumentException("부모 카테고리(id=${req.parentId})가 존재하지 않습니다.") }
 
                 // 사이클 방지
-                if (isCycle(entity.id!!, newParent)) {
+                if (isCycle(entity.id, newParent)) {
                     throw IllegalArgumentException("자기 자신이나 자손을 부모로 지정할 수 없습니다.")
                 }
 

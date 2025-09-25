@@ -1,5 +1,6 @@
 package com.example.shop.products.domain
 
+import com.example.shop.products.exceptions.ProductInsufficientStockException
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -22,7 +23,23 @@ import jakarta.validation.constraints.Min
         Index(name = "idx_product_is_enabled", columnList = "is_enabled")
     ]
 )
-class Product {
+class Product(
+    @Column(nullable = false)
+    var name: String,
+
+    @Column(nullable = false) @Min(0)
+    var stock: Int,
+
+    @Column(nullable = false) @Min(0)
+    var price: Int,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    var category: Category,
+
+    @Column(nullable = false)
+    var isEnabled: Boolean = true
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "product_seq_gen")
     @SequenceGenerator(
@@ -30,23 +47,15 @@ class Product {
         sequenceName = "product_id_seq",
         allocationSize = 1
     )
-    val id: Long? = null
+    val id: Long = 0
 
-    @Column(nullable = false)
-    var name: String? = null
+    fun decrementStock(quantity: Int): Product {
+        if (isStockInsufficient(quantity)) {
+            throw ProductInsufficientStockException("상품 수량이 부족합니다.")
+        }
+        this.stock -= quantity
+        return this
+    }
 
-    @Column(nullable = false)
-    @Min(0)
-    var stock: Int? = null
-
-    @Column(nullable = false)
-    @Min(0)
-    var price: Int? = null
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "category_id")
-    var category: Category? = null
-
-    @Column(nullable = false)
-    var isEnabled: Boolean = true
+    fun isStockInsufficient(quantity: Int): Boolean = this.stock < quantity
 }
