@@ -1,5 +1,6 @@
 package com.example.shop.refund.controllers
 
+import com.example.shop.auth.models.AccountAuthenticationToken
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.constants.ROLE_ADMIN
 import com.example.shop.constants.ROLE_USER
@@ -11,7 +12,6 @@ import com.example.shop.refund.models.toRequestDto
 import com.example.shop.refund.services.RefundService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -28,9 +28,12 @@ class RefundController(
     @PostMapping
     fun requestRefund(
         @RequestBody request: RefundRequest,
-        @AuthenticationPrincipal accountId: Long,
+        authentication: Authentication,
     ): GlobalResponse<RefundRequestDto> {
-        return refundService.requestRefund(request, accountId).let {
+        return refundService.requestRefund(
+            request,
+            (authentication as AccountAuthenticationToken).email,
+        ).let {
             GlobalResponse.create(it.toRequestDto())
         }
     }
@@ -40,9 +43,12 @@ class RefundController(
     @PatchMapping
     fun cancelRefund(
         @RequestBody request: RefundCancelRequest,
-        @AuthenticationPrincipal accountId: Long,
+        authentication: Authentication,
     ): GlobalResponse<RefundRequestDto> {
-        return refundService.cancelRefund(request, accountId).let {
+        return refundService.cancelRefund(
+            request,
+            (authentication as AccountAuthenticationToken).email,
+        ).let {
             GlobalResponse.create(it.toRequestDto())
         }
     }
@@ -51,8 +57,12 @@ class RefundController(
     @PatchMapping("/admin")
     fun updateRefund(
         @RequestBody request: AdminUpdateRefundRequest,
+        authentication: Authentication,
     ): GlobalResponse<RefundRequestDto> {
-        return refundService.updateRefundStatusAsAdmin(request).let {
+        return refundService.updateRefundStatusAsAdmin(
+            request,
+            (authentication as AccountAuthenticationToken).email,
+        ).let {
             GlobalResponse.create(it.toRequestDto())
         }
     }

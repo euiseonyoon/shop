@@ -1,7 +1,6 @@
 package com.example.shop.purchase.services
 
 import com.example.shop.auth.models.AccountAuthenticationToken
-import com.example.shop.auth.repositories.AccountRepository
 import com.example.shop.cart.domain.CartItem
 import com.example.shop.cart.services.CartService
 import com.example.shop.common.apis.exceptions.BadRequestException
@@ -21,7 +20,6 @@ import java.util.function.Supplier
 @Service
 class PurchaseService(
     private val purchaseRepository: PurchaseRepository,
-    private val accountRepository: AccountRepository,
     private val productRepository: ProductRepository,
     private val cartService: CartService,
 ) {
@@ -36,44 +34,17 @@ class PurchaseService(
     }
 
     @Transactional
-    fun purchaseDirectly(request: PurchaseDirectlyRequest, authentication: Authentication): Purchase {
-        val auth = authentication as AccountAuthenticationToken
-        val account = accountRepository.findById(auth.accountId).orElseThrow(
-            Supplier { BadRequestException("Account Not found.") }
-        )
-        val purchase = Purchase().apply { this.account = account }
-
+    fun purchaseDirectly(request: PurchaseDirectlyRequest, accountId: Long): Purchase {
+        val purchase = Purchase(accountId)
         val product = productRepository.findById(request.productId).orElseThrow(
             Supplier { BadRequestException("Product Not found.") }
         )
         product.stock = product.stock!! - request.quantity
-        val savedProduct = productRepository.save(product)
-
-        val purchaseProduct = PurchaseProduct().apply {
-            this.quantity = request.quantity
-            this.product = savedProduct
+        productRepository.save(product).also {
+            purchase.addPurchaseProduct(PurchaseProduct(purchase, it.id!!, request.quantity))
         }
 
-        purchase.addPurchaseProducts(listOf(purchaseProduct))
         return purchaseRepository.save(purchase)
-    }
-
-    fun checkProductsBeforePurchase(cartItems: List<CartItem>, products: List<Product>): Map<Long, Product>{
-        val productIdMap: Map<Long, Product> = products.associateBy { it.id!! }
-
-        val notAvailableProducts = cartItems.mapNotNull { cartItem ->
-            val product = productIdMap[cartItem.productId]
-            when {
-                product == null -> Pair(cartItem.productId, "상품을 찾을 수 없습니다.")
-                product.stock!! < cartItem.quantity -> Pair(cartItem.productId, "상품의 재고 수량이 부족합니다.")
-                else -> null
-            }
-        }
-        if (notAvailableProducts.isNotEmpty()) {
-            throw Exception("장바구니 구매 오류.")
-        }
-
-        return productIdMap
     }
 
     @Transactional
@@ -81,23 +52,45 @@ class PurchaseService(
         val cart = cartService.getMyCart(accountId) ?: return null
         val productsInCart = productRepository.findAllByIdIn(cart.items.map { it.productId })
 
-        val productIdMap = checkProductsBeforePurchase(cart.items.toList(), productsInCart)
-
-        val purchaseProducts = cart.items.map { cartItem ->
-            val product = productIdMap[cartItem.productId]!!
-            product.stock = product.stock!! - cartItem.quantity
-            PurchaseProduct.create(product, cartItem.quantity)
+        val purchase = Purchase(cart.accountId).also {
+            it.addPurchaseProducts(makePurchaseProducts(it, cart.items, productsInCart))
         }
-
-        val purchase = Purchase().apply {
-            // TODO: 추후 Purchase.account -> Purchase.accountId로 수정한다.
-            this.account = accountRepository.findById(cart.accountId).get()
-        }
-        purchase.addPurchaseProducts(purchaseProducts)
 
         cart.isPurchased = true
 
         return purchaseRepository.save(purchase)
+    }
+
+    private fun makePurchaseProducts(
+        purchase: Purchase,
+        cartItems: List<CartItem>,
+        productsInCart: List<Product>
+    ): List<PurchaseProduct> {
+        val productIdMap: Map<Long, Product> = productsInCart.associateBy { it.id!! }
+
+        val validationErrors = mutableMapOf<Long, String>()
+        val purchaseProducts = mutableListOf<PurchaseProduct>()
+
+        cartItems.forEach { cartItem ->
+            val product = productIdMap[cartItem.productId]
+            when {
+                product == null -> validationErrors[cartItem.productId] = "상품을 찾을 수 없습니다."
+                product.stock!! < cartItem.quantity -> validationErrors[cartItem.productId] = "상품의 재고 수량이 부족합니다."
+                else -> {
+                    product.stock = product.stock!! - cartItem.quantity
+                    purchaseProducts.add(PurchaseProduct(purchase, product.id!!, cartItem.quantity))
+                }
+            }
+        }
+
+        throwPurchaseByCartException(validationErrors)
+        return purchaseProducts
+    }
+
+    private fun throwPurchaseByCartException(validationErrors: Map<Long, String>) {
+        if (validationErrors.isNotEmpty()) {
+            throw Exception("장바구니 구매 오류.")
+        }
     }
 
 }

@@ -31,6 +31,7 @@ class PurchaseController(
         pageable: Pageable,
     ): GlobalResponse<PagedResponse<Purchase>> {
         return purchaseService.getMyPurchases(ids, authentication, pageable).let {
+            // TODO: PurchaseDto로 반환하자
             GlobalResponse.create(PagedResponse.fromPage(it))
         }
     }
@@ -38,9 +39,10 @@ class PurchaseController(
     @PostMapping
     fun purchaseDirectly(
         @RequestBody @Valid request: PurchaseDirectlyRequest,
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<Purchase> {
-        return purchaseService.purchaseDirectly(request, authentication).let {
+        return purchaseService.purchaseDirectly(request, accountId).let {
+            // TODO: PurchaseDto로 반환하자
             GlobalResponse.create(it)
         }
     }
@@ -50,6 +52,7 @@ class PurchaseController(
         @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<Purchase?> {
         return purchaseService.purchaseByCart(accountId).let {
+            // TODO: PurchaseDto로 반환하자
             GlobalResponse.create(it)
         }
     }

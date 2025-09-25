@@ -3,7 +3,6 @@ package com.example.shop.purchase.repositories.extensions
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.QPurchase
 import com.example.shop.purchase.domain.QPurchaseProduct
-import com.example.shop.refund.domain.QRefund
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.data.domain.Page
@@ -16,20 +15,6 @@ import org.springframework.stereotype.Repository
 class PurchaseRepositoryExtensionImpl(
     private val queryFactory: JPAQueryFactory
 ) : QuerydslRepositorySupport(Purchase::class.java), PurchaseRepositoryExtension {
-    override fun searachAccountPurchase(
-        purchaseId: Long,
-        accountId: Long,
-    ): Purchase? {
-        val purchase = QPurchase.purchase
-        val refund = QRefund.refund
-
-        return from(purchase)
-            .leftJoin(purchase.refund, refund).fetchJoin()
-            .where(purchase.id.eq(purchaseId))
-            .where(purchase.account.id.eq(accountId))
-            .fetchOne()
-    }
-
     override fun searchWithPurchaseProduct(
         purchaseIds: List<Long>?,
         accountId: Long,
@@ -37,7 +22,6 @@ class PurchaseRepositoryExtensionImpl(
     ): Page<Purchase> {
         val purchase = QPurchase.purchase
         val purchaseProduct = QPurchaseProduct.purchaseProduct
-        val refund = QRefund.refund
 
         val builder = BooleanBuilder()
         if (!purchaseIds.isNullOrEmpty()) {
@@ -46,14 +30,13 @@ class PurchaseRepositoryExtensionImpl(
 
         val totalCount = queryFactory.select(purchase.count())
             .from(purchase)
-            .where(purchase.account.id.eq(accountId))
+            .where(purchase.accountId.eq(accountId))
             .where(builder)
             .fetchOne() ?: 0L
 
         val pagedQuery = queryFactory.selectFrom(purchase)
-            .leftJoin(purchase.refund, refund).fetchJoin()
             .join(purchase.purchaseProducts, purchaseProduct).fetchJoin()
-            .where(purchase.account.id.eq(accountId))
+            .where(purchase.accountId.eq(accountId))
             .where(builder)
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())

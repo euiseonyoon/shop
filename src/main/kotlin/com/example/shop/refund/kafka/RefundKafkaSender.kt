@@ -1,6 +1,5 @@
 package com.example.shop.refund.kafka
 
-import com.example.shop.common.apis.models.AccountDto
 import com.example.shop.kafka.KafkaMessageSender
 import com.example.shop.kafka.notify_topic.enums.NotifyType
 import com.example.shop.kafka.notify_topic.models.NotifyKafkaContent
@@ -12,28 +11,22 @@ import org.springframework.stereotype.Component
 class RefundKafkaSender(
     private val kafkaMessageSender: KafkaMessageSender
 ) {
-    private fun refundToKafkaMessage(refund: Refund, type: NotifyType): NotifyKafkaMessage {
-        val account = refund.purchase!!.account!!
+    private fun refundToKafkaMessage(accountEmail: String, refund: Refund, type: NotifyType): NotifyKafkaMessage {
         return NotifyKafkaMessage(
             type = type,
             content = NotifyKafkaContent.RefundKafkaDto(
-                refundId = refund.id!!,
+                refundId = refund.id,
                 refundStatus = refund.status,
-                accountInfo = AccountDto(
-                    id = account.id!!,
-                    email = account.email!!,
-                    enabled = account.enabled,
-                    nickname = account.nickname
-                )
+                accountEmail = accountEmail,
             )
         )
     }
 
-    fun notifyAdminRefundRequested(refund: Refund) {
-        kafkaMessageSender.sendNotifyMessage(refundToKafkaMessage(refund, NotifyType.NOTIFY_ADMIN_REFUND))
+    fun notifyAdminRefundRequested(email: String, refund: Refund) {
+        kafkaMessageSender.sendNotifyMessage(refundToKafkaMessage(email, refund, NotifyType.NOTIFY_ADMIN_REFUND))
     }
 
-    fun notifyUserRefundResult(refund: Refund) {
-        kafkaMessageSender.sendNotifyMessage(refundToKafkaMessage(refund, NotifyType.NOTIFY_USER_REFUND))
+    fun notifyUserRefundResult(email: String, refund: Refund) {
+        kafkaMessageSender.sendNotifyMessage(refundToKafkaMessage(email, refund, NotifyType.NOTIFY_USER_REFUND))
     }
 }

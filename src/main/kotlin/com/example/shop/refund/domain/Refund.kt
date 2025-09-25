@@ -1,40 +1,37 @@
 package com.example.shop.refund.domain
 
-import com.example.shop.purchase.domain.Purchase
+import com.example.shop.common.domain.AuditEntity
 import com.example.shop.refund.enums.RefundStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.OneToOne
-import kotlinx.serialization.Serializable
-import java.time.OffsetDateTime
+import jakarta.persistence.Index
+import jakarta.persistence.Table
 
 @Entity
-class Refund {
-    @Id
-    @GeneratedValue
-    val id: Long? = null
+@Table(
+    indexes = [
+        Index(name = "idx_purchase_id", columnList = "purchase_id"),
+    ],
+)
+class Refund(
+    @Column(name = "purchase_id", nullable = false, unique = true)
+    val purchaseId: Long,
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "purchase_id", nullable = false, unique = true)
-    var purchase: Purchase? = null
+    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    var status: RefundStatus = RefundStatus.REQUESTED,
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var status: RefundStatus = RefundStatus.REQUESTED
-
-    var reason: String? = null
-
-    @Column(nullable = false)
-    val createdAt: OffsetDateTime = OffsetDateTime.now()
-
-    var updatedAt: OffsetDateTime? = null
+    @Column
+    val reason: String? = null,
 
     // 만약 환불거절될떄나 특정 내용을 남겨야 할 때 사용.
-    var etc: String? = null
+    @Column
+    var etc: String? = null,
+
+): AuditEntity() {
+    @Id @GeneratedValue
+    val id: Long = 0
 }

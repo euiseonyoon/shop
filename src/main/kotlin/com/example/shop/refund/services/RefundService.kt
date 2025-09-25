@@ -1,8 +1,6 @@
 package com.example.shop.refund.services
 
-import com.example.shop.auth.models.AccountAuthenticationToken
 import com.example.shop.common.apis.exceptions.BadRequestException
-import com.example.shop.purchase.repositories.PurchaseRepository
 import com.example.shop.refund.domain.Refund
 import com.example.shop.refund.enums.RefundStatus
 import com.example.shop.refund.kafka.RefundKafkaSender
@@ -10,102 +8,89 @@ import com.example.shop.refund.models.AdminUpdateRefundRequest
 import com.example.shop.refund.models.RefundCancelRequest
 import com.example.shop.refund.models.RefundRequest
 import com.example.shop.refund.repositories.RefundRepository
-import org.springframework.security.core.Authentication
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
 
-@Service
+@Component
 class RefundService(
     private val refundRepository: RefundRepository,
-    private val purchaseRepository: PurchaseRepository,
     private val refundKafkaSender: RefundKafkaSender,
 ) {
     @Transactional
     fun requestRefund(
         request: RefundRequest,
-        accountId: Long
+        accountEmail: String,
     ): Refund {
-        val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, accountId) ?:
-            throw BadRequestException("Purchase not found.")
+        val foundRefund = refundRepository.findByPurchaseId(request.purchaseId)
 
-        val foundRefund = purchase.refund
-
-        // 해당 purchase에 대한 refund 요청 없었음 -> 새로운 refund 요청 생성
-        val refund = if (foundRefund == null) {
-            Refund().apply {
-                this.purchase = purchase
-                this.status = RefundStatus.REQUESTED
-                this.reason = request.reason
-            }
-        } else {
-            // 해당 purchase에 대한 refund 요청 있었음 -> refund 상태를 확인하고 refund.Cancel 이었다면 REQUESTED로 변경
-            when(foundRefund.status) {
-                RefundStatus.REQUESTED -> {
-                    // requestRefund() 메서드 즉시 종료
-                    return foundRefund
-                }
-                RefundStatus.REFUNDED -> { throw BadRequestException("The refund request is already refunded.") }
-                RefundStatus.DENIED -> { throw BadRequestException("The refund is denied. reason: ${foundRefund.etc}") }
-                RefundStatus.CANCELED -> {
-                    foundRefund.apply {
-                        this.status = RefundStatus.REQUESTED
-                        this.updatedAt = OffsetDateTime.now()
-                    }
-                }
-            }
-        }
+        val refund = foundRefund?.let { makeRefundRequest(it) } ?:
+            Refund(purchaseId = request.purchaseId, reason = request.reason)
 
         return refundRepository.save(refund).also {
-            refundKafkaSender.notifyAdminRefundRequested(refund)
+            refundKafkaSender.notifyAdminRefundRequested(accountEmail, it)
         }
     }
 
+    private fun makeRefundRequest(foundRefund: Refund): Refund {
+        when(foundRefund.status) {
+            RefundStatus.REQUESTED -> { }
+            RefundStatus.REFUNDED -> { throw BadRequestException("The refund request is already refunded.") }
+            RefundStatus.DENIED -> { throw BadRequestException("The refund is denied. reason: ${foundRefund.etc}") }
+            RefundStatus.CANCELED -> {
+                foundRefund.status = RefundStatus.REQUESTED
+                foundRefund.updatedAt = OffsetDateTime.now()
+            }
+        }
+        return foundRefund
+    }
+
     @Transactional
-    fun cancelRefund(request: RefundCancelRequest, accountId: Long): Refund {
-        val purchase = purchaseRepository.searachAccountPurchase(request.purchaseId, accountId) ?:
-            throw BadRequestException("Purchase not found.")
+    fun cancelRefund(
+        request: RefundCancelRequest,
+        accountEmail: String,
+    ): Refund {
+        val refundToCancel = refundRepository.findByPurchaseId(request.purchaseId)
+            ?: throw BadRequestException("There is no refund to cancel.")
 
-        val refundToCancel = purchase.refund ?: throw BadRequestException("There is no refund to cancel.")
+        val refund = setCancelStatus(refundToCancel)
 
-        val refund = when(refundToCancel.status) {
+        return refundRepository.save(refund).also {
+            refundKafkaSender.notifyAdminRefundRequested(accountEmail, it)
+        }
+    }
+
+    private fun setCancelStatus(refundToCancel: Refund): Refund {
+        return when(refundToCancel.status) {
+            RefundStatus.CANCELED -> { refundToCancel }
             RefundStatus.REQUESTED -> {
-                refundToCancel.apply {
-                    this.status = RefundStatus.CANCELED
-                    this.updatedAt = OffsetDateTime.now()
-                }
+                refundToCancel.status = RefundStatus.CANCELED
+                refundToCancel.updatedAt = OffsetDateTime.now()
+                refundToCancel
             }
             RefundStatus.REFUNDED, RefundStatus.DENIED -> {
                 throw BadRequestException("The refund can't be canceled. it is already processed")
             }
-            RefundStatus.CANCELED -> { return refundToCancel }
-        }
-
-        return refundRepository.save(refund).also {
-            refundKafkaSender.notifyAdminRefundRequested(refund)
         }
     }
 
     @Transactional
     fun updateRefundStatusAsAdmin(
         request: AdminUpdateRefundRequest,
+        accountEmail: String,
     ): Refund {
         val refund = refundRepository.findById(request.refundId).orElseThrow {
             throw BadRequestException("Refund not found.")
         }
         if (refund.status == request.status) {
-            return if (refund.etc != null) {
-                refund.etc = request.etc
-                refundRepository.save(refund)
-            } else {
-                refund
-            }
+            return request.etc?.let { refundRepository.save(refund.apply { this.etc = it }) } ?: refund
         }
 
         refund.status = request.status
         refund.etc = refund.etc
+
         return refundRepository.save(refund).also {
-            refundKafkaSender.notifyUserRefundResult(refund)
+            refundKafkaSender.notifyUserRefundResult(accountEmail, it)
         }
     }
 }
