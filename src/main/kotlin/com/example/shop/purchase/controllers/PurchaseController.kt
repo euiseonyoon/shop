@@ -4,7 +4,9 @@ import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.response.PagedResponse
 import com.example.shop.constants.ROLE_USER
 import com.example.shop.purchase.domain.Purchase
+import com.example.shop.purchase.domain.PurchaseDomain
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
+import com.example.shop.purchase.models.PurchaseResponse
 import com.example.shop.purchase.services.PurchaseService
 import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
@@ -27,12 +29,12 @@ class PurchaseController(
     @GetMapping
     fun getMyPurchases(
         @RequestParam(required = false) ids: List<Long>?,
-        authentication: Authentication,
+        @AuthenticationPrincipal accountId: Long,
         pageable: Pageable,
-    ): GlobalResponse<PagedResponse<Purchase>> {
-        return purchaseService.getMyPurchases(ids, authentication, pageable).let {
-            // TODO: PurchaseDto로 반환하자
-            GlobalResponse.create(PagedResponse.fromPage(it))
+    ): GlobalResponse<PagedResponse<PurchaseResponse>> {
+        return purchaseService.getMyPurchases(ids, accountId, pageable).let {
+            val purchaseResponsePage = PurchaseResponse.fromPurchaseDomainPage(it)
+            GlobalResponse.create(PagedResponse.fromPage(purchaseResponsePage))
         }
     }
 
@@ -40,20 +42,20 @@ class PurchaseController(
     fun purchaseDirectly(
         @RequestBody @Valid request: PurchaseDirectlyRequest,
         @AuthenticationPrincipal accountId: Long,
-    ): GlobalResponse<Purchase> {
+    ): GlobalResponse<PurchaseResponse> {
         return purchaseService.purchaseDirectly(request, accountId).let {
-            // TODO: PurchaseDto로 반환하자
-            GlobalResponse.create(it)
+            val response = PurchaseResponse.fromPurchaseDomain(it)
+            GlobalResponse.create(response)
         }
     }
 
     @PostMapping("/cart")
     fun purchaseCartItems(
         @AuthenticationPrincipal accountId: Long,
-    ): GlobalResponse<Purchase?> {
+    ): GlobalResponse<PurchaseResponse?> {
         return purchaseService.purchaseByCart(accountId).let {
-            // TODO: PurchaseDto로 반환하자
-            GlobalResponse.create(it)
+            val response = it?.let { PurchaseResponse.fromPurchaseDomain(it) }
+            GlobalResponse.create(response)
         }
     }
 }

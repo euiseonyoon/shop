@@ -22,16 +22,6 @@ class PurchaseHelper {
         return nonNullProduct
     }
 
-    fun processPurchasing(
-        purchase: Purchase,
-        productsToPurchase: List<Pair<Product, Int>>
-    ): List<PurchaseProduct> {
-        return productsToPurchase.map { (product, quantity) ->
-            product.decrementStock(quantity)
-            PurchaseProduct(purchase, product.id, quantity)
-        }
-    }
-
     fun filterProductsOrThrow(
         cartItems: List<CartItem>,
         productsInCart: List<Product>,
@@ -44,7 +34,9 @@ class PurchaseHelper {
             product?.let { Pair(it, cartItem.quantity) }
         }
 
-        throwPurchaseByCartException(errors)
+        if (errors.isNotEmpty()) {
+            throwPurchaseByCartException(errors)
+        }
         return availableProducts
     }
 
@@ -69,10 +61,8 @@ class PurchaseHelper {
     }
 
     fun throwPurchaseByCartException(errors: List<ProductUnavailableException>) {
-        if (errors.isNotEmpty()) {
-            val baseMessage = "장바구니 구매 오류. 상세 원인은 다음과 같습니다."
-            val errorDetails = errors.joinToString(separator = ", ") { it.message }
-            throw PurchaseByCartException("$baseMessage $errorDetails")
-        }
+        val baseMessage = "장바구니 구매 오류. 상세 원인은 다음과 같습니다."
+        val errorDetails = errors.joinToString(separator = ", ") { it.message }
+        throw PurchaseByCartException("$baseMessage $errorDetails")
     }
 }
