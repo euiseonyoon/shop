@@ -9,4 +9,6 @@ interface ProductRepository : JpaRepository<Product, Long> {
     fun findAllByCategoryIdIn(categoryIds: List<Long>, pageable: Pageable): Page<Product>
 
     fun findAllByIdIn(productIds: List<Long>): List<Product>
+
+    fun existsByIdAndIsEnabledTrue(productId: Long): Boolean
 }

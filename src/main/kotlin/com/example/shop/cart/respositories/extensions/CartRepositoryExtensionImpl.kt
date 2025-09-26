@@ -9,13 +9,11 @@ import org.springframework.stereotype.Repository
 @Repository
 class CartRepositoryExtensionImpl : QuerydslRepositorySupport(Cart::class.java), CartRepositoryExtension {
     val cart = QCart.cart
-    val cartItem = QCartItem.cartItem
 
     override fun getNotPurchasedCartByAccountId(accountId: Long): Cart? {
         return from(cart)
             .where(cart.isPurchased.eq(false))
             .where(cart.accountId.eq(accountId))
-            .join(cart.cartItems, cartItem).fetchJoin()
             .fetchOne()
     }
 }

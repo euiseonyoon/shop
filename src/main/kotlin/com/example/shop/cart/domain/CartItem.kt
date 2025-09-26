@@ -17,10 +17,6 @@ import jakarta.validation.constraints.Min
     ]
 )
 class CartItem(
-    @Id
-    @GeneratedValue
-    val id: Long = 0,
-
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
     val cart: Cart,
@@ -31,4 +27,12 @@ class CartItem(
     @Min(1)
     @Column(name = "quantity", nullable = false)
     var quantity: Int,
-)
+) {
+    @Id @GeneratedValue
+    val id: Long = 0
+
+    fun incrementQuantity(quantity: Int): CartItem {
+        this.quantity += quantity
+        return this
+    }
+}

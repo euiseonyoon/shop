@@ -47,11 +47,12 @@ class PurchaseService(
 
     @Transactional
     fun purchaseByCart(accountId: Long): Purchase? {
-        val cart = cartService.getMyCart(accountId) ?: return null
-        val productsInCart = productService.findByIds(cart.items.map { it.productId })
+        val cartDomain = cartService.getMyCart(accountId) ?: return null
+        val cart = cartDomain.cart
+        val productsInCart = productService.findByIds(cartDomain.cartItems.map { it.productId })
 
         val purchase = Purchase(cart.accountId)
-        val purchasableProducts = purchaseHelper.filterProductsOrThrow(cart.items, productsInCart)
+        val purchasableProducts = purchaseHelper.filterProductsOrThrow(cartDomain.cartItems, productsInCart)
         val purchaseProducts = purchaseHelper.processPurchasing(purchase, purchasableProducts)
 
         purchase.addPurchaseProducts(purchaseProducts)

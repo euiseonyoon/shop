@@ -1,7 +1,8 @@
 package com.example.shop.cart.models
 
-import com.example.shop.products.domain.Product
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class CartItemDto(
     val cartItemId: Long,
     val productId: Long,

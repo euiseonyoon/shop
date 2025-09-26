@@ -1,11 +1,11 @@
 package com.example.shop.cart.models
 
-import com.example.shop.cart.domain.Cart
+import com.example.shop.cart.domain.CartDomain
 
-fun Cart.toDto(): CartDto {
-    return CartDto(
-        cartId = this.id,
-        isPurchased = this.isPurchased,
-        items = items.map { CartItemDto(it.id, it.productId, it.quantity) }
+fun CartDomain.toDto(): CartResponse {
+    return CartResponse(
+        cartId = this.cart.id,
+        isPurchased = this.cart.isPurchased,
+        items = this.cartItems.map { CartItemDto(it.id, it.productId, it.quantity) }
     )
 }
