@@ -84,9 +84,9 @@ class FacadeAccountCrudServiceTest {
         // THEN
         assertEquals(email, newUserAccount.email)
         assertEquals(nickname, newUserAccount.nickname)
-        assertEquals(ROLE_USER, newUserAccount.authority!!.roleName)
-        assertEquals(setOf(groups.first()), newUserAccount.getGroups().toSet())
-        assertEquals(firstGroupAuthorities.toSet(), newUserAccount.getGroupAuthorities().toSet())
+        assertEquals(ROLE_USER, newUserAccount.authority.roleName)
+        assertEquals(setOf(groups.first()), newUserAccount.accountGroups.toSet())
+        assertEquals(firstGroupAuthorities.toSet(), newUserAccount.groupAuthorities.toSet())
     }
 
     @Test
@@ -136,9 +136,9 @@ class FacadeAccountCrudServiceTest {
         // THEN
         assertEquals(email, newUserAccount.email)
         assertEquals(nickname, newUserAccount.nickname)
-        assertEquals(ROLE_ADMIN, newUserAccount.authority!!.roleName)
-        assertEquals(setOf(groups.first()), newUserAccount.getGroups().toSet())
-        assertEquals(firstGroupAuthorities.toSet(), newUserAccount.getGroupAuthorities().toSet())
+        assertEquals(ROLE_ADMIN, newUserAccount.authority.roleName)
+        assertEquals(setOf(groups.first()), newUserAccount.accountGroups.toSet())
+        assertEquals(firstGroupAuthorities.toSet(), newUserAccount.groupAuthorities.toSet())
     }
 
     @Test

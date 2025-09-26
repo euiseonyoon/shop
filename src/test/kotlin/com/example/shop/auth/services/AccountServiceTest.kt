@@ -57,11 +57,11 @@ class AccountServiceTest : LogSupport() {
         )
 
         val EMAIL = "test@gamil.com"
-        val account = Account().apply {
-            email = EMAIL
-            passwordHash = "123"
-            addRole(authority)
-        }.also { em.persist(it) }
+        val account = Account(
+            email = EMAIL,
+            passwordHash = "123",
+            authority = authority,
+        ).also { em.persist(it) }
         em.flush()
 
         val groupMember = GroupMember(account, firstGroup).also { em.persist(it) }
@@ -114,7 +114,7 @@ class AccountServiceTest : LogSupport() {
         assertNotNull(foundAccount)
         assertEquals(account, foundAccount)
         // 추가 query 발생 안함
-        val foundGroupAuthorities = foundAccount.getGroupAuthorities()
+        val foundGroupAuthorities = foundAccount.groupAuthorities
         val foundAuthority = foundAccount.authority
 
         assertEquals(authority, foundAuthority)

@@ -25,7 +25,7 @@ class AccountRepositoryExtensionImpl : QuerydslRepositorySupport(Account::class.
         return from(account)
             .distinct()
             .leftJoin(account.authority, authority).fetchJoin()
-            .leftJoin(account.groupMemberMap, groupMember).fetchJoin()
+            .leftJoin(account._groupMemberMap, groupMember).fetchJoin()
             .leftJoin(groupMember.accountGroup, accountGroup).fetchJoin()
             .leftJoin(accountGroup.authorities, groupAuthority).fetchJoin()
     }

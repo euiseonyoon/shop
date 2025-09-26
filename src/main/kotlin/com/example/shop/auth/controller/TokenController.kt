@@ -52,7 +52,7 @@ class TokenController(
             val newAccessToken = myJwtTokenHelper.createAccessToken(
                 accountId,
                 customAuthorityUtils.createSimpleGrantedAuthorities(account),
-                account.email!!
+                account.email
             )
             val newRefreshToken = myJwtTokenHelper.createRefreshToken(accountId)
 

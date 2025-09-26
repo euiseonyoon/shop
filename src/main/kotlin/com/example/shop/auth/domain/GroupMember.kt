@@ -38,7 +38,7 @@ class GroupMember: BaseCompareEntity<GroupMember> {
         if (this.accountGroup != accountGroup) {
             this.accountGroup = accountGroup
         }
-        account.groupMemberMap.add(this)
+        account.addGroupMember(this)
         accountGroup.groupMemberMap.add(this)
     }
 

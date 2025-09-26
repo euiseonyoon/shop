@@ -58,7 +58,7 @@ class AccountAndAuthorityRelatedService(
         if (assignGroupStrictly && groupNames.size != foundGroups.size) {
             throw AccountGroupPartiallyNotFoundException("Some account groups are not found. given group names: $groupNames")
         }
-        val savedGroupMember = groupMemberService.setAccountGroup(savedAccount, foundGroups.toSet())
+        groupMemberService.setAccountGroup(savedAccount, foundGroups.toSet())
 
         return savedAccount
     }
@@ -118,10 +118,10 @@ class AccountAndAuthorityRelatedService(
             val removingAccountGroup =
                 accountGroupService.findAccountGroups(request.removeGroupNames.toSet()).mapNotNull { it.id }
 
-            account.groupMemberMap.forEach { groupMember ->
+            account.groupMembers.forEach { groupMember ->
                 if (groupMember.accountGroup!!.id!! in removingAccountGroup) {
                     groupMemberRepository.delete(groupMember)
-                    account.groupMemberMap.remove(groupMember)
+                    account.removeGroupMember(groupMember)
                 }
             }
         }

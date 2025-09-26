@@ -36,14 +36,14 @@ class AccountService(
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
         authority: Authority
     ): Account {
-        val account = Account().apply {
-            this.email = email
-            this.passwordHash = passwordEncoder.encode(rawPassword)
-            this.enabled = true
-            this.nickname = nickname
-            this.oauth = thirdPartyOauthVendor
-            addRole(authority)
-        }
+        val account = Account(
+            email = email,
+            passwordHash = passwordEncoder.encode(rawPassword),
+            enabled = true,
+            nickname = nickname,
+            oauth = thirdPartyOauthVendor,
+            authority = authority
+        )
         val savedAccount = accountRepository.save(account)
         return savedAccount
     }

@@ -28,8 +28,8 @@ class MyLogInAuthenticationSuccessHandler(
         val customUserDetail = authentication.principal as? CustomUserDetails
             ?: throw AuthenticationServiceException("Failed to parse to customized user details.")
 
-        val accountId = customUserDetail.account.id!!
-        val email = customUserDetail.account.email!!
+        val accountId = customUserDetail.account.id
+        val email = customUserDetail.account.email
 
         val accessToken = jwtHelper.createAccessToken(accountId, authentication.authorities.toList(), email)
         val refreshToken = jwtHelper.createRefreshToken(accountId)

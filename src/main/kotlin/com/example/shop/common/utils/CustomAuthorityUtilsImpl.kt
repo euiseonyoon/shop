@@ -16,11 +16,11 @@ class CustomAuthorityUtilsImpl : CustomAuthorityUtils {
     }
 
     override fun createSimpleGrantedAuthorities(account: Account): List<SimpleGrantedAuthority> {
-        val authorityString = account.authority?.roleName
+        val authorityString = account.authority.roleName
             ?: throw AuthenticationServiceException("Account is missing a role. Account must have a single role.")
 
         val authority = SimpleGrantedAuthority(authorityString)
-        val groupAuthorities = account.getGroupAuthorities().mapNotNull {
+        val groupAuthorities = account.groupAuthorities.mapNotNull {
             it.name?.let { SimpleGrantedAuthority(it) }
         }
         return groupAuthorities + authority
