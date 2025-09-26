@@ -58,4 +58,19 @@ class Product(
     }
 
     fun isStockInsufficient(quantity: Int): Boolean = this.stock < quantity
+
+    fun isPurchasable(quantity: Int?): Pair<Boolean, String> {
+        if (quantity != null) {
+            if (isStockInsufficient(quantity)){
+                return Pair(false, "상품 재고 수량 부족")
+            } else {
+                return Pair(true, "")
+            }
+        }
+
+        return when {
+            this.isEnabled -> Pair(true, "")
+            else -> Pair(false, "해당 상품 비활성화")
+        }
+    }
 }
