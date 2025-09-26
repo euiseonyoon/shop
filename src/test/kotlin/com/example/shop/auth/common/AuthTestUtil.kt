@@ -91,7 +91,7 @@ class AuthTestUtil {
             // THEN: Role + 그룹 권한 같은지 확인
             val authoritiesFromAccessToken = myJwtTokenHelper.getAuthorityStringList(claims).toSet()
             val authoritiesFromDb = foundAccount.groupAuthorities.mapNotNull { it.name }.toMutableSet().also {
-                it.add(foundAccount.authority.roleName!!)
+                it.add(foundAccount.authority.roleName)
             }
             assertEquals(authoritiesFromDb, authoritiesFromAccessToken)
         }

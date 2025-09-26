@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 class TestGroupAuthorityFactory {
     fun createGroupAuthorities(em: EntityManager, names: List<String>, group: AccountGroup): List<GroupAuthority> {
         val groupAuthorities = names.map { name ->
-            val ga = GroupAuthority(name)
+            val ga = GroupAuthority(name, group)
             group.addGroupAuthority(ga).also { em.persist(ga) }
             ga
         }

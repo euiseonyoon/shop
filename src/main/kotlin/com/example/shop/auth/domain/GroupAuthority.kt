@@ -12,41 +12,32 @@ import jakarta.persistence.ManyToOne
 import org.hibernate.proxy.HibernateProxy
 
 @Entity
-class GroupAuthority: BaseCompareEntity<GroupAuthority> {
-    @Id
-    @GeneratedValue
-    val id: Long? = null
-
+class GroupAuthority(
     @Column(nullable = false, unique = true)
-    var name: String? = null
+    var name: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_group_id")
-    var accountGroup: AccountGroup? = null
+    @JoinColumn(name = "account_group_id", nullable = false)
+    var accountGroup: AccountGroup
 
-    constructor()
-    constructor(name: String) {
-        this.name = name
-    }
+) : BaseCompareEntity<GroupAuthority>() {
+    @Id @GeneratedValue
+    val id: Long = 0
 
-    override fun compareDetail(other: GroupAuthority): Boolean {
-        return this.name == other.name
-    }
+    override fun compareDetail(other: GroupAuthority): Boolean = this.name == other.name
 
     override fun compareByIdentifierWhenProxy(other: HibernateProxy): Boolean {
         return (other.hibernateLazyInitializer.identifier as Long) == this.id
     }
 
-    override fun hashCodeGenerator(): Int {
-        return name?.hashCode() ?: 0
-    }
+    override fun hashCodeGenerator(): Int = name.hashCode()
 
     fun toDto(): GroupAuthorityDto {
         return GroupAuthorityDto(
-            this.id!!,
-            this.name!!,
-            this.accountGroup!!.id!!,
-            this.accountGroup!!.name!!
+            this.id,
+            this.name,
+            this.accountGroup.id,
+            this.accountGroup.name
         )
     }
 }

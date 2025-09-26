@@ -64,7 +64,7 @@ class AccountServiceTest : LogSupport() {
         ).also { em.persist(it) }
         em.flush()
 
-        val groupMember = GroupMember(account, firstGroup).also { em.persist(it) }
+        val groupMember = GroupMember(firstGroup, account).also { em.persist(it) }
         em.flush()
         em.clear()
 

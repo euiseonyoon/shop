@@ -110,16 +110,16 @@ class AccountAndAuthorityRelatedService(
         if (request.addGroupNames != null) {
             accountGroupService.findAccountGroups(request.addGroupNames.toSet()).forEach {
                 // GroupMember 생성자 안에서 Account-GroupMember 양방향 mapping 실행함
-                groupMemberRepository.save(GroupMember(account, it))
+                groupMemberRepository.save(GroupMember(it, account))
             }
         }
 
         if (request.removeGroupNames != null) {
             val removingAccountGroup =
-                accountGroupService.findAccountGroups(request.removeGroupNames.toSet()).mapNotNull { it.id }
+                accountGroupService.findAccountGroups(request.removeGroupNames.toSet()).map { it.id }
 
             account.groupMembers.forEach { groupMember ->
-                if (groupMember.accountGroup!!.id!! in removingAccountGroup) {
+                if (groupMember.accountGroup.id in removingAccountGroup) {
                     groupMemberRepository.delete(groupMember)
                     account.removeGroupMember(groupMember)
                 }

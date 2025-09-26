@@ -36,9 +36,7 @@ class GroupAuthorityService(
                 it
             }
         }
-        val groupAuthority = GroupAuthority(groupAuthorityName)
-        groupAuthority.accountGroup = group
-
+        val groupAuthority = GroupAuthority(groupAuthorityName, group)
         return groupAuthorityRepository.save(groupAuthority)
     }
 

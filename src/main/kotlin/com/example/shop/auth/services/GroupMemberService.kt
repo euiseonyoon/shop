@@ -17,7 +17,7 @@ class GroupMemberService(
         groups: Set<AccountGroup>
     ): List<GroupMember> {
         return groups.map { group ->
-            val groupMember = GroupMember(account, group)
+            val groupMember = GroupMember(group, account)
             val savedGroupMember = groupMemberRepository.save(groupMember)
             savedGroupMember
         }

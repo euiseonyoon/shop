@@ -47,8 +47,7 @@ class FacadeAccountCrudServiceTest {
 
     @BeforeEach
     fun init() {
-        val groups = testAccountGroupFactory.createAccountGroup(em, groupNames)
-        this.groups = groups
+        this.groups = testAccountGroupFactory.createAccountGroup(em, groupNames)
 
         this.firstGroupAuthorities = testGroupAuthorityFactory.createGroupAuthorities(
             em,

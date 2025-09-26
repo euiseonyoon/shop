@@ -24,7 +24,7 @@ class RoleHierarchyHelper(
     fun set() {
         val roles = authorityService.findAllByHierarchyAsc()
 
-        val hierarchyMap = roles.associate { it.roleName!! to it.hierarchy!! }.toMutableMap()
+        val hierarchyMap = roles.associate { it.roleName to it.hierarchy }.toMutableMap()
 
         // SUPER_ADMIN, ADMIN 우선순위는 항상 static 하게 고정한다.
         hierarchyMap[ROLE_SUPER_ADMIN] = SUPER_ADMIN_HIERARCHY

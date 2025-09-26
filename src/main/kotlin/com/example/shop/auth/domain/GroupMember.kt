@@ -17,30 +17,24 @@ import org.hibernate.proxy.HibernateProxy
         UniqueConstraint(columnNames = ["account_id", "account_group_id"])
     ]
 )
-class GroupMember: BaseCompareEntity<GroupMember> {
-    @Id
-    @GeneratedValue
-    val id: Long? = null
+class GroupMember(
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_group_id", nullable = false)
+    val accountGroup: AccountGroup,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_group_id")
-    var accountGroup: AccountGroup? = null
+    @JoinColumn(name = "account_id", nullable = false)
+    val account: Account,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id")
-    var account: Account? = null
+): BaseCompareEntity<GroupMember>() {
 
-    constructor()
-    constructor(account: Account, accountGroup: AccountGroup) {
-        if (this.account != account) {
-            this.account = account
-        }
-        if (this.accountGroup != accountGroup) {
-            this.accountGroup = accountGroup
-        }
+    init {
         account.addGroupMember(this)
         accountGroup.groupMemberMap.add(this)
     }
+
+    @Id @GeneratedValue
+    val id: Long = 0
 
     override fun compareDetail(other: GroupMember): Boolean {
         if (accountGroup != other.accountGroup) return false
@@ -53,8 +47,6 @@ class GroupMember: BaseCompareEntity<GroupMember> {
     }
 
     override fun hashCodeGenerator(): Int {
-        var result = accountGroup?.hashCode() ?: 0
-        result = 31 * result + (account?.hashCode() ?: 0)
-        return result
+        return 31 * accountGroup.hashCode() + (account.hashCode())
     }
 }

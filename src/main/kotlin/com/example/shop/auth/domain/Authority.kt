@@ -11,46 +11,37 @@ import jakarta.persistence.OneToMany
 import org.hibernate.proxy.HibernateProxy
 
 @Entity
-class Authority : BaseCompareEntity<Authority> {
-    @Id
-    @GeneratedValue
-    val id: Long? = null
+class Authority(
+    @Column(nullable = false, unique = true)
+    var roleName: String,
+
+    @Column(nullable = false, unique = true)
+    var hierarchy: Int
+
+) : BaseCompareEntity<Authority>() {
+    init {
+        require(roleName.startsWith(ROLE_PREFIX)) { "Authority should start with $ROLE_PREFIX" }
+    }
+
+    @Id @GeneratedValue
+    val id: Long = 0
 
     @OneToMany(mappedBy = "authority")
     val accounts: MutableSet<Account> = mutableSetOf()
 
-    @Column(nullable = false, unique = true)
-    var roleName: String? = null
-
-    @Column(nullable = false, unique = true)
-    var hierarchy: Int? = null
-
-    constructor()
-    constructor(roleName: String, hierarchy: Int) {
-        require(roleName.startsWith(ROLE_PREFIX)) {
-            "Authority should start with $ROLE_PREFIX"
-        }
-        this.roleName = roleName
-        this.hierarchy = hierarchy
-    }
-
-    override fun compareDetail(other: Authority): Boolean {
-        return other.roleName == this.roleName
-    }
+    override fun compareDetail(other: Authority): Boolean = other.roleName == this.roleName
 
     override fun compareByIdentifierWhenProxy(other: HibernateProxy): Boolean {
         return (other.hibernateLazyInitializer.identifier as Long) == this.id
     }
 
-    override fun hashCodeGenerator(): Int {
-        return roleName?.hashCode() ?: 0
-    }
+    override fun hashCodeGenerator(): Int = roleName.hashCode()
 
     fun toDto(): AuthorityDto {
         return AuthorityDto(
-            this.id!!,
-            this.roleName!!,
-            this.hierarchy!!,
+            this.id,
+            this.roleName,
+            this.hierarchy,
         )
     }
 }
