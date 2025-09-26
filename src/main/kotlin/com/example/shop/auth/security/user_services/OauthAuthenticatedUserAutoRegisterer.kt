@@ -29,7 +29,7 @@ class OauthAuthenticatedUserAutoRegisterer(
                 type = NotifyType.AUTO_REGISTERED_ACCOUNT,
                 content = NotifyKafkaContent.AutoRegisteredAccountKafkaDto(
                     email = newUserInfo.account.email!!,
-                    rawPassword = newUserInfo.account.password!!
+                    rawPassword = newUserInfo.account.passwordHash!!
                 )
             )
         )

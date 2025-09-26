@@ -26,7 +26,7 @@ class Account: BaseCompareEntity<Account>() {
     var email: String? = null
 
     @Column(nullable = false)
-    var password: String? = null
+    var passwordHash: String? = null
 
     @Column(nullable = false)
     var enabled: Boolean = true

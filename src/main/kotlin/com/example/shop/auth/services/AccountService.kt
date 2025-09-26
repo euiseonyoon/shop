@@ -38,7 +38,7 @@ class AccountService(
     ): Account {
         val account = Account().apply {
             this.email = email
-            this.password = passwordEncoder.encode(rawPassword)
+            this.passwordHash = passwordEncoder.encode(rawPassword)
             this.enabled = true
             this.nickname = nickname
             this.oauth = thirdPartyOauthVendor

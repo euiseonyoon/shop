@@ -59,7 +59,7 @@ class AccountServiceTest : LogSupport() {
         val EMAIL = "test@gamil.com"
         val account = Account().apply {
             email = EMAIL
-            password = "123"
+            passwordHash = "123"
             addRole(authority)
         }.also { em.persist(it) }
         em.flush()
