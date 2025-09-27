@@ -4,6 +4,6 @@ data class AdminAccountUpdateRequest(
     val accountId: Long,
     val enabled: Boolean?,
     val authorityName: String?,
-    val addGroupNames: List<String>?,
-    val removeGroupNames: List<String>?,
+    val addGroupIds: List<Long>?,
+    val removeGroupIds: List<Long>?,
 )

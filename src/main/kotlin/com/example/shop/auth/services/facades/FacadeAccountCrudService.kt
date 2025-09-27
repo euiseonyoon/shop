@@ -2,16 +2,21 @@ package com.example.shop.auth.services.facades
 
 import com.example.shop.constants.ROLE_ADMIN
 import com.example.shop.constants.ROLE_USER
-import com.example.shop.auth.domain.Account
+import com.example.shop.auth.domain.AccountDomain
+import com.example.shop.auth.domain.RoleName
+import com.example.shop.auth.models.NewAccountRequest
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
+import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.auth.utils.RoleHierarchyHelper
 import com.example.shop.constants.ADMIN_HIERARCHY
 import com.example.shop.constants.DEFAULT_USER_HIERARCHY
+import com.example.shop.constants.SUPER_ADMIN_NAME
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 
 @Service
 class FacadeAccountCrudService(
-    private val accountAndAuthorityRelatedService: AccountAndAuthorityRelatedService,
+    private val accountDomainService: AccountDomainService,
     private val roleHierarchyHelper: RoleHierarchyHelper,
 ) {
     private fun getDefaultRoleHierarchy(roleName: String): Int? {
@@ -23,36 +28,45 @@ class FacadeAccountCrudService(
         rawPassword: String,
         nickname: String?,
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
-        groupNames: Set<String>,
-    ): Account {
-        return accountAndAuthorityRelatedService.createAccountAndAssignGroup(
+        groupIds: Set<Long>,
+    ): AccountDomain {
+        val roleRequest = NewAccountRequest.RoleRequest(
+            RoleName(ROLE_USER),
+            (getDefaultRoleHierarchy(ROLE_USER) ?: DEFAULT_USER_HIERARCHY),
+            true
+        )
+        val groupRequest = NewAccountRequest.AccountGroupRequest(groupIds, false)
+        return accountDomainService.newAccountDomain(
             email = email,
             rawPassword = rawPassword,
             nickname = nickname,
             thirdPartyOauthVendor = thirdPartyOauthVendor,
-            roleInfo = ROLE_USER to (getDefaultRoleHierarchy(ROLE_USER) ?: DEFAULT_USER_HIERARCHY),
-            groupNames = groupNames,
-            assignGroupStrictly = false,
-            createRoleIfNotExist = true,
+            roleRequest = roleRequest,
+            groupRequest = groupRequest,
         )
     }
 
-    // TODO: 여기에 hasRole("ROLE_ADMIN) && hasAuthority("어떤 authority") 적용하면 좋을 것 같다.
+    @PreAuthorize("hasRole('$SUPER_ADMIN_NAME')")
     fun createAdminAccount(
         email: String,
         rawPassword: String,
         nickname: String?,
-        groupNames: Set<String>,
-    ): Account {
-        return accountAndAuthorityRelatedService.createAccountAndAssignGroup(
+        groupIds: Set<Long>,
+    ): AccountDomain {
+
+        val roleRequest = NewAccountRequest.RoleRequest(
+            RoleName(ROLE_ADMIN),
+            (getDefaultRoleHierarchy(ROLE_ADMIN) ?: ADMIN_HIERARCHY),
+            false
+        )
+        val groupRequest = NewAccountRequest.AccountGroupRequest(groupIds, true)
+        return accountDomainService.newAccountDomain(
             email = email,
             rawPassword = rawPassword,
             nickname = nickname,
             thirdPartyOauthVendor = null,
-            roleInfo = ROLE_ADMIN to (getDefaultRoleHierarchy(ROLE_ADMIN) ?: ADMIN_HIERARCHY),
-            groupNames = groupNames,
-            assignGroupStrictly = true,
-            createRoleIfNotExist = false,
+            roleRequest = roleRequest,
+            groupRequest = groupRequest,
         )
     }
 }

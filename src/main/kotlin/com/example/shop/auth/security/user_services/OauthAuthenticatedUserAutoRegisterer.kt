@@ -4,7 +4,7 @@ import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthentication
 import com.example.shop.auth.security.third_party.interfaces.OauthAuthenticationToAutoRegister
 import com.example.shop.auth.security.third_party.models.AccountFindOrCreateResult
 import com.example.shop.auth.security.utils.PasswordGenerator
-import com.example.shop.auth.services.AccountService
+import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.auth.services.facades.FacadeAccountCrudService
 import com.example.shop.kafka.KafkaMessageSender
 import com.example.shop.kafka.notify_topic.enums.NotifyType
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class OauthAuthenticatedUserAutoRegisterer(
-    private val accountService: AccountService,
+    private val accountDomainService: AccountDomainService,
     private val facadeAccountCrudService: FacadeAccountCrudService,
     private val passwordGenerator: PasswordGenerator,
     private val kafkaMessageSender: KafkaMessageSender,
@@ -28,8 +28,8 @@ class OauthAuthenticatedUserAutoRegisterer(
             NotifyKafkaMessage(
                 type = NotifyType.AUTO_REGISTERED_ACCOUNT,
                 content = NotifyKafkaContent.AutoRegisteredAccountKafkaDto(
-                    email = newUserInfo.account.email,
-                    rawPassword = newUserInfo.account.passwordHash
+                    email = newUserInfo.accountDomain.account.email,
+                    rawPassword = newUserInfo.accountDomain.account.passwordHash
                 )
             )
         )
@@ -39,16 +39,21 @@ class OauthAuthenticatedUserAutoRegisterer(
         email: String,
         providerId: ThirdPartyAuthenticationVendor,
     ): AccountFindOrCreateResult {
-        val accountFromDb = accountService.findWithAuthoritiesByEmail(email)
-        if (accountFromDb != null) {
-            return AccountFindOrCreateResult(accountFromDb, null, false)
+        val accountDomainFromDb = accountDomainService.findByEmail(email)
+        if (accountDomainFromDb != null) {
+            return AccountFindOrCreateResult(accountDomainFromDb, null, false)
         }
         val generatedPassword = generatePassword()
 
-        val createdAccount =
-            facadeAccountCrudService.createUserAccount(email, generatedPassword, null, providerId, emptySet())
+        val newAccountDomain = facadeAccountCrudService.createUserAccount(
+            email,
+            generatedPassword,
+            null,
+            providerId,
+            emptySet()
+        )
 
-        return AccountFindOrCreateResult(createdAccount, generatedPassword, true)
+        return AccountFindOrCreateResult(newAccountDomain, generatedPassword, true)
             .also { sendAutoRegisteredAccountKafkaMessage(it) }
     }
 }

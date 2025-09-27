@@ -17,33 +17,10 @@ import org.springframework.stereotype.Repository
 class AccountRepositoryExtensionImpl : QuerydslRepositorySupport(Account::class.java), AccountRepositoryExtension {
     val account = QAccount.account
     val authority = QAuthority.authority
-    val groupMember = QGroupMember.groupMember
-    val accountGroup = QAccountGroup.accountGroup
-    val groupAuthority = QGroupAuthority.groupAuthority
-
-    private fun baseQuery(): JPQLQuery<Account> {
-        return from(account)
-            .distinct()
-            .leftJoin(account.authority, authority).fetchJoin()
-            .leftJoin(account._groupMemberMap, groupMember).fetchJoin()
-            .leftJoin(groupMember.accountGroup, accountGroup).fetchJoin()
-            .leftJoin(accountGroup.authorities, groupAuthority).fetchJoin()
-    }
-
-    override fun findWithAuthoritiesByEmail(email: String): Account? {
-        return baseQuery()
-            .where(account.email.eq(email))
-            .fetchOne()
-    }
-
-    override fun findWithAuthoritiesById(accountId: Long): Account? {
-        return baseQuery()
-            .where(account.id.eq(accountId))
-            .fetchOne()
-    }
 
     override fun findWithCriteria(criteria: AccountSearchCriteria): Page<Account> {
-        val query = baseQuery()
+        val query = from(account)
+
         if (criteria.accountIds != null) {
             query.where(account.id.`in`(criteria.accountIds))
         }
@@ -55,7 +32,7 @@ class AccountRepositoryExtensionImpl : QuerydslRepositorySupport(Account::class.
         }
 
         val totalCount = query.fetchCount()
-        val pagedQuery = getQuerydsl()!!.applyPagination(criteria.pageable!!, query)
+        val pagedQuery = getQuerydsl()!!.applyPagination(criteria.pageable, query)
         val content = pagedQuery.fetch()
 
         return PageImpl(content, criteria.pageable, totalCount)

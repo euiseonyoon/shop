@@ -6,11 +6,10 @@ import com.example.shop.auth.exceptions.RefreshTokenMissingException
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.models.TokenResponse
 import com.example.shop.auth.security.utils.MyJwtTokenExtractor
-import com.example.shop.auth.services.AccountService
+import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.auth.utils.RefreshTokenStateHelper
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.logger.LogSupport
-import com.example.shop.common.utils.CustomAuthorityUtils
 import com.example.shop.constants.TOKEN_REFRESH_URI
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import jakarta.servlet.http.HttpServletRequest
@@ -24,9 +23,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class TokenController(
     private val myJwtTokenHelper: MyJwtTokenHelper,
-    private val accountService: AccountService,
+    private val accountDomainService: AccountDomainService,
     private val myJwtTokenExtractor: MyJwtTokenExtractor,
-    private val customAuthorityUtils: CustomAuthorityUtils,
     private val refreshTokenStateHelper: RefreshTokenStateHelper,
 ) : LogSupport() {
 
@@ -46,13 +44,13 @@ class TokenController(
             // 비교가 비정상적이라면, BadRefreshTokenStateException 예외 발생
             refreshTokenStateHelper.validateRefreshToken(accountId, refreshTokenFromRequest)
 
-            val account = accountService.findWithAuthoritiesById(accountId)
+            val accountDomain = accountDomainService.findByAccountId(accountId)
                 ?: throw AuthorizationServiceException("Can't find the account from the database.")
 
             val newAccessToken = myJwtTokenHelper.createAccessToken(
                 accountId,
-                customAuthorityUtils.createSimpleGrantedAuthorities(account),
-                account.email
+                accountDomain.authorities,
+                accountDomain.account.email
             )
             val newRefreshToken = myJwtTokenHelper.createRefreshToken(accountId)
 

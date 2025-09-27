@@ -28,11 +28,6 @@ class GroupMember(
 
 ): BaseCompareEntity<GroupMember>() {
 
-    init {
-        account.addGroupMember(this)
-        accountGroup.groupMemberMap.add(this)
-    }
-
     @Id @GeneratedValue
     val id: Long = 0
 

@@ -2,8 +2,8 @@ package com.example.shop.admin.controllers.account
 
 import com.example.shop.admin.models.account.AdminAccountUpdateRequest
 import com.example.shop.auth.domain.extension_functions.toAdminAccountDto
+import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.common.apis.models.AccountSearchCriteria
-import com.example.shop.auth.services.AccountService
 import com.example.shop.auth.services.facades.AccountAndAuthorityRelatedService
 import com.example.shop.common.apis.models.AdminAccountDto
 import com.example.shop.common.response.GlobalResponse
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(ADMIN_ACCOUNT_URI_PREFIX)
 class AdminAccountController(
-    private val accountService: AccountService,
+    private val accountDomainService: AccountDomainService,
     private val accountAndAuthorityRelatedService: AccountAndAuthorityRelatedService,
 ) {
     @PreAuthorize("hasRole('$ROLE_ADMIN')")
@@ -36,7 +36,7 @@ class AdminAccountController(
         val requestCriteria = AccountSearchCriteria(
             accountId, emails, enabled, pageable
         )
-        val result = accountService.searchWithCriteria(requestCriteria).map {
+        val result = accountDomainService.searchWithCriteria(requestCriteria).map {
             it.toAdminAccountDto()
         }
         return GlobalResponse.create(PagedResponse.fromPage(result))

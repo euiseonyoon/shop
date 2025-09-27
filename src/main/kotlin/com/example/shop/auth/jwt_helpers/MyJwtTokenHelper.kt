@@ -13,7 +13,7 @@ interface MyJwtTokenHelper {
     val accessTokenExpirationMs: Long
     val refreshTokenExpirationMs: Long
 
-    fun createAccessToken(accountId: Long, authorities: List<GrantedAuthority>, email: String): String
+    fun createAccessToken(accountId: Long, authorities: Set<GrantedAuthority>, email: String): String
 
     fun createRefreshToken(accountId: Long): String
 

@@ -16,19 +16,6 @@ class AccountService(
     private val passwordEncoder: PasswordEncoder,
 ) {
     @Transactional
-    fun save(account: Account): Account = accountRepository.save(account)
-
-    @Transactional(readOnly = true)
-    fun findWithAuthoritiesByEmail(email: String): Account? {
-        return accountRepository.findWithAuthoritiesByEmail(email)
-    }
-
-    @Transactional(readOnly = true)
-    fun findWithAuthoritiesById(accountId: Long): Account? {
-        return accountRepository.findWithAuthoritiesById(accountId)
-    }
-
-    @Transactional
     fun createAccount(
         email: String,
         rawPassword: String,
@@ -36,16 +23,14 @@ class AccountService(
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
         authority: Authority
     ): Account {
-        val account = Account(
+        return Account(
             email = email,
             passwordHash = passwordEncoder.encode(rawPassword),
             enabled = true,
             nickname = nickname,
             oauth = thirdPartyOauthVendor,
             authority = authority
-        )
-        val savedAccount = accountRepository.save(account)
-        return savedAccount
+        ).let { accountRepository.save(it) }
     }
 
     @Transactional(readOnly = true)

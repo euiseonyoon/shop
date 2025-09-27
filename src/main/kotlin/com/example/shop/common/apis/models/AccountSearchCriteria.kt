@@ -6,5 +6,5 @@ data class AccountSearchCriteria(
     val accountIds: List<Long>?,
     val emails: List<String>?,
     val enabled: Boolean?,
-    val pageable: Pageable?,
+    val pageable: Pageable,
 )

@@ -4,7 +4,6 @@ import com.example.shop.common.apis.models.GroupAuthorityDto
 import com.example.shop.common.hibernate.BaseCompareEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
@@ -16,7 +15,7 @@ class GroupAuthority(
     @Column(nullable = false, unique = true)
     var name: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "account_group_id", nullable = false)
     var accountGroup: AccountGroup
 

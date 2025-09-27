@@ -39,7 +39,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     private val refreshSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedRefreshSecretKey)) }
 
 
-    override fun createAccessToken(accountId: Long, authorities: List<GrantedAuthority>, email: String): String {
+    override fun createAccessToken(accountId: Long, authorities: Set<GrantedAuthority>, email: String): String {
         val authoritiesString = authorities.map { it.authority }.joinToString(AUTH_STRING_DELIMITER)
         return createToken(
             accountId,

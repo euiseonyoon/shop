@@ -5,8 +5,7 @@ import com.example.shop.auth.security.providers.MyJwtTokenAuthenticationProvider
 import com.example.shop.auth.security.providers.ThirdPartyOauthAuthenticationProvider
 import com.example.shop.auth.security.user_services.EmailPasswordUserDetailService
 import com.example.shop.auth.security.user_services.ThirdPartyUserServiceManager
-import com.example.shop.auth.services.AccountService
-import com.example.shop.common.utils.CustomAuthorityUtils
+import com.example.shop.auth.services.AccountDomainService
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -25,10 +24,9 @@ class AuthenticationProviderConfig {
 
     @Bean
     fun emailPasswordUserDetailService(
-        accountService: AccountService,
-        customAuthorityUtils: CustomAuthorityUtils
+        accountDomainService: AccountDomainService
     ): UserDetailsService {
-        return EmailPasswordUserDetailService(accountService, customAuthorityUtils)
+        return EmailPasswordUserDetailService(accountDomainService)
     }
 
     @Bean

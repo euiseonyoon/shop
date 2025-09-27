@@ -1,7 +1,8 @@
 package com.example.shop.auth.services
 
-import com.example.shop.common.apis.models.AuthorityDto
 import com.example.shop.auth.domain.Authority
+import com.example.shop.auth.exceptions.AuthorityNotFoundException
+import com.example.shop.auth.models.NewAccountRequest
 import com.example.shop.auth.repositories.AuthorityRepository
 import com.example.shop.common.apis.exceptions.BadRequestException
 import org.springframework.data.domain.Page
@@ -40,5 +41,15 @@ class AuthorityService(
             throw BadRequestException("Authority not found with id of $accountId")
         authority.hierarchy = hierarchy
         return authorityRepository.save(authority)
+    }
+
+    @Transactional
+    fun getOrCreateAuthority(roleRequest: NewAccountRequest.RoleRequest): Authority {
+        return findByRoleName(roleRequest.roleName.name) ?: run {
+            if (!roleRequest.createIfNotExist) {
+                throw AuthorityNotFoundException("${roleRequest.roleName} authority not found.")
+            }
+            createNewAuthority(roleRequest.roleName.name, roleRequest.roleHierarchy)
+        }
     }
 }

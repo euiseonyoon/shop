@@ -19,19 +19,6 @@ class AccountGroup(
     @Id @GeneratedValue
     val id: Long = 0
 
-    @OneToMany(mappedBy = "accountGroup", cascade = [CascadeType.ALL])
-    val groupMemberMap: MutableSet<GroupMember> = mutableSetOf()
-
-    @OneToMany(mappedBy = "accountGroup", cascade = [CascadeType.ALL])
-    val authorities: MutableSet<GroupAuthority> = mutableSetOf()
-
-    fun addGroupAuthority(groupAuthority: GroupAuthority) {
-        if (groupAuthority.accountGroup != this) {
-            groupAuthority.accountGroup = this
-        }
-        this.authorities.add(groupAuthority)
-    }
-
     override fun compareDetail(other: AccountGroup): Boolean = name == other.name
 
     override fun compareByIdentifierWhenProxy(other: HibernateProxy): Boolean {

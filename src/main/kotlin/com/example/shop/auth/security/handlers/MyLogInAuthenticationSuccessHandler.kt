@@ -31,7 +31,7 @@ class MyLogInAuthenticationSuccessHandler(
         val accountId = customUserDetail.account.id
         val email = customUserDetail.account.email
 
-        val accessToken = jwtHelper.createAccessToken(accountId, authentication.authorities.toList(), email)
+        val accessToken = jwtHelper.createAccessToken(accountId, authentication.authorities.toSet(), email)
         val refreshToken = jwtHelper.createRefreshToken(accountId)
 
         // 새롭게 발급한 refresh token을 redis에 저장하여 상태관리
