@@ -26,9 +26,6 @@ class Authority(
     @Id @GeneratedValue
     val id: Long = 0
 
-    @OneToMany(mappedBy = "authority")
-    val accounts: MutableSet<Account> = mutableSetOf()
-
     override fun compareDetail(other: Authority): Boolean = other.roleName == this.roleName
 
     override fun compareByIdentifierWhenProxy(other: HibernateProxy): Boolean {
