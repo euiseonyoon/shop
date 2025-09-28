@@ -63,7 +63,7 @@ class RateLimitTest {
     @BeforeEach
     fun init() {
         consumedRateLimitToken = 0
-        Mockito.doReturn("testEmail@gmail.com").`when`(googleOidcUserService).getEmail(any())
+        Mockito.doReturn("testEmail@gmail.com").`when`(googleOidcUserService).getEmailAddress(any())
 
         val googleLogInUri = OAUTH_AUTH_URI_PATTERN.replace("*", "google")
         val tokenToConsume = rateLimitHelper.getTokensToConsume(MockHttpServletRequest().apply {

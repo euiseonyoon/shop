@@ -1,5 +1,6 @@
 package com.example.shop.auth.security.user_services
 
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.models.CustomUserDetails
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.security.third_party.interfaces.OidcDecodingAuthentication
@@ -15,7 +16,7 @@ class GoogleOidcUserService(
     override val jwtDecoder = GoogleJwtDecoder()
     override val nameAttributeKey = "email"
 
-    override fun getEmail(token: String): String {
+    override fun getEmailAddress(token: String): String {
         val jwt = jwtDecoder.decode(token)
         return jwt.claims[nameAttributeKey] as String
     }
@@ -24,7 +25,7 @@ class GoogleOidcUserService(
         try {
             // Oauth2로 인증 된 유저를 회원 가입 시키거나, 만약 이미 있다면 유저 정보를 DB로 부터 가져온다 (authorities들을 사용하기 위해서)
             val result = oauthAuthenticatedUserAutoRegisterer.findOrCreateUser(
-                email = getEmail(token),
+                email = Email(getEmailAddress(token)),
                 providerId = this.providerId
             )
 

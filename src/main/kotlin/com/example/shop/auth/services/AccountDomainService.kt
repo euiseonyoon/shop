@@ -3,6 +3,7 @@ package com.example.shop.auth.services
 import com.example.shop.auth.domain.Account
 import com.example.shop.auth.domain.AccountDomain
 import com.example.shop.auth.domain.AccountGroup
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.domain.GroupAuthority
 import com.example.shop.auth.models.AccountGroupRequest
 import com.example.shop.auth.models.RoleRequest
@@ -24,7 +25,7 @@ class AccountDomainService(
 ) {
     @Transactional
     fun newAccountDomain(
-        email: String,
+        email: Email,
         rawPassword: String,
         nickname: String?,
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
@@ -43,7 +44,7 @@ class AccountDomainService(
     }
 
     @Transactional(readOnly = true)
-    fun findByEmail(email: String): AccountDomain? {
+    fun findByEmail(email: Email): AccountDomain? {
         val account = accountRepository.findByEmail(email) ?: return null
         return AccountDomain(
             account,

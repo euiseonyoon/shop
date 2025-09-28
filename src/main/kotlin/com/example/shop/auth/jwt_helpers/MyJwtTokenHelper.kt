@@ -1,5 +1,6 @@
 package com.example.shop.auth.jwt_helpers
 
+import com.example.shop.auth.domain.Email
 import io.jsonwebtoken.Claims
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.GrantedAuthority
@@ -13,7 +14,7 @@ interface MyJwtTokenHelper {
     val accessTokenExpirationMs: Long
     val refreshTokenExpirationMs: Long
 
-    fun createAccessToken(accountId: Long, authorities: Set<GrantedAuthority>, email: String): String
+    fun createAccessToken(accountId: Long, authorities: Set<GrantedAuthority>, email: Email): String
 
     fun createRefreshToken(accountId: Long): String
 

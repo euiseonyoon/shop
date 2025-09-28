@@ -41,7 +41,7 @@ class SuperAdminTest {
     @Transactional
     fun `test super admin`() {
         // GIVEN
-        Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmail(any())
+        Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmailAddress(any())
 
         // WHEN & THEN
         mockMvc.perform(

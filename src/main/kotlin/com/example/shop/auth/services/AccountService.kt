@@ -2,6 +2,7 @@ package com.example.shop.auth.services
 
 import com.example.shop.auth.domain.Account
 import com.example.shop.auth.domain.Authority
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.repositories.AccountRepository
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.common.apis.models.AccountSearchCriteria
@@ -17,7 +18,7 @@ class AccountService(
 ) {
     @Transactional
     fun createAccount(
-        email: String,
+        email: Email,
         rawPassword: String,
         nickname: String?,
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,

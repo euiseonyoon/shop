@@ -16,7 +16,7 @@ fun AccountDomain.toAdminAccountDto(): AdminAccountDto {
 
     return AdminAccountDto(
         id = this.account.id,
-        email = this.account.email,
+        email = this.account.email.address,
         enabled = this.account.enabled,
         nickname = this.account.nickname,
         authority = AuthorityDto(this.authority.id, this.authority.role.name, this.authority.hierarchy),

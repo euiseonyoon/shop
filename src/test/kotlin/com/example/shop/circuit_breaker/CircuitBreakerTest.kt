@@ -16,10 +16,7 @@ import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import org.mockito.Mockito
 import org.mockito.kotlin.any
-import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.isNull
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -28,7 +25,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.MockMvc
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -62,7 +58,7 @@ class CircuitBreakerTest : LogSupport() {
     @Test
     fun `test login refresh token redis circuit breaker`() {
         // GIVEN
-        Mockito.doReturn(TEST_EMAIL).`when`(googleOidcUserService).getEmail(any())
+        Mockito.doReturn(TEST_EMAIL).`when`(googleOidcUserService).getEmailAddress(any())
         Mockito.doThrow(RuntimeException("Redis save failed.")).`when`(refreshTokenRedisRepository).save(any(), any(), isNull())
 
         val slidingWindowSize = redisCircuitBreaker.circuitBreakerConfig.slidingWindowSize

@@ -1,5 +1,6 @@
 package com.example.shop.auth.jwt_helpers
 
+import com.example.shop.auth.domain.Email
 import com.example.shop.constants.ACCESS_TOKEN_EXPIRATION_MS
 import com.example.shop.constants.REFRESH_TOKEN_EXPIRATION_MS
 import com.example.shop.constants.REFRESH_TOKEN_KEY
@@ -39,7 +40,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
     private val refreshSecretKey by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedRefreshSecretKey)) }
 
 
-    override fun createAccessToken(accountId: Long, authorities: Set<GrantedAuthority>, email: String): String {
+    override fun createAccessToken(accountId: Long, authorities: Set<GrantedAuthority>, email: Email): String {
         val authoritiesString = authorities.map { it.authority }.joinToString(AUTH_STRING_DELIMITER)
         return createToken(
             accountId,
@@ -47,7 +48,7 @@ class MyJwtTokenHelperImpl : MyJwtTokenHelper {
             accessSecretKey,
             mapOf(
                 AUTH_CLAIM_KEY to authoritiesString,
-                EMAIL_CLAIM_KEY to email,
+                EMAIL_CLAIM_KEY to email.address,
             ),
             null
         )

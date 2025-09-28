@@ -3,6 +3,7 @@ package com.example.shop.auth.services.facades
 import com.example.shop.constants.ROLE_ADMIN
 import com.example.shop.constants.ROLE_USER
 import com.example.shop.auth.domain.AccountDomain
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.domain.Role
 import com.example.shop.auth.models.AccountGroupRequest
 import com.example.shop.auth.models.RoleRequest
@@ -20,12 +21,8 @@ class FacadeAccountCrudService(
     private val accountDomainService: AccountDomainService,
     private val roleHierarchyHelper: RoleHierarchyHelper,
 ) {
-    private fun getDefaultRoleHierarchy(role: Role): Int? {
-        return roleHierarchyHelper.getRoleHierarchy(role)
-    }
-
     fun createUserAccount(
-        email: String,
+        email: Email,
         rawPassword: String,
         nickname: String?,
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
@@ -34,7 +31,7 @@ class FacadeAccountCrudService(
         val accountRole = Role(ROLE_USER)
         val roleRequest = RoleRequest(
             accountRole,
-            (getDefaultRoleHierarchy(accountRole) ?: DEFAULT_USER_HIERARCHY),
+            (roleHierarchyHelper.getRoleHierarchy(accountRole) ?: DEFAULT_USER_HIERARCHY),
             true
         )
         val groupRequest = AccountGroupRequest(groupIds, false)
@@ -50,7 +47,7 @@ class FacadeAccountCrudService(
 
     @PreAuthorize("hasRole('$SUPER_ADMIN_NAME')")
     fun createAdminAccount(
-        email: String,
+        email: Email,
         rawPassword: String,
         nickname: String?,
         groupIds: Set<Long>,
@@ -58,7 +55,7 @@ class FacadeAccountCrudService(
         val adminRole = Role(ROLE_ADMIN)
         val roleRequest = RoleRequest(
             adminRole,
-            (getDefaultRoleHierarchy(adminRole) ?: ADMIN_HIERARCHY),
+            (roleHierarchyHelper.getRoleHierarchy(adminRole) ?: ADMIN_HIERARCHY),
             false
         )
         val groupRequest = AccountGroupRequest(groupIds, true)

@@ -1,5 +1,6 @@
 package com.example.shop.auth.security.user_services
 
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.security.third_party.interfaces.OauthAuthenticationToAutoRegister
 import com.example.shop.auth.security.third_party.models.AccountFindOrCreateResult
@@ -28,7 +29,7 @@ class OauthAuthenticatedUserAutoRegisterer(
             NotifyKafkaMessage(
                 type = NotifyType.AUTO_REGISTERED_ACCOUNT,
                 content = NotifyKafkaContent.AutoRegisteredAccountKafkaDto(
-                    email = newUserInfo.accountDomain.account.email,
+                    email = newUserInfo.accountDomain.account.email.address,
                     rawPassword = newUserInfo.accountDomain.account.passwordHash
                 )
             )
@@ -36,7 +37,7 @@ class OauthAuthenticatedUserAutoRegisterer(
     }
 
     override fun findOrCreateUser(
-        email: String,
+        email: Email,
         providerId: ThirdPartyAuthenticationVendor,
     ): AccountFindOrCreateResult {
         val accountDomainFromDb = accountDomainService.findByEmail(email)

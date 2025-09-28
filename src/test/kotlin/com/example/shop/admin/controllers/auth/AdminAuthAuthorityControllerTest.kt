@@ -64,7 +64,7 @@ class AdminAuthAuthorityControllerTest {
     @Test
     fun `test authority create`() {
         // GIVEN
-        Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmail(any())
+        Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmailAddress(any())
         val roleName = ROLE_PREFIX + "STAFF"
         val roleHierarchy: Int = 5
 

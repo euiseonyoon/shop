@@ -3,6 +3,7 @@ package com.example.shop.auth.domain
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.common.hibernate.BaseCompareEntity
 import jakarta.persistence.Column
+import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -17,8 +18,8 @@ import org.hibernate.proxy.HibernateProxy
 
 @Entity
 class Account(
-    @Column(nullable = false, unique = true) @NaturalId
-    val email: String,
+    @Column(nullable = false, unique = true) @NaturalId @Embedded
+    val email: Email,
 
     @Column(nullable = false)
     var passwordHash: String,
@@ -41,8 +42,7 @@ class Account(
     val id: Long = 0
 
     override fun compareDetail(other: Account): Boolean {
-        if (email != other.email) return false
-        return true
+        return email == other.email
     }
 
     override fun compareByIdentifierWhenProxy(other: HibernateProxy): Boolean {

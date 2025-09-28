@@ -1,6 +1,7 @@
 package com.example.shop.admin.controllers.account
 
 import com.example.shop.admin.models.account.AdminAccountUpdateRequest
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.domain.extension_functions.toAdminAccountDto
 import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.common.apis.models.AccountSearchCriteria
@@ -34,7 +35,7 @@ class AdminAccountController(
         pageable: Pageable
     ): GlobalResponse<PagedResponse<AdminAccountDto>> {
         val requestCriteria = AccountSearchCriteria(
-            accountId, emails, enabled, pageable
+            accountId, emails?.map { Email(it) }, enabled, pageable
         )
         val result = accountDomainService.searchWithCriteria(requestCriteria).map {
             it.toAdminAccountDto()

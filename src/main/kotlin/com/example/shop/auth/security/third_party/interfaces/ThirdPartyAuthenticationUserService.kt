@@ -10,5 +10,5 @@ interface ThirdPartyAuthenticationUserService {
 
     fun loadUser(token: String): UserDetails
 
-    fun getEmail(token: String): String
+    fun getEmailAddress(token: String): String
 }
