@@ -83,7 +83,7 @@ class FacadeAccountCrudServiceTest {
         // THEN
         assertEquals(email, newUserAccount.email)
         assertEquals(nickname, newUserAccount.nickname)
-        assertEquals(ROLE_USER, newUserAccount.authority.roleName)
+        assertEquals(ROLE_USER, newUserAccount.authority.role)
         assertEquals(setOf(groups.first()), newUserAccount.accountGroups.toSet())
         assertEquals(firstGroupAuthorities.toSet(), newUserAccount.groupAuthorities.toSet())
     }
@@ -135,7 +135,7 @@ class FacadeAccountCrudServiceTest {
         // THEN
         assertEquals(email, newUserAccount.email)
         assertEquals(nickname, newUserAccount.nickname)
-        assertEquals(ROLE_ADMIN, newUserAccount.authority.roleName)
+        assertEquals(ROLE_ADMIN, newUserAccount.authority.role)
         assertEquals(setOf(groups.first()), newUserAccount.accountGroups.toSet())
         assertEquals(firstGroupAuthorities.toSet(), newUserAccount.groupAuthorities.toSet())
     }

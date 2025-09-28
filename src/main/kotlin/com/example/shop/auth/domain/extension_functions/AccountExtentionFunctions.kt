@@ -10,7 +10,7 @@ import com.example.shop.common.apis.models.AuthorityDto
 fun AccountDomain.toAdminAccountDto(): AdminAccountDto {
     val groups = this.accountGroupMap.map { (accountGroup, groupAuthorityList) ->
         val key = AccountGroupDto(accountGroup.id, accountGroup.name)
-        val value = groupAuthorityList.map { MinimumGroupAuthorityDto(it.id, it.name) }
+        val value = groupAuthorityList.map { MinimumGroupAuthorityDto(it.id, it.role.name) }
         key to value
     }.toMap().map { (k, v) -> GroupInfo(k, v) }
 
@@ -19,7 +19,7 @@ fun AccountDomain.toAdminAccountDto(): AdminAccountDto {
         email = this.account.email,
         enabled = this.account.enabled,
         nickname = this.account.nickname,
-        authority = AuthorityDto(this.authority.id, this.authority.roleName, this.authority.hierarchy),
+        authority = AuthorityDto(this.authority.id, this.authority.role.name, this.authority.hierarchy),
         groups = groups
     )
 }

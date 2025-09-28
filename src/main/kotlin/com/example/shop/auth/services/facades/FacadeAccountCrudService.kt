@@ -20,8 +20,8 @@ class FacadeAccountCrudService(
     private val accountDomainService: AccountDomainService,
     private val roleHierarchyHelper: RoleHierarchyHelper,
 ) {
-    private fun getDefaultRoleHierarchy(roleName: String): Int? {
-        return roleHierarchyHelper.getRoleHierarchy(roleName)
+    private fun getDefaultRoleHierarchy(role: Role): Int? {
+        return roleHierarchyHelper.getRoleHierarchy(role)
     }
 
     fun createUserAccount(
@@ -31,9 +31,10 @@ class FacadeAccountCrudService(
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
         groupIds: Set<Long>,
     ): AccountDomain {
+        val accountRole = Role(ROLE_USER)
         val roleRequest = RoleRequest(
-            Role(ROLE_USER),
-            (getDefaultRoleHierarchy(ROLE_USER) ?: DEFAULT_USER_HIERARCHY),
+            accountRole,
+            (getDefaultRoleHierarchy(accountRole) ?: DEFAULT_USER_HIERARCHY),
             true
         )
         val groupRequest = AccountGroupRequest(groupIds, false)
@@ -54,10 +55,10 @@ class FacadeAccountCrudService(
         nickname: String?,
         groupIds: Set<Long>,
     ): AccountDomain {
-
+        val adminRole = Role(ROLE_ADMIN)
         val roleRequest = RoleRequest(
-            Role(ROLE_ADMIN),
-            (getDefaultRoleHierarchy(ROLE_ADMIN) ?: ADMIN_HIERARCHY),
+            adminRole,
+            (getDefaultRoleHierarchy(adminRole) ?: ADMIN_HIERARCHY),
             false
         )
         val groupRequest = AccountGroupRequest(groupIds, true)

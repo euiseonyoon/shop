@@ -5,10 +5,10 @@ import com.example.shop.admin.models.auth.GroupAuthorityDeleteRequest
 import com.example.shop.admin.models.auth.GroupAuthorityUpdateRequest
 import com.example.shop.auth.domain.AccountGroup
 import com.example.shop.auth.domain.GroupAuthority
+import com.example.shop.auth.domain.Role
 import com.example.shop.auth.repositories.AccountGroupRepository
 import com.example.shop.auth.repositories.GroupAuthorityRepository
 import com.example.shop.common.apis.exceptions.BadRequestException
-import com.example.shop.common.apis.models.GroupAuthorityDto
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -36,7 +36,7 @@ class GroupAuthorityService(
                 it
             }
         }
-        val groupAuthority = GroupAuthority(groupAuthorityName, group)
+        val groupAuthority = GroupAuthority(Role(groupAuthorityName), group)
         return groupAuthorityRepository.save(groupAuthority)
     }
 
@@ -45,7 +45,7 @@ class GroupAuthorityService(
         val groupAuthority = groupAuthorityRepository.findById(request.id).orElse(null) ?:
             throw BadRequestException("Group Authority not found with the id of ${request.id}")
 
-        request.name?.let { groupAuthority.name = it }
+        request.name?.let { groupAuthority.role = Role(it) }
         request.groupName?.let {
             accountGroupRepository.findByNameIn(listOf(it)).firstOrNull()?.let { accountGroup ->
                 groupAuthority.accountGroup = accountGroup

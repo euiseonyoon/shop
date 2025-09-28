@@ -11,8 +11,8 @@ data class AccountDomain(
 
     val authorities: Set<GrantedAuthority>
         get() {
-            val singleAuthority = SimpleGrantedAuthority(authority.roleName)
-            val groupAuthorities = accountGroupMap.values.flatten().map { SimpleGrantedAuthority(it.name) }
+            val singleAuthority = SimpleGrantedAuthority(authority.role.name)
+            val groupAuthorities = accountGroupMap.values.flatten().map { SimpleGrantedAuthority(it.role.name) }
             return (groupAuthorities + singleAuthority).toSet()
         }
 }

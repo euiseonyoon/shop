@@ -22,22 +22,17 @@ class AuthorityService(
     fun createNewAuthority(roleRequest: AuthRequest.RoleRequest): Authority {
         require(roleRequest.createIfNotExist)
 
-        return authorityRepository.save(Authority(roleRequest.role.name, roleRequest.roleHierarchy))
+        return authorityRepository.save(Authority(roleRequest.role, roleRequest.roleHierarchy))
     }
 
     @Transactional(readOnly = true)
-    fun findAllByHierarchyAsc(): List<Authority> {
+    fun findAllByHierarchyAscOrdered(): List<Authority> {
         return authorityRepository.findAllByOrderByHierarchyAsc()
     }
 
     @Transactional(readOnly = true)
     fun findWithPage(pageable: Pageable): Page<Authority> {
         return authorityRepository.findAll(pageable)
-    }
-
-    @Transactional
-    fun createAuthority(name: String, hierarchy: Int): Authority {
-        return authorityRepository.save(Authority(name, hierarchy))
     }
 
     @Transactional

@@ -10,6 +10,6 @@ class AuthorityRefreshMessageSubscriber(
     // `RoleHierarchyRedisPubSubConfig`의 listenerAdapter 빈에서 호출할 메서드
     fun handleAuthorityRefreshMessage(message: String, channel: String) {
         logger.info("Authority(role) refresh event from redis. channel='$channel', message='$message'")
-        roleHierarchyHelper.set()
+        roleHierarchyHelper.refreshRoleMap()
     }
 }
