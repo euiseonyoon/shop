@@ -75,4 +75,9 @@ class ProductService(
         return jpaBatchHelper.batchUpdate(entities)
     }
 
+    @Transactional
+    fun isEnabledProductExist(productId: Long): Boolean {
+        return productRepository.existsByIdAndIsEnabledTrue(productId)
+    }
+
 }

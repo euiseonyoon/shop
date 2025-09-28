@@ -1,6 +1,6 @@
 package com.example.shop.purchase.services
 
-import com.example.shop.cart.services.CartService
+import com.example.shop.cart.services.CartDomainService
 import com.example.shop.products.services.ProductService
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseDomain
@@ -19,7 +19,7 @@ class PurchaseService(
     private val purchaseRepository: PurchaseRepository,
     private val purchaseProductRepository: PurchaseProductRepository,
     private val productService: ProductService,
-    private val cartService: CartService,
+    private val cartDomainService: CartDomainService,
     private val purchaseHelper: PurchaseHelper,
 ) {
     @Transactional(readOnly = true)
@@ -74,7 +74,7 @@ class PurchaseService(
 
     @Transactional
     fun purchaseByCart(accountId: Long): PurchaseDomain? {
-        val cartDomain = cartService.getMyCart(accountId) ?: return null
+        val cartDomain = cartDomainService.getMyCart(accountId) ?: return null
         val cart = cartDomain.cart
         val productsInCart = productService.findByIds(cartDomain.cartItems.map { it.productId })
 

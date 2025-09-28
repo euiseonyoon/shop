@@ -5,6 +5,7 @@ import com.example.shop.cart.models.CartResponse
 import com.example.shop.cart.models.RemoveFromCartRequest
 import com.example.shop.cart.models.UpdateCartQuantityRequest
 import com.example.shop.cart.models.toDto
+import com.example.shop.cart.services.CartDomainService
 import com.example.shop.cart.services.CartService
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.constants.ROLE_USER
@@ -23,13 +24,13 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/cart")
 @PreAuthorize("hasRole('$ROLE_USER')")
 class CartController(
-    private val cartService: CartService,
+    private val cartDomainService: CartDomainService,
 ) {
     @GetMapping
     fun getMyCart(
         @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<CartResponse?> {
-        return cartService.getMyCart(accountId).let {
+        return cartDomainService.getMyCart(accountId).let {
             GlobalResponse.create(it?.toDto())
         }
     }
@@ -39,7 +40,7 @@ class CartController(
         @RequestBody @Valid request: AddToCartRequest,
         @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<CartResponse> {
-        return cartService.addItemToCart(request, accountId).let {
+        return cartDomainService.addItemToCart(request, accountId).let {
             GlobalResponse.create(it.toDto())
         }
     }
@@ -49,7 +50,7 @@ class CartController(
         @RequestBody request: RemoveFromCartRequest,
         @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<CartResponse?> {
-        return cartService.removeItemFromCart(request, accountId).let {
+        return cartDomainService.removeItemFromCart(request, accountId).let {
             GlobalResponse.create(it?.toDto())
         }
     }
@@ -59,7 +60,7 @@ class CartController(
         @RequestBody @Valid request: UpdateCartQuantityRequest,
         @AuthenticationPrincipal accountId: Long,
     ): GlobalResponse<CartResponse?> {
-        return cartService.updateQuantity(request, accountId).let {
+        return cartDomainService.updateQuantity(request, accountId).let {
             GlobalResponse.create(it?.toDto())
         }
     }
