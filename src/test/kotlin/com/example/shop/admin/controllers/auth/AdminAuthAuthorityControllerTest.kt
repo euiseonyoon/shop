@@ -89,7 +89,7 @@ class AdminAuthAuthorityControllerTest {
         assertTrue { roleName in roleHierarchyHelper.getRoleHierarchyMap().keys }
 
         // DB에 실제 저장된것이 확인 되었음, 이제 다음테스트를 위해서, 해당 테스트에서 저장되었던 부분을 삭제한다.
-        val roleStaff = authorityService.findByRoleName(roleName)!!
+        val roleStaff = authorityService.findByRole(roleName)!!
         authorityRepository.delete(roleStaff)
     }
 }

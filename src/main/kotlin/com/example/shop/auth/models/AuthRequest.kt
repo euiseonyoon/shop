@@ -1,6 +1,6 @@
 package com.example.shop.auth.models
 
-import com.example.shop.auth.domain.RoleName
+import com.example.shop.auth.domain.Role
 
 
 class AuthRequest {
@@ -10,7 +10,7 @@ class AuthRequest {
     )
 
     data class RoleRequest(
-        val roleName: RoleName,
+        val role: Role,
         val roleHierarchy: Int,
         val createIfNotExist: Boolean,
     )

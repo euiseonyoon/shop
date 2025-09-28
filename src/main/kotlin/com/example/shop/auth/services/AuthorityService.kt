@@ -1,7 +1,7 @@
 package com.example.shop.auth.services
 
 import com.example.shop.auth.domain.Authority
-import com.example.shop.auth.domain.RoleName
+import com.example.shop.auth.domain.Role
 import com.example.shop.auth.exceptions.AuthorityNotFoundException
 import com.example.shop.auth.models.AuthRequest
 import com.example.shop.auth.repositories.AuthorityRepository
@@ -16,13 +16,13 @@ class AuthorityService(
     private val authorityRepository: AuthorityRepository,
 ) {
     @Transactional(readOnly = true)
-    fun findByRoleName(roleName: RoleName): Authority? = authorityRepository.findByRoleName(roleName.name)
+    fun findByRole(role: Role): Authority? = authorityRepository.findByRoleName(role.name)
 
     @Transactional
     fun createNewAuthority(roleRequest: AuthRequest.RoleRequest): Authority {
         require(roleRequest.createIfNotExist)
 
-        return authorityRepository.save(Authority(roleRequest.roleName.name, roleRequest.roleHierarchy))
+        return authorityRepository.save(Authority(roleRequest.role.name, roleRequest.roleHierarchy))
     }
 
     @Transactional(readOnly = true)
@@ -50,9 +50,9 @@ class AuthorityService(
 
     @Transactional
     fun getOrCreateAuthority(roleRequest: AuthRequest.RoleRequest): Authority {
-        return findByRoleName(roleRequest.roleName) ?: run {
+        return findByRole(roleRequest.role) ?: run {
             if (!roleRequest.createIfNotExist) {
-                throw AuthorityNotFoundException("${roleRequest.roleName} authority not found.")
+                throw AuthorityNotFoundException("${roleRequest.role} authority not found.")
             }
             createNewAuthority(roleRequest)
         }

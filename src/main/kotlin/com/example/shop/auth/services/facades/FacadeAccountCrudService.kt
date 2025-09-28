@@ -3,9 +3,8 @@ package com.example.shop.auth.services.facades
 import com.example.shop.constants.ROLE_ADMIN
 import com.example.shop.constants.ROLE_USER
 import com.example.shop.auth.domain.AccountDomain
-import com.example.shop.auth.domain.RoleName
+import com.example.shop.auth.domain.Role
 import com.example.shop.auth.models.AccountGroupRequest
-import com.example.shop.auth.models.AuthRequest
 import com.example.shop.auth.models.RoleRequest
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.services.AccountDomainService
@@ -33,7 +32,7 @@ class FacadeAccountCrudService(
         groupIds: Set<Long>,
     ): AccountDomain {
         val roleRequest = RoleRequest(
-            RoleName(ROLE_USER),
+            Role(ROLE_USER),
             (getDefaultRoleHierarchy(ROLE_USER) ?: DEFAULT_USER_HIERARCHY),
             true
         )
@@ -57,7 +56,7 @@ class FacadeAccountCrudService(
     ): AccountDomain {
 
         val roleRequest = RoleRequest(
-            RoleName(ROLE_ADMIN),
+            Role(ROLE_ADMIN),
             (getDefaultRoleHierarchy(ROLE_ADMIN) ?: ADMIN_HIERARCHY),
             false
         )

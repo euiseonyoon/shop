@@ -5,7 +5,7 @@ import com.example.shop.auth.domain.AccountGroup
 import com.example.shop.auth.domain.Authority
 import com.example.shop.auth.domain.GroupAuthority
 import com.example.shop.auth.domain.GroupMember
-import com.example.shop.auth.domain.RoleName
+import com.example.shop.auth.domain.Role
 import com.example.shop.auth.exceptions.AccountGroupPartiallyNotFoundException
 import com.example.shop.auth.models.AccountGroupRequest
 import com.example.shop.auth.models.RoleRequest
@@ -31,7 +31,7 @@ class AuthorityDomainService(
     }
 
     @Transactional(readOnly = true)
-    fun findByRoleName(roleName: RoleName): Authority? = authorityService.findByRoleName(roleName)
+    fun findByRole(role: Role): Authority? = authorityService.findByRole(role)
 
     @Transactional
     fun updateAuthorityHierarchy(authorityId: Long, hierarchy: Int): Authority {

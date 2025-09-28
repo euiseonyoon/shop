@@ -4,7 +4,7 @@ import com.example.shop.admin.models.account.AdminAccountUpdateRequest
 import com.example.shop.admin.models.auth.AuthorityCreateRequest
 import com.example.shop.admin.models.auth.AuthorityUpdateRequest
 import com.example.shop.auth.domain.AccountDomain
-import com.example.shop.auth.domain.RoleName
+import com.example.shop.auth.domain.Role
 import com.example.shop.auth.models.AccountGroupRequest
 import com.example.shop.auth.models.RoleRequest
 import com.example.shop.auth.services.AccountDomainService
@@ -25,7 +25,7 @@ class AccountAndAuthorityRelatedService(
     @Transactional
     fun createAuthority(request: AuthorityCreateRequest): AuthorityDto {
         val createdAuthority = authorityDomainService.createAuthority(
-            RoleRequest(RoleName(request.name), request.hierarchy, true)
+            RoleRequest(Role(request.name), request.hierarchy, true)
         )
         publishAuthorityChangeEvent("AuthorityCreateInfo={name:${request.name}, hierarchy:${request.hierarchy}}")
         return createdAuthority.toDto()
@@ -71,7 +71,7 @@ class AccountAndAuthorityRelatedService(
 
         // 유저의 권한 변경
         if (request.authorityName != null) {
-            val newAuthority = authorityDomainService.findByRoleName(RoleName(request.authorityName)) ?:
+            val newAuthority = authorityDomainService.findByRole(Role(request.authorityName)) ?:
                 throw BadRequestException("Authority not found with the name of ${request.authorityName}")
             accountDomain.account.authority = newAuthority
         }

@@ -3,7 +3,7 @@ package com.example.shop.auth.domain
 import com.example.shop.common.utils.exceptions.AuthorityPrefixException
 import com.example.shop.constants.ROLE_PREFIX
 
-data class RoleName(
+data class Role(
     val name: String
 ) {
     init {
