@@ -3,7 +3,7 @@ package com.example.shop.auth.models
 import com.example.shop.auth.domain.RoleName
 
 
-class NewAccountRequest {
+class AuthRequest {
     data class AccountGroupRequest(
         val groupIds: Set<Long>,
         val assignGroupStrictly: Boolean,
@@ -15,3 +15,6 @@ class NewAccountRequest {
         val createIfNotExist: Boolean,
     )
 }
+
+typealias RoleRequest = AuthRequest.RoleRequest
+typealias AccountGroupRequest = AuthRequest.AccountGroupRequest

@@ -4,12 +4,11 @@ import com.example.shop.admin.models.account.AdminAccountUpdateRequest
 import com.example.shop.admin.models.auth.AuthorityCreateRequest
 import com.example.shop.admin.models.auth.AuthorityUpdateRequest
 import com.example.shop.auth.domain.AccountDomain
-import com.example.shop.auth.domain.GroupMember
-import com.example.shop.auth.repositories.GroupAuthorityRepository
-import com.example.shop.auth.repositories.GroupMemberRepository
+import com.example.shop.auth.domain.RoleName
+import com.example.shop.auth.models.AccountGroupRequest
+import com.example.shop.auth.models.RoleRequest
 import com.example.shop.auth.services.AccountDomainService
-import com.example.shop.auth.services.AccountService
-import com.example.shop.auth.services.AuthorityService
+import com.example.shop.auth.services.AuthorityDomainService
 import com.example.shop.common.apis.exceptions.BadRequestException
 import com.example.shop.common.apis.models.AuthorityDto
 import com.example.shop.common.logger.LogSupport
@@ -19,37 +18,35 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AccountAndAuthorityRelatedService(
-    private val accountService: AccountService,
     private val accountDomainService: AccountDomainService,
-    private val authorityService: AuthorityService,
+    private val authorityDomainService: AuthorityDomainService,
     private val authorityRefreshEventPublisher: AuthorityRefreshEventPublisher,
-    private val groupMemberRepository: GroupMemberRepository,
-    private val groupAuthorityRepository: GroupAuthorityRepository,
 ) : LogSupport() {
     @Transactional
     fun createAuthority(request: AuthorityCreateRequest): AuthorityDto {
-        val createdAuthorityDto = authorityService.createAuthority(request.name, request.hierarchy).toDto()
-        try {
-            authorityRefreshEventPublisher.publishAuthorityRefreshEvent(
-                "AuthorityCreateInfo={name:${request.name}, hierarchy:${request.hierarchy}}"
-            )
-        } catch (e: Throwable) {
-            logger.error("Failed to create Authority(role) refresh event.")
-        }
-        return createdAuthorityDto
+        val createdAuthority = authorityDomainService.createAuthority(
+            RoleRequest(RoleName(request.name), request.hierarchy, true)
+        )
+        publishAuthorityChangeEvent("AuthorityCreateInfo={name:${request.name}, hierarchy:${request.hierarchy}}")
+        return createdAuthority.toDto()
     }
 
     @Transactional
     fun updateAuthorityHierarchy(request: AuthorityUpdateRequest): AuthorityDto {
-        val updatedAuthorityDto = authorityService.updateAuthorityHierarchy(request.id, request.hierarchy).toDto()
+        val updatedAuthority = authorityDomainService.updateAuthorityHierarchy(
+            request.id,
+            request.hierarchy,
+        )
+        publishAuthorityChangeEvent("AuthorityUpdateInfo={id:${request.id}, hierarchy:${request.hierarchy}}")
+        return updatedAuthority.toDto()
+    }
+
+    private fun publishAuthorityChangeEvent(message: String) {
         try {
-            authorityRefreshEventPublisher.publishAuthorityRefreshEvent(
-                "AuthorityUpdateInfo={id:${request.id}, hierarchy:${request.hierarchy}}"
-            )
+            authorityRefreshEventPublisher.publishAuthorityRefreshEvent(message)
         } catch (e: Throwable) {
             logger.error("Failed to create Authority(role) refresh event.")
         }
-        return updatedAuthorityDto
     }
 
     @Transactional
@@ -57,14 +54,11 @@ class AccountAndAuthorityRelatedService(
         val accountDomain = accountDomainService.findByAccountId(request.accountId)
             ?: throw BadRequestException("Account not found with the id of ${request.accountId}")
 
-        // 유저의 활성상태(enabled), 권한(authority) 업데이트
         updateAccount(request, accountDomain)
 
-        // 유저를 요청된 새로운 `AccountGroup`들에 가입 (`GroupMember` row들 생성)
-        addUserToGroup(request, accountDomain)
+        addAccountToAccountGroup(request, accountDomain)
 
-        // 유저를 명시된 `AccountGroup`들로 부터 탈퇴 (`GroupMember` row들 삭제)
-        removeUserFromGroup(request, accountDomain)
+        removeAccountFromAccountGroup(request, accountDomain)
 
         return accountDomain
     }
@@ -77,35 +71,32 @@ class AccountAndAuthorityRelatedService(
 
         // 유저의 권한 변경
         if (request.authorityName != null) {
-            val newAuthority = authorityService.findByRoleName(request.authorityName) ?:
+            val newAuthority = authorityDomainService.findByRoleName(RoleName(request.authorityName)) ?:
                 throw BadRequestException("Authority not found with the name of ${request.authorityName}")
             accountDomain.account.authority = newAuthority
         }
         accountDomainService.saveAccount(accountDomain.account)
     }
 
-    private fun addUserToGroup(request: AdminAccountUpdateRequest, accountDomain: AccountDomain) {
+    private fun addAccountToAccountGroup(request: AdminAccountUpdateRequest, accountDomain: AccountDomain) {
         if (request.addGroupIds != null) {
-            // 가입할 그룹(`AccountGroup`)들과 각 그룹에 속한 권한(`GroupAuthority`)들
-            val addingAccountGroupMap =
-                groupAuthorityRepository.findAllByAccountGroupIdIn(request.addGroupIds).groupBy { it.accountGroup }
+            val addingRequest = AccountGroupRequest(request.addGroupIds.toSet(), false)
+            val addedResult = authorityDomainService.addAccountToAccountGroups(accountDomain.account, addingRequest)
 
-            addingAccountGroupMap.map { (accountGroup, groupAuthorities) ->
-                // DB에 해당 유저를 해당 그룹에 추가 시킴
-                groupMemberRepository.save(GroupMember(accountGroup, accountDomain.account))
-                // AccountDomain에 내용 추가
+            addedResult.map { (accountGroup, groupAuthorities) ->
                 accountDomain.accountGroupMap[accountGroup] = groupAuthorities
             }
         }
     }
 
-    private fun removeUserFromGroup(request: AdminAccountUpdateRequest, accountDomain: AccountDomain) {
+    private fun removeAccountFromAccountGroup(request: AdminAccountUpdateRequest, accountDomain: AccountDomain) {
         if (request.removeGroupIds != null) {
-            groupMemberRepository.findAllByIdIn(request.removeGroupIds).map { groupMember ->
-                // DB에서 해당 유저를 해당 그룹으로 부터 탈퇴 시킴
-                groupMemberRepository.delete(groupMember)
-                // AccountDomain 에서 내용 삭제
-                accountDomain.accountGroupMap.remove(groupMember.accountGroup)
+            val removedAccountGroupsFrom = authorityDomainService.removeAccountFromAccountGroup(
+                accountDomain.account.id, request.removeGroupIds
+            )
+
+            removedAccountGroupsFrom.forEach {
+                accountDomain.accountGroupMap.remove(it)
             }
         }
     }

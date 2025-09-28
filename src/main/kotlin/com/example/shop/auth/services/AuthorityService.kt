@@ -1,8 +1,9 @@
 package com.example.shop.auth.services
 
 import com.example.shop.auth.domain.Authority
+import com.example.shop.auth.domain.RoleName
 import com.example.shop.auth.exceptions.AuthorityNotFoundException
-import com.example.shop.auth.models.NewAccountRequest
+import com.example.shop.auth.models.AuthRequest
 import com.example.shop.auth.repositories.AuthorityRepository
 import com.example.shop.common.apis.exceptions.BadRequestException
 import org.springframework.data.domain.Page
@@ -15,10 +16,14 @@ class AuthorityService(
     private val authorityRepository: AuthorityRepository,
 ) {
     @Transactional(readOnly = true)
-    fun findByRoleName(name: String): Authority? = authorityRepository.findByRoleName(name)
+    fun findByRoleName(roleName: RoleName): Authority? = authorityRepository.findByRoleName(roleName.name)
 
     @Transactional
-    fun createNewAuthority(name: String, hierarchy: Int): Authority = authorityRepository.save(Authority(name, hierarchy))
+    fun createNewAuthority(roleRequest: AuthRequest.RoleRequest): Authority {
+        require(roleRequest.createIfNotExist)
+
+        return authorityRepository.save(Authority(roleRequest.roleName.name, roleRequest.roleHierarchy))
+    }
 
     @Transactional(readOnly = true)
     fun findAllByHierarchyAsc(): List<Authority> {
@@ -36,20 +41,20 @@ class AuthorityService(
     }
 
     @Transactional
-    fun updateAuthorityHierarchy(accountId: Long, hierarchy: Int): Authority {
-        val authority = authorityRepository.findById(accountId).orElse(null) ?:
-            throw BadRequestException("Authority not found with id of $accountId")
+    fun updateAuthorityHierarchy(authorityId: Long, hierarchy: Int): Authority {
+        val authority = authorityRepository.findById(authorityId).orElse(null) ?:
+            throw BadRequestException("Authority not found with id of $authorityId")
         authority.hierarchy = hierarchy
         return authorityRepository.save(authority)
     }
 
     @Transactional
-    fun getOrCreateAuthority(roleRequest: NewAccountRequest.RoleRequest): Authority {
-        return findByRoleName(roleRequest.roleName.name) ?: run {
+    fun getOrCreateAuthority(roleRequest: AuthRequest.RoleRequest): Authority {
+        return findByRoleName(roleRequest.roleName) ?: run {
             if (!roleRequest.createIfNotExist) {
                 throw AuthorityNotFoundException("${roleRequest.roleName} authority not found.")
             }
-            createNewAuthority(roleRequest.roleName.name, roleRequest.roleHierarchy)
+            createNewAuthority(roleRequest)
         }
     }
 }

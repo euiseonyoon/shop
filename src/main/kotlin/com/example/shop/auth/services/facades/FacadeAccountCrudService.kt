@@ -4,7 +4,9 @@ import com.example.shop.constants.ROLE_ADMIN
 import com.example.shop.constants.ROLE_USER
 import com.example.shop.auth.domain.AccountDomain
 import com.example.shop.auth.domain.RoleName
-import com.example.shop.auth.models.NewAccountRequest
+import com.example.shop.auth.models.AccountGroupRequest
+import com.example.shop.auth.models.AuthRequest
+import com.example.shop.auth.models.RoleRequest
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.auth.utils.RoleHierarchyHelper
@@ -30,12 +32,12 @@ class FacadeAccountCrudService(
         thirdPartyOauthVendor: ThirdPartyAuthenticationVendor?,
         groupIds: Set<Long>,
     ): AccountDomain {
-        val roleRequest = NewAccountRequest.RoleRequest(
+        val roleRequest = RoleRequest(
             RoleName(ROLE_USER),
             (getDefaultRoleHierarchy(ROLE_USER) ?: DEFAULT_USER_HIERARCHY),
             true
         )
-        val groupRequest = NewAccountRequest.AccountGroupRequest(groupIds, false)
+        val groupRequest = AccountGroupRequest(groupIds, false)
         return accountDomainService.newAccountDomain(
             email = email,
             rawPassword = rawPassword,
@@ -54,12 +56,12 @@ class FacadeAccountCrudService(
         groupIds: Set<Long>,
     ): AccountDomain {
 
-        val roleRequest = NewAccountRequest.RoleRequest(
+        val roleRequest = RoleRequest(
             RoleName(ROLE_ADMIN),
             (getDefaultRoleHierarchy(ROLE_ADMIN) ?: ADMIN_HIERARCHY),
             false
         )
-        val groupRequest = NewAccountRequest.AccountGroupRequest(groupIds, true)
+        val groupRequest = AccountGroupRequest(groupIds, true)
         return accountDomainService.newAccountDomain(
             email = email,
             rawPassword = rawPassword,
