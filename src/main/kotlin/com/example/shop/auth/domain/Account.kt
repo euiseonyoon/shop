@@ -34,7 +34,7 @@ class Account(
     var nickname: String? = null,
 
     @Column(nullable = true) @Enumerated(value = EnumType.STRING)
-    var oauth: ThirdPartyAuthenticationVendor? = null,
+    val oauth: ThirdPartyAuthenticationVendor? = null,
 
 ) : BaseCompareEntity<Account>() {
     @Id @GeneratedValue
