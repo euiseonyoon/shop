@@ -1,39 +1,55 @@
 package com.example.shop.auth.repositories.extensions
 
 import com.example.shop.auth.domain.Account
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.domain.QAccount
-import com.example.shop.auth.domain.QAuthority
-import com.example.shop.auth.domain.QAccountGroup
-import com.example.shop.auth.domain.QGroupAuthority
-import com.example.shop.auth.domain.QGroupMember
 import com.example.shop.common.apis.models.AccountSearchCriteria
-import com.querydsl.jpa.JPQLQuery
+import com.example.shop.common.utils.QuerydslPagingHelper
+import com.querydsl.core.types.dsl.BooleanExpression
+import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
-import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository
 
 @Repository
-class AccountRepositoryExtensionImpl : QuerydslRepositorySupport(Account::class.java), AccountRepositoryExtension {
-    val account = QAccount.account
-    val authority = QAuthority.authority
+class AccountRepositoryExtensionImpl(
+    private val queryFactory: JPAQueryFactory,
+    private val querydslPagingHelper: QuerydslPagingHelper,
+) : AccountRepositoryExtension {
+    private val account = QAccount.account
+
+    private fun accountIdsIn(accountIds: List<Long>?): BooleanExpression? {
+        if (accountIds.isNullOrEmpty()) {
+            return null
+        }
+        return account.id.`in`(accountIds)
+    }
+
+    private fun emailsIn(emails: List<Email>?): BooleanExpression? {
+        if (emails.isNullOrEmpty()) {
+            return null
+        }
+        return account.email.`in`(emails)
+    }
+
+    private fun eqEnabled(enabled: Boolean?): BooleanExpression? {
+        if (enabled == null) {
+            return null
+        }
+        return account.enabled.eq(enabled)
+    }
 
     override fun findWithCriteria(criteria: AccountSearchCriteria): Page<Account> {
-        val query = from(account)
+        val whereClauses = arrayOf(
+            accountIdsIn(criteria.accountIds),
+            emailsIn(criteria.emails),
+            eqEnabled(criteria.enabled)
+        ).filterNotNull().toTypedArray()
 
-        if (criteria.accountIds != null) {
-            query.where(account.id.`in`(criteria.accountIds))
-        }
-        if (criteria.emails != null) {
-            query.where(account.email.`in`(criteria.emails))
-        }
-        if (criteria.enabled != null) {
-            query.where(account.enabled.eq(criteria.enabled))
-        }
+        val baseQuery = queryFactory.selectFrom(account)
 
-        val totalCount = query.fetchCount()
-        val pagedQuery = getQuerydsl()!!.applyPagination(criteria.pageable, query)
-        val content = pagedQuery.fetch()
+        val totalCount = querydslPagingHelper.getTotalCount(account, whereClauses)
+        val content = querydslPagingHelper.getContent(baseQuery, whereClauses, criteria.pageable)
 
         return PageImpl(content, criteria.pageable, totalCount)
     }
