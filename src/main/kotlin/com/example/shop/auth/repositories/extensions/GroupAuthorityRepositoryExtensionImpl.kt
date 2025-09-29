@@ -7,20 +7,21 @@ import com.example.shop.auth.domain.QGroupAuthority
 import com.example.shop.auth.domain.QGroupMember
 import com.example.shop.auth.models.AccountGroupAuthorityDto
 import com.example.shop.auth.models.QAccountGroupAuthorityDto
-import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
+import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
 
 @Repository
-class GroupAuthorityRepositoryExtensionImpl :
-    GroupAuthorityRepositoryExtension, QuerydslRepositorySupport(GroupAuthority::class.java) {
+class GroupAuthorityRepositoryExtensionImpl(
+    private val queryFactory: JPAQueryFactory,
+) : GroupAuthorityRepositoryExtension {
 
-    val groupAuthority = QGroupAuthority.groupAuthority
-    val groupMember = QGroupMember.groupMember
-    val accountGroup = QAccountGroup.accountGroup
-    val account = QAccount.account
+    private val groupAuthority = QGroupAuthority.groupAuthority
+    private val groupMember = QGroupMember.groupMember
+    private val accountGroup = QAccountGroup.accountGroup
+    private val account = QAccount.account
 
     override fun getAccountGroupAuthorityDtos(accountIds: List<Long>): List<AccountGroupAuthorityDto> {
-        val results = from(groupAuthority)
+        val results = queryFactory.selectFrom(groupAuthority)
             .select(
                 QAccountGroupAuthorityDto(account, groupAuthority)
             )
@@ -34,7 +35,7 @@ class GroupAuthorityRepositoryExtensionImpl :
     }
 
     override fun getAccountGroupAuthorities(accountId: Long): List<GroupAuthority> {
-        return from(groupAuthority)
+        return queryFactory.selectFrom(groupAuthority)
             .distinct()
             .leftJoin(accountGroup).on(groupAuthority.accountGroup.eq(accountGroup))
             .leftJoin(groupMember).on(groupMember.accountGroup.eq(accountGroup))
@@ -44,7 +45,7 @@ class GroupAuthorityRepositoryExtensionImpl :
     }
 
     override fun findAllByAccountGroupIdIn(accountGroupIds: List<Long>): List<GroupAuthority> {
-        return from(groupAuthority)
+        return queryFactory.selectFrom(groupAuthority)
             .leftJoin(accountGroup).on(groupAuthority.accountGroup.eq(accountGroup))
             .fetch()
     }
