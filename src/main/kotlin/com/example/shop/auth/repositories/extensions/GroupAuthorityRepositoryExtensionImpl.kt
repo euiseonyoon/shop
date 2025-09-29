@@ -24,7 +24,7 @@ class GroupAuthorityRepositoryExtensionImpl :
             .select(
                 QAccountGroupAuthorityDto(account, groupAuthority)
             )
-            .leftJoin(accountGroup, groupAuthority.accountGroup).fetchJoin()
+            .leftJoin(accountGroup).on(groupAuthority.accountGroup.eq(accountGroup))
             .leftJoin(groupMember.accountGroup, accountGroup)
             .leftJoin(groupMember.account, account)
             .where(account.id.`in`(accountIds))
@@ -36,17 +36,16 @@ class GroupAuthorityRepositoryExtensionImpl :
     override fun getAccountGroupAuthorities(accountId: Long): List<GroupAuthority> {
         return from(groupAuthority)
             .distinct()
-            .leftJoin(accountGroup, groupAuthority.accountGroup).fetchJoin()
-            .leftJoin(groupMember.accountGroup, accountGroup)
-            .leftJoin(groupMember.account, account)
+            .leftJoin(accountGroup).on(groupAuthority.accountGroup.eq(accountGroup))
+            .leftJoin(groupMember).on(groupMember.accountGroup.eq(accountGroup))
+            .leftJoin(account).on(account.eq(groupMember.account))
             .where(account.id.eq(accountId))
             .fetch()
     }
 
     override fun findAllByAccountGroupIdIn(accountGroupIds: List<Long>): List<GroupAuthority> {
         return from(groupAuthority)
-            .leftJoin(accountGroup, groupAuthority.accountGroup).fetchJoin()
-            .where(accountGroup.id.`in`(accountGroupIds))
+            .leftJoin(accountGroup).on(groupAuthority.accountGroup.eq(accountGroup))
             .fetch()
     }
 }
