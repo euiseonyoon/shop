@@ -27,25 +27,14 @@ import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class EmailPasswordLoginTest {
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @Autowired
-    private lateinit var json: Json
-
-    @Autowired
-    lateinit var myJwtTokenHelper: MyJwtTokenHelper
-
-    @Autowired
-    lateinit var accountDomainService: AccountDomainService
-
-    @Autowired
-    private lateinit var oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer
-
-    @Autowired
-    lateinit var refreshTokenRedisRepository: RefreshTokenRedisRepository
-
+class EmailPasswordLoginTest(
+    private val mockMvc: MockMvc,
+    private val json: Json,
+    private val myJwtTokenHelper: MyJwtTokenHelper,
+    private val accountDomainService: AccountDomainService,
+    private val oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer,
+    private val refreshTokenRedisRepository: RefreshTokenRedisRepository,
+) {
     @TestBean
     lateinit var passwordGenerator: PasswordGenerator
 

@@ -29,19 +29,13 @@ import kotlin.test.assertNotEquals
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(TokenRefreshConfig::class)
-class TokenRefreshTest {
-
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @Autowired
-    lateinit var oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer
-
+class TokenRefreshTest(
+    private val json: Json,
+    private val mockMvc: MockMvc,
+    private val oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer,
+) {
     @MockitoSpyBean
     lateinit var refreshTokenStateHelper: RefreshTokenStateHelper
-
-    @Autowired
-    lateinit var json: Json
 
     @Test
     @Transactional

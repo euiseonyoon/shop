@@ -37,13 +37,10 @@ import kotlin.test.assertTrue
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(RateLimitTestConfig::class)
-class RateLimitTest {
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @Autowired
-    private lateinit var json: Json
-
+class RateLimitTest(
+    private val json: Json,
+    private val mockMvc: MockMvc,
+) {
     @MockitoSpyBean(name = "googleUserService")
     lateinit var googleOidcUserService: ThirdPartyAuthenticationUserService
 

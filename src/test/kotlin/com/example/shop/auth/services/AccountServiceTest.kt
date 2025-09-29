@@ -22,23 +22,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @SpringBootTest
-class AccountServiceTest : LogSupport() {
-    @Autowired
-    lateinit var testAuthorityFactory: TestAuthorityFactory
-
-    @Autowired
-    lateinit var testAccountGroupFactory: TestAccountGroupFactory
-
-    @Autowired
-    lateinit var testGroupAuthorityFactory: TestGroupAuthorityFactory
-
-    @Autowired
-    lateinit var accountDomainService: AccountDomainService
-
-    @Autowired
+class AccountServiceTest(
     @PersistenceContext
-    lateinit var em: EntityManager
-
+    private val em: EntityManager,
+    private val testAuthorityFactory: TestAuthorityFactory,
+    private val testGroupAuthorityFactory: TestGroupAuthorityFactory,
+    private val testAccountGroupFactory: TestAccountGroupFactory,
+    private val accountDomainService: AccountDomainService
+) : LogSupport() {
     @Test
     @Transactional
     fun `test account repository extension`() {

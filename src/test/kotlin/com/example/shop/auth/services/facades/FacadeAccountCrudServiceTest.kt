@@ -19,7 +19,6 @@ import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
@@ -27,23 +26,14 @@ import kotlin.test.assertTrue
 import org.springframework.security.test.context.support.WithMockUser
 
 @SpringBootTest
-class FacadeAccountCrudServiceTest {
-    @Autowired
+class FacadeAccountCrudServiceTest(
     @PersistenceContext
-    lateinit var em: EntityManager
-
-    @Autowired
-    lateinit var testAuthorityFactory: TestAuthorityFactory
-
-    @Autowired
-    lateinit var testAccountGroupFactory: TestAccountGroupFactory
-
-    @Autowired
-    lateinit var testGroupAuthorityFactory: TestGroupAuthorityFactory
-
-    @Autowired
-    lateinit var facadeAccountCrudService: FacadeAccountCrudService
-
+    private val em: EntityManager,
+    private val testAuthorityFactory: TestAuthorityFactory,
+    private val testAccountGroupFactory: TestAccountGroupFactory,
+    private val testGroupAuthorityFactory: TestGroupAuthorityFactory,
+    private val facadeAccountCrudService: FacadeAccountCrudService,
+) {
     private val groupNames = listOf("group1", "group2")
     private var groups: List<AccountGroup> = listOf()
     private var firstGroupAuthorities: List<GroupAuthority> = listOf()
@@ -109,10 +99,9 @@ class FacadeAccountCrudServiceTest {
             thirdPartyOauthVendor = null,
             groupIds = groups.map { it.id }.toSet()
         )
-
-        // THEN
         em.clear()
 
+        // THEN
         val accounts = em.createQuery("SELECT a FROM Account a WHERE a.email = :email", Account::class.java)
             .setParameter("email", email).resultList
         assertTrue(accounts.isEmpty())
@@ -167,10 +156,9 @@ class FacadeAccountCrudServiceTest {
                 groupIds = createdGroupIds + notCreatedGroupId
             )
         }
-
-        // THEN
         em.clear()
 
+        // THEN
         val accounts = em.createQuery("SELECT a FROM Account a WHERE a.email = :email", Account::class.java)
             .setParameter("email", email).resultList
         assertTrue(accounts.isEmpty())

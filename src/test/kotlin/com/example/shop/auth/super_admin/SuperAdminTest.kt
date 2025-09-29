@@ -24,13 +24,10 @@ import org.springframework.transaction.annotation.Transactional
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(EasyAccessTokenTestConfig::class)
-class SuperAdminTest {
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @Autowired
-    lateinit var accessTokenGetter: AccessTokenGetter
-
+class SuperAdminTest(
+    private val mockMvc: MockMvc,
+    private val accessTokenGetter: AccessTokenGetter,
+) {
     @MockitoSpyBean(name = "googleUserService")
     private lateinit var googleOidcUserService: ThirdPartyAuthenticationUserService
 

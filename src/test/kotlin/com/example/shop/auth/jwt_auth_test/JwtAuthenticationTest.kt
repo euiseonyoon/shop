@@ -22,18 +22,13 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class JwtAuthenticationTest {
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @Autowired
-    lateinit var json: Json
-
+class JwtAuthenticationTest(
+    private val json: Json,
+    private val mockMvc: MockMvc,
+    private val oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer,
+) {
     @TestBean
     lateinit var passwordGenerator: PasswordGenerator
-
-    @Autowired
-    lateinit var oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer
 
     companion object {
         @JvmStatic

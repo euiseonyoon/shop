@@ -29,31 +29,22 @@ import kotlin.test.assertEquals
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class CircuitBreakerTest : LogSupport() {
+class CircuitBreakerTest(
+    private val json: Json,
+    private val mockMvc: MockMvc,
+    private val oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer,
+    private val redisCircuitBreaker: CircuitBreaker
+) : LogSupport() {
     // 1.1. login -> refresh token 발급 & 저장
     // 1.2. auth/token/refresh -> refresh token 발급 & 저장
     // 2. rate limit 에서 확인
     // 3. authority 생성 / 변경 -> redis를 통한 pub/sub
     // private val redisContainer = TestRedisContainerConfig.redisContainer
-
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @Autowired
-    lateinit var oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer
-
-    @Autowired
-    lateinit var json: Json
-
     @MockitoSpyBean(name = "googleUserService")
     private lateinit var googleOidcUserService: ThirdPartyAuthenticationUserService
 
     @MockitoSpyBean
     private lateinit var refreshTokenRedisRepository: RefreshTokenRedisRepository
-
-    @Autowired
-    @Qualifier("redisCircuitBreaker")
-    private lateinit var redisCircuitBreaker: CircuitBreaker
 
     @Test
     fun `test login refresh token redis circuit breaker`() {

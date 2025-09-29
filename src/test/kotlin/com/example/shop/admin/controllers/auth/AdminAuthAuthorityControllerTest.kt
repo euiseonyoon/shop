@@ -40,22 +40,13 @@ import kotlin.test.assertTrue
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(EasyAccessTokenTestConfig::class, TestRedisContainerConfig::class)
-class AdminAuthAuthorityControllerTest {
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @Autowired
-    lateinit var json: Json
-
-    @Autowired
-    lateinit var accessTokenGetter: AccessTokenGetter
-
-    @Autowired
-    lateinit var roleHierarchyHelper: RoleHierarchyHelper
-
-    @Autowired
-    lateinit var authorityRepository: AuthorityRepository
-
+class AdminAuthAuthorityControllerTest(
+    private val json: Json,
+    private val mockMvc: MockMvc,
+    private val accessTokenGetter: AccessTokenGetter,
+    private val roleHierarchyHelper: RoleHierarchyHelper,
+    private val authorityRepository: AuthorityRepository,
+) {
     @MockitoSpyBean(name = "googleUserService")
     lateinit var googleOidcUserService: ThirdPartyAuthenticationUserService
 
