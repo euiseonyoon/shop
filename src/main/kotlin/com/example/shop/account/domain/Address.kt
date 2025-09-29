@@ -21,18 +21,17 @@ import jakarta.persistence.UniqueConstraint
         UniqueConstraint(columnNames = ["account_id", "description"])
     ],
 )
-class Address {
-    @Id
-    @GeneratedValue
-    val id: Long? = null
-
-    @ManyToOne(fetch = FetchType.LAZY)
+class Address(
+    @ManyToOne()
     @JoinColumn(name = "account_id")
-    var account: Account? = null
+    val account: Account,
 
     @Column(nullable = false)
-    var description: String? = null
+    var description: String,
 
     @Column(nullable = false)
-    var detail: String? = null
+    var detail: String,
+) {
+    @Id @GeneratedValue
+    val id: Long = 0
 }

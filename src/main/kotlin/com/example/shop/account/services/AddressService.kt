@@ -25,11 +25,7 @@ class AddressService(
             Supplier { BadRequestException("Account not found.") }
         )
 
-        val address = Address()
-        address.account = account
-        address.detail = request.detail
-        address.description = request.description
-
+        val address = Address(account, request.description, request.detail)
         return addressRepository.save(address)
     }
 }
