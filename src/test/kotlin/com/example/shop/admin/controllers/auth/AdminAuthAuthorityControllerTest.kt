@@ -2,6 +2,7 @@ package com.example.shop.admin.controllers.auth
 
 import com.example.shop.admin.models.auth.AuthorityCreateRequest
 import com.example.shop.auth.common.AuthTestUtil
+import com.example.shop.auth.domain.Role
 import com.example.shop.auth.repositories.AuthorityRepository
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.auth.services.AuthorityService
@@ -9,9 +10,13 @@ import com.example.shop.auth.utils.RoleHierarchyHelper
 import com.example.shop.common.AccessTokenGetter
 import com.example.shop.common.EasyAccessTokenTestConfig
 import com.example.shop.constants.ROLE_PREFIX
+import com.example.shop.constants.ROLE_SUPER_ADMIN
+import com.example.shop.constants.SUPER_ADMIN_NAME
 import com.example.shop.redis.authority_refresh.AuthorityRefreshMessageSubscriber
+import jakarta.persistence.EntityManager
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNotNull
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -25,7 +30,9 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A
 import kotlin.test.assertTrue
 
 @SpringBootTest
@@ -49,9 +56,6 @@ class AdminAuthAuthorityControllerTest {
     @Autowired
     lateinit var authorityRepository: AuthorityRepository
 
-    @Autowired
-    lateinit var authorityService: AuthorityService
-
     @MockitoSpyBean(name = "googleUserService")
     lateinit var googleOidcUserService: ThirdPartyAuthenticationUserService
 
@@ -62,22 +66,22 @@ class AdminAuthAuthorityControllerTest {
     lateinit var adminEmail: String
 
     @Test
+    @Transactional
     fun `test authority create`() {
         // GIVEN
         Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmailAddress(any())
-        val roleName = ROLE_PREFIX + "STAFF"
-        val roleHierarchy: Int = 5
-
-        assertTrue { roleName !in roleHierarchyHelper.getRoleHierarchyMap().keys }
+        val roleToCreate = Role(ROLE_PREFIX + "STAFF")
+        val roleHierarchy = 5
+        assertTrue { roleToCreate !in roleHierarchyHelper.getRoleHierarchyMap().keys }
 
         // WHEN & THEN
         val bearerToken = accessTokenGetter.getBearerToken(adminEmail)
         val requestBodyJson = json.encodeToString(
             AuthorityCreateRequest.serializer(),
-            AuthorityCreateRequest(roleName, roleHierarchy),
+            AuthorityCreateRequest(roleToCreate.name, roleHierarchy),
         )
         Mockito.reset(authorityRefreshMessageSubscriber)
-        val mvcResult = AuthTestUtil.makePostCall(
+        AuthTestUtil.makePostCall(
             mockMvc,
             AdminAuthRoleController.URI,
             requestBodyJson,
@@ -86,10 +90,7 @@ class AdminAuthAuthorityControllerTest {
 
         // THEN
         verify(authorityRefreshMessageSubscriber, times(1)).handleAuthorityRefreshMessage(any(), any())
-        assertTrue { roleName in roleHierarchyHelper.getRoleHierarchyMap().keys }
-
-        // DB에 실제 저장된것이 확인 되었음, 이제 다음테스트를 위해서, 해당 테스트에서 저장되었던 부분을 삭제한다.
-        val roleStaff = authorityService.findByRole(roleName)!!
-        authorityRepository.delete(roleStaff)
+        val authoritiesFromDb = authorityRepository.findAll()
+        assertNotNull { authoritiesFromDb.find { it.role == roleToCreate } }
     }
 }

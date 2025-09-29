@@ -4,11 +4,14 @@ import com.example.shop.auth.TestConstants.Companion.TEST_EMAIL
 import com.example.shop.auth.TestConstants.Companion.TEST_PSWD
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.common.AuthTestUtil
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.models.EmailPasswordLoginRequest
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
 import com.example.shop.auth.security.utils.PasswordGenerator
+import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.auth.services.AccountService
+import com.example.shop.cart.services.CartDomainService
 import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
 import com.example.shop.redis.tokens.repositories.RefreshTokenRedisRepository
 import kotlinx.serialization.json.Json
@@ -35,7 +38,7 @@ class EmailPasswordLoginTest {
     lateinit var myJwtTokenHelper: MyJwtTokenHelper
 
     @Autowired
-    lateinit var accountService: AccountService
+    lateinit var accountDomainService: AccountDomainService
 
     @Autowired
     private lateinit var oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer
@@ -58,7 +61,7 @@ class EmailPasswordLoginTest {
     fun `test email password login`() {
         // GIVEN
         val accountCreationResult = oauthAuthenticatedUserAutoRegisterer.findOrCreateUser(
-            TEST_EMAIL,
+            Email(TEST_EMAIL),
             ThirdPartyAuthenticationVendor.GOOGLE,
         )
         val loginRequestJson = json.encodeToString(
@@ -73,11 +76,11 @@ class EmailPasswordLoginTest {
             loginRequestJson,
         )
         // THEN
-        AuthTestUtil.checkAccessTokenAgainstDb(mvcResult, json, myJwtTokenHelper, accountService)
+        AuthTestUtil.checkAccessTokenAgainstDb(mvcResult, json, myJwtTokenHelper, accountDomainService)
         AuthTestUtil.checkRefreshTokenFromCookie(
             mvcResult,
             myJwtTokenHelper,
-            accountService,
+            accountDomainService,
             refreshTokenRedisRepository,
         )
     }
@@ -86,7 +89,7 @@ class EmailPasswordLoginTest {
     @Transactional
     fun `test email password login wrong password`() {
         // GIVEN
-        oauthAuthenticatedUserAutoRegisterer.findOrCreateUser(TEST_EMAIL, ThirdPartyAuthenticationVendor.GOOGLE)
+        oauthAuthenticatedUserAutoRegisterer.findOrCreateUser(Email(TEST_EMAIL), ThirdPartyAuthenticationVendor.GOOGLE)
         val loginRequestJson = json.encodeToString(
             EmailPasswordLoginRequest.serializer(),
             EmailPasswordLoginRequest(email = TEST_EMAIL, password = "wrong password")

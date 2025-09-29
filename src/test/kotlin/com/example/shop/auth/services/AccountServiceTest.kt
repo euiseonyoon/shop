@@ -5,9 +5,12 @@ import com.example.shop.auth.common.TestAccountGroupFactory
 import com.example.shop.auth.common.TestAuthorityFactory
 import com.example.shop.auth.common.TestGroupAuthorityFactory
 import com.example.shop.auth.domain.Account
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.domain.GroupMember
+import com.example.shop.auth.domain.Role
 import com.example.shop.common.logger.LogSupport
 import com.example.shop.constants.DEFAULT_USER_HIERARCHY
+import com.example.shop.constants.ROLE_PREFIX
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.Test
@@ -16,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @SpringBootTest
 class AccountServiceTest : LogSupport() {
@@ -29,7 +33,7 @@ class AccountServiceTest : LogSupport() {
     lateinit var testGroupAuthorityFactory: TestGroupAuthorityFactory
 
     @Autowired
-    lateinit var accountService: AccountService
+    lateinit var accountDomainService: AccountDomainService
 
     @Autowired
     @PersistenceContext
@@ -39,7 +43,7 @@ class AccountServiceTest : LogSupport() {
     @Transactional
     fun `test account repository extension`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_USER to DEFAULT_USER_HIERARCHY)).first()
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(Role(ROLE_USER) to DEFAULT_USER_HIERARCHY)).first()
 
         val groups = testAccountGroupFactory.createAccountGroup(em, listOf("group1", "group2"))
         val firstGroup = groups.first()
@@ -47,18 +51,18 @@ class AccountServiceTest : LogSupport() {
 
         val firstGroupAuthorities = testGroupAuthorityFactory.createGroupAuthorities(
             em,
-            listOf("GROUP_authority_1-1", "GROUP_authority_1-2"),
+            listOf(Role("${ROLE_PREFIX}authority_1-1"), Role("${ROLE_PREFIX}authority_1-2")),
             firstGroup
         )
         val secondGroupAuthorities = testGroupAuthorityFactory.createGroupAuthorities(
             em,
-            listOf("GROUP_authority_2"),
+            listOf(Role("${ROLE_PREFIX}authority_2")),
             secondGroup
         )
 
-        val EMAIL = "test@gamil.com"
+        val testEmail = Email("test@gamil.com")
         val account = Account(
-            email = EMAIL,
+            email = testEmail,
             passwordHash = "123",
             authority = authority,
         ).also { em.persist(it) }
@@ -72,7 +76,7 @@ class AccountServiceTest : LogSupport() {
         logger.info("==========================================")
 
         // WHEN
-        val foundAccount = accountService.findWithAuthoritiesByEmail(EMAIL)
+        val foundAccount = accountDomainService.findByEmail(testEmail)
         /**
          * Query Log:
          *      select
@@ -112,12 +116,14 @@ class AccountServiceTest : LogSupport() {
 
         // THEN
         assertNotNull(foundAccount)
-        assertEquals(account, foundAccount)
+        assertEquals(account, foundAccount.account)
         // 추가 query 발생 안함
-        val foundGroupAuthorities = foundAccount.groupAuthorities
+        val foundGroupAuthoritiesNames = foundAccount.authorities.map { it.authority }.toSet()
         val foundAuthority = foundAccount.authority
 
         assertEquals(authority, foundAuthority)
-        assertEquals(firstGroupAuthorities.toSet(), foundGroupAuthorities.toSet())
+        assertTrue {
+            foundGroupAuthoritiesNames.containsAll(firstGroupAuthorities.map { it.role.name }.toSet())
+        }
     }
 }

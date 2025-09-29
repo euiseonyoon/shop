@@ -3,11 +3,13 @@ package com.example.shop.auth.common
 import com.example.shop.constants.REFRESH_TOKEN_KEY
 import com.example.shop.auth.TestConstants.Companion.TEST_EMAIL
 import com.example.shop.auth.TestConstants.Companion.TEST_PSWD
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.models.EmailPasswordLoginRequest
 import com.example.shop.auth.models.TokenResponse
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import com.example.shop.auth.security.user_services.OauthAuthenticatedUserAutoRegisterer
+import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.auth.services.AccountService
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.redis.tokens.repositories.RefreshTokenRedisRepository
@@ -67,7 +69,7 @@ class AuthTestUtil {
             mvcResult: MvcResult,
             json: Json,
             myJwtTokenHelper: MyJwtTokenHelper,
-            accountService: AccountService,
+            accountDomainService: AccountDomainService,
         ) {
             // THEN
             val responseBody = mvcResult.response.contentAsString
@@ -85,21 +87,19 @@ class AuthTestUtil {
 
             // THEN: Db로 부터 account 조회되는지 확인
             val accountId = myJwtTokenHelper.getSubject(claims)
-            val foundAccount = accountService.findWithAuthoritiesById(accountId)
+            val foundAccount = accountDomainService.findByAccountId(accountId)
             assertNotNull(foundAccount)
 
             // THEN: Role + 그룹 권한 같은지 확인
             val authoritiesFromAccessToken = myJwtTokenHelper.getAuthorityStringList(claims).toSet()
-            val authoritiesFromDb = foundAccount.groupAuthorities.mapNotNull { it.name }.toMutableSet().also {
-                it.add(foundAccount.authority.roleName)
-            }
+            val authoritiesFromDb = foundAccount.authorities.map { it.authority}.toSet()
             assertEquals(authoritiesFromDb, authoritiesFromAccessToken)
         }
 
         fun checkRefreshTokenFromCookie(
             mvcResult: MvcResult,
             myJwtTokenHelper: MyJwtTokenHelper,
-            accountService: AccountService,
+            accountDomainService: AccountDomainService,
             refreshTokenRedisRepository: RefreshTokenRedisRepository
         ) {
             val issuedRefreshToken = mvcResult.response.cookies.find { it ->
@@ -114,7 +114,7 @@ class AuthTestUtil {
 
             // THEN: Db로 부터 account 조회되는지 확인
             val accountId = myJwtTokenHelper.getSubject(claims)
-            val foundAccount = accountService.findWithAuthoritiesById(accountId)
+            val foundAccount = accountDomainService.findByAccountId(accountId)
             assertNotNull(foundAccount)
 
             val refreshKeyOnRedis = refreshTokenRedisRepository.find(accountId)
@@ -126,8 +126,8 @@ class AuthTestUtil {
             oauthAuthenticatedUserAutoRegisterer: OauthAuthenticatedUserAutoRegisterer,
             json: Json
         ): MvcResult {
-            val accountCreationResult = oauthAuthenticatedUserAutoRegisterer.findOrCreateUser(
-                TEST_EMAIL,
+            oauthAuthenticatedUserAutoRegisterer.findOrCreateUser(
+                Email(TEST_EMAIL),
                 ThirdPartyAuthenticationVendor.GOOGLE,
             )
             val loginRequestJson = json.encodeToString(

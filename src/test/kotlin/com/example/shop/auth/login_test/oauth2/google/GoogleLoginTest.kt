@@ -9,7 +9,7 @@ import com.example.shop.auth.models.EmailPasswordLoginRequest
 import com.example.shop.auth.models.ThirdPartyOauthTokenLoginRequest
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
 import com.example.shop.auth.security.utils.PasswordGenerator
-import com.example.shop.auth.services.AccountService
+import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.redis.tokens.repositories.RefreshTokenRedisRepository
 import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
 import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN
@@ -40,7 +40,7 @@ class GoogleLoginTest {
     private lateinit var myJwtTokenHelper: MyJwtTokenHelper
 
     @Autowired
-    private lateinit var accountService: AccountService
+    private lateinit var accountDomainService: AccountDomainService
 
     @Autowired
     lateinit var refreshTokenRedisRepository: RefreshTokenRedisRepository
@@ -74,11 +74,11 @@ class GoogleLoginTest {
             ),
         )
         // THEN
-        AuthTestUtil.checkAccessTokenAgainstDb(mvcResult, json, myJwtTokenHelper, accountService)
+        AuthTestUtil.checkAccessTokenAgainstDb(mvcResult, json, myJwtTokenHelper, accountDomainService)
         AuthTestUtil.checkRefreshTokenFromCookie(
             mvcResult,
             myJwtTokenHelper,
-            accountService,
+            accountDomainService,
             refreshTokenRedisRepository,
         )
 

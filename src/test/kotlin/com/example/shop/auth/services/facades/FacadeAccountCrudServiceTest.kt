@@ -7,10 +7,13 @@ import com.example.shop.auth.common.TestAuthorityFactory
 import com.example.shop.auth.common.TestGroupAuthorityFactory
 import com.example.shop.auth.domain.Account
 import com.example.shop.auth.domain.AccountGroup
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.domain.GroupAuthority
+import com.example.shop.auth.domain.Role
 import com.example.shop.auth.exceptions.AccountGroupPartiallyNotFoundException
 import com.example.shop.constants.ADMIN_HIERARCHY
 import com.example.shop.constants.DEFAULT_USER_HIERARCHY
+import com.example.shop.constants.ROLE_PREFIX
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.BeforeEach
@@ -21,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.springframework.security.test.context.support.WithMockUser
 
 @SpringBootTest
 class FacadeAccountCrudServiceTest {
@@ -51,12 +55,12 @@ class FacadeAccountCrudServiceTest {
 
         this.firstGroupAuthorities = testGroupAuthorityFactory.createGroupAuthorities(
             em,
-            listOf("GROUP_authority_1-1", "GROUP_authority_1-2"),
+            listOf(Role("${ROLE_PREFIX}authority_1-1"), Role("${ROLE_PREFIX}authority_1-2")),
             groups.first()
         )
         this.secondGroupAuthorities = testGroupAuthorityFactory.createGroupAuthorities(
             em,
-            listOf("GROUP_authority_2"),
+            listOf(Role("${ROLE_PREFIX}authority_2")),
             groups.last()
         )
     }
@@ -65,35 +69,35 @@ class FacadeAccountCrudServiceTest {
     @Transactional
     fun `test user creation success`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_USER to DEFAULT_USER_HIERARCHY)).first()
-        val email = "test@gmail.com"
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(Role(ROLE_USER) to DEFAULT_USER_HIERARCHY)).first()
+        val email = Email("test@gmail.com")
         val rawPassword = "test"
         val nickname = "RyanAtBurst"
 
         // WHEN
-        val newUserAccount = facadeAccountCrudService.createUserAccount(
+        val newAccountDomain = facadeAccountCrudService.createUserAccount(
             email = email,
             rawPassword = rawPassword,
             nickname = nickname,
             thirdPartyOauthVendor = null,
-            groupNames = setOf(groupNames.first())
+            groupIds = groups.map { it.id }.toSet()
         )
         em.clear()
 
         // THEN
-        assertEquals(email, newUserAccount.email)
-        assertEquals(nickname, newUserAccount.nickname)
-        assertEquals(ROLE_USER, newUserAccount.authority.role)
-        assertEquals(setOf(groups.first()), newUserAccount.accountGroups.toSet())
-        assertEquals(firstGroupAuthorities.toSet(), newUserAccount.groupAuthorities.toSet())
+        assertEquals(email, newAccountDomain.account.email)
+        assertEquals(nickname, newAccountDomain.account.nickname)
+        assertEquals(Role(ROLE_USER), newAccountDomain.authority.role)
+        val authorityGroupsIn = firstGroupAuthorities + secondGroupAuthorities
+        assertEquals(authorityGroupsIn.toSet(), newAccountDomain.accountGroupMap.values.flatten().toSet())
     }
 
     @Test
     @Transactional
     fun `test user creation fail`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN to ADMIN_HIERARCHY)).first()
-        val email = "test@gmail.com"
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(Role(ROLE_ADMIN) to ADMIN_HIERARCHY)).first()
+        val email = Email("test@gmail.com")
         val rawPassword = "test"
         val nickname = "RyanAtBurst"
 
@@ -103,7 +107,7 @@ class FacadeAccountCrudServiceTest {
             rawPassword = rawPassword,
             nickname = nickname,
             thirdPartyOauthVendor = null,
-            groupNames = setOf(groupNames.first())
+            groupIds = groups.map { it.id }.toSet()
         )
 
         // THEN
@@ -116,46 +120,51 @@ class FacadeAccountCrudServiceTest {
 
     @Test
     @Transactional
+    @WithMockUser(username = "hello@gmail.com", roles = ["SUPER_ADMIN"])
     fun `test admin creation success`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN to ADMIN_HIERARCHY)).first()
-        val email = "test@gmail.com"
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(Role(ROLE_ADMIN) to ADMIN_HIERARCHY)).first()
+        val email = Email("test@gmail.com")
         val rawPassword = "test"
         val nickname = "RyanAtBurst"
 
         // WHEN
-        val newUserAccount = facadeAccountCrudService.createAdminAccount(
+        val newAccountDomain = facadeAccountCrudService.createAdminAccount(
             email = email,
             rawPassword = rawPassword,
             nickname = nickname,
-            groupNames = setOf(groupNames.first())
+            groupIds = groups.map { it.id }.toSet()
         )
         em.clear()
 
         // THEN
-        assertEquals(email, newUserAccount.email)
-        assertEquals(nickname, newUserAccount.nickname)
-        assertEquals(ROLE_ADMIN, newUserAccount.authority.role)
-        assertEquals(setOf(groups.first()), newUserAccount.accountGroups.toSet())
-        assertEquals(firstGroupAuthorities.toSet(), newUserAccount.groupAuthorities.toSet())
+        assertEquals(email, newAccountDomain.account.email)
+        assertEquals(nickname, newAccountDomain.account.nickname)
+        assertEquals(Role(ROLE_ADMIN), newAccountDomain.account.authority.role)
+        val authorityGroupsIn = firstGroupAuthorities + secondGroupAuthorities
+        assertEquals(authorityGroupsIn.toSet(), newAccountDomain.accountGroupMap.values.flatten().toSet())
     }
 
     @Test
     @Transactional
+    @WithMockUser(username = "test@gmail.com", roles = ["SUPER_ADMIN"])
     fun `test admin creation fail`() {
         // GIVEN
-        val authority = testAuthorityFactory.createAuthorities(em, listOf(ROLE_ADMIN to ADMIN_HIERARCHY)).first()
-        val email = "test@gmail.com"
+        val authority = testAuthorityFactory.createAuthorities(em, listOf(Role(ROLE_ADMIN) to ADMIN_HIERARCHY)).first()
+        val email = Email("test@gmail.com")
         val rawPassword = "test"
         val nickname = "RyanAtBurst"
 
         // WHEN, THEN
+        val notCreatedGroupId = 1000000L
+        val createdGroupIds = groups.map { it.id }.toSet()
+        require(notCreatedGroupId !in createdGroupIds)
         assertThrows<AccountGroupPartiallyNotFoundException> {
             facadeAccountCrudService.createAdminAccount(
                 email = email,
                 rawPassword = rawPassword,
                 nickname = nickname,
-                groupNames = setOf("not existing group name")
+                groupIds = createdGroupIds + notCreatedGroupId
             )
         }
 
