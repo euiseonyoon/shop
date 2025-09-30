@@ -46,6 +46,7 @@ class GroupAuthorityRepositoryExtensionImpl(
     override fun findAllByAccountGroupIdIn(accountGroupIds: List<Long>): List<GroupAuthority> {
         return queryFactory.selectFrom(groupAuthority)
             .innerJoin(accountGroup).on(groupAuthority.accountGroup.eq(accountGroup))
+            .where(accountGroup.id.`in`(accountGroupIds))
             .fetch()
     }
 }
