@@ -10,7 +10,6 @@ import kotlinx.serialization.json.Json
 import org.springframework.test.web.servlet.MockMvc
 
 class AccessTokenGetter(
-    private val accountService: AccountService,
     private val mockMvc: MockMvc,
     private val json: Json,
 ) {
