@@ -6,7 +6,7 @@ import com.example.shop.auth.domain.QAccountGroup
 import com.example.shop.auth.domain.QGroupAuthority
 import com.example.shop.auth.domain.QGroupMember
 import com.example.shop.auth.models.AccountGroupAuthorityDto
-import com.example.shop.auth.models.QAccountGroupAuthorityDto
+import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
 
@@ -23,11 +23,11 @@ class GroupAuthorityRepositoryExtensionImpl(
     override fun getAccountGroupAuthorityDtos(accountIds: List<Long>): List<AccountGroupAuthorityDto> {
         val results = queryFactory.selectFrom(groupAuthority)
             .select(
-                QAccountGroupAuthorityDto(account, groupAuthority)
+                Projections.constructor(AccountGroupAuthorityDto::class.java, account, groupAuthority)
             )
-            .leftJoin(accountGroup).on(groupAuthority.accountGroup.eq(accountGroup))
-            .leftJoin(groupMember.accountGroup, accountGroup)
-            .leftJoin(groupMember.account, account)
+            .innerJoin(accountGroup).on(groupAuthority.accountGroup.eq(accountGroup))
+            .innerJoin(groupMember).on(accountGroup.eq(groupMember.accountGroup))
+            .innerJoin(account).on(groupMember.account.eq(account))
             .where(account.id.`in`(accountIds))
             .fetch()
 
