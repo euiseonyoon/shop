@@ -1,4 +1,4 @@
-package com.example.shop.configurations.kafka
+package com.example.shop.kafka
 
 import com.example.shop.constants.NOTIFY_DLQ_TOPIC
 import com.example.shop.constants.NOTIFY_TOPIC
