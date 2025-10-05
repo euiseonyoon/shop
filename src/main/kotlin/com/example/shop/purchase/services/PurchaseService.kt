@@ -59,7 +59,7 @@ class PurchaseService(
     @Transactional
     fun purchaseDirectly(request: PurchaseDirectlyRequest, accountId: Long): PurchaseDomain {
         val product = purchaseHelper.filterProductOrThrow(
-            product = productService.findById(request.productId),
+            product = productService.findByIdWithLock(request.productId),
             quantity = request.quantity,
         )
         product.decrementStock(request.quantity)
@@ -76,7 +76,7 @@ class PurchaseService(
     fun purchaseByCart(accountId: Long): PurchaseDomain? {
         val cartDomain = cartDomainService.getMyCart(accountId) ?: return null
         val cart = cartDomain.cart
-        val productsInCart = productService.findByIds(cartDomain.cartItems.map { it.productId })
+        val productsInCart = productService.findByIdsWithLock(cartDomain.cartItems.map { it.productId })
 
         val purchase = purchaseRepository.save(Purchase(cart.accountId))
         val purchasableProducts = purchaseHelper.filterProductsOrThrow(cartDomain.cartItems, productsInCart)

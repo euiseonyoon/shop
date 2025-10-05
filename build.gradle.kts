@@ -92,6 +92,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.testcontainers:postgresql:1.21.3")
 }
 
 kotlin {
