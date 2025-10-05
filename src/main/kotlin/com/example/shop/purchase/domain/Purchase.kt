@@ -8,11 +8,17 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
+import jakarta.validation.constraints.Min
+import org.hibernate.annotations.NaturalId
+import java.util.UUID
 
 @Entity
 class Purchase(
     @Column(nullable = false)
     val accountId: Long,
+
+    @Column(nullable = false) @Min(0)
+    val totalPrice: Int,
 
     @Column(nullable = false) @Enumerated(EnumType.STRING)
     var status: PurchaseStatus = PurchaseStatus.PAID,
@@ -20,4 +26,7 @@ class Purchase(
 ) : AuditEntity() {
     @Id @GeneratedValue
     val id: Long = 0
+
+    @Column(nullable = false) @NaturalId
+    val uuid: String = UUID.randomUUID().toString()
 }

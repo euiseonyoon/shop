@@ -1,6 +1,5 @@
 package com.example.shop.purchase.domain
 
-import com.example.shop.products.domain.Product
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType

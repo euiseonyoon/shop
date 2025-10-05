@@ -64,7 +64,7 @@ class PurchaseService(
         )
         product.decrementStock(request.quantity)
 
-        val savedPurchase = purchaseRepository.save(Purchase(accountId))
+        val savedPurchase = purchaseRepository.save(Purchase(accountId, product.price))
         val savedPurchaseProduct = purchaseProductRepository.save(
             PurchaseProduct(savedPurchase, product.id, request.quantity)
         )
@@ -77,9 +77,11 @@ class PurchaseService(
         val cartDomain = cartDomainService.getMyCart(accountId) ?: return null
         val cart = cartDomain.cart
         val productsInCart = productService.findByIdsWithLock(cartDomain.cartItems.map { it.productId })
-
-        val purchase = purchaseRepository.save(Purchase(cart.accountId))
         val purchasableProducts = purchaseHelper.filterProductsOrThrow(cartDomain.cartItems, productsInCart)
+
+        val totalPrice = purchasableProducts.sumOf { (product, quantity) -> product.price * quantity }
+        val purchase = purchaseRepository.save(Purchase(cart.accountId, totalPrice))
+
         val purchaseProducts = purchasableProducts.map { (product, quantity) ->
             product.decrementStock(quantity)
             purchaseProductRepository.save(PurchaseProduct(purchase, product.id, quantity))
