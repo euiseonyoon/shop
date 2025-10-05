@@ -8,7 +8,6 @@ import org.springframework.data.domain.PageImpl
 @Serializable
 data class PurchaseResponse(
     val purchaseId: Long,
-    val purchaseStatus: String,
     val purchasedProductInfos: List<PurchasedProductInfo>,
     val purchasedDate: String,
 ) {
@@ -29,7 +28,6 @@ data class PurchaseResponse(
             }
             return PurchaseResponse(
                 purchaseId = domain.purchase.id,
-                purchaseStatus = domain.purchase.status.name,
                 purchasedDate = domain.purchase.createdAt.toString(),
                 purchasedProductInfos = productInfos,
             )
