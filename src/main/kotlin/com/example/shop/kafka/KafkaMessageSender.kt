@@ -3,9 +3,11 @@ package com.example.shop.kafka
 import com.example.shop.common.logger.LogSupport
 import com.example.shop.constants.NOTIFY_DLQ_TOPIC
 import com.example.shop.constants.NOTIFY_TOPIC
+import com.example.shop.constants.PRODUCT_STOCK_UPDATE_TOPIC
 import com.example.shop.kafka.domain.NotifyMessage
 import com.example.shop.kafka.notify_topic.models.NotifyKafkaContent
 import com.example.shop.kafka.notify_topic.models.NotifyKafkaMessage
+import com.example.shop.kafka.product_stock_topic.models.ProductStockUpdateKafkaMessage
 import com.example.shop.kafka.repositories.NotifyMessageRepository
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Service
 class KafkaMessageSender(
     private val kafkaTemplate: KafkaTemplate<String, Any>,
     private val notifyMessageRepository: NotifyMessageRepository
-): LogSupport() {
+) : LogSupport() {
     fun saveNotifyMessageOnDb(message: NotifyKafkaMessage) {
         val notifyMessageEntity = NotifyMessage()
         notifyMessageEntity.type = message.type
@@ -29,6 +31,10 @@ class KafkaMessageSender(
         }
 
         notifyMessageRepository.save(notifyMessageEntity)
+    }
+
+    fun sendProductStockUpdateMessage(msg: ProductStockUpdateKafkaMessage) {
+        kafkaTemplate.send(PRODUCT_STOCK_UPDATE_TOPIC, msg.productId.toString(), msg)
     }
 
     fun sendNotifyMessage(message: NotifyKafkaMessage) {

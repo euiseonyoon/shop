@@ -1,6 +1,8 @@
 package com.example.shop.purchase.services
 
 import com.example.shop.cart.services.CartDomainService
+import com.example.shop.kafka.KafkaMessageSender
+import com.example.shop.kafka.product_stock_topic.models.ProductStockUpdateKafkaMessage
 import com.example.shop.products.services.ProductService
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseDomain
@@ -21,6 +23,7 @@ class PurchaseService(
     private val productService: ProductService,
     private val cartDomainService: CartDomainService,
     private val purchaseHelper: PurchaseHelper,
+    private val kafkaMessageSender: KafkaMessageSender,
 ) {
     @Transactional(readOnly = true)
     fun getMyPurchases(
@@ -56,18 +59,27 @@ class PurchaseService(
         }
     }
 
+    private fun sendProductStockUpdateKafkaMessage(productId: Long, purchaseProductId: Long, purchasedQuantity: Int) {
+        require(purchasedQuantity > 0)
+        val msg = ProductStockUpdateKafkaMessage(purchaseProductId, productId, -1 * purchasedQuantity)
+        kafkaMessageSender.sendProductStockUpdateMessage(msg)
+    }
+
     @Transactional
     fun purchaseDirectly(request: PurchaseDirectlyRequest, accountId: Long): PurchaseDomain {
         val product = purchaseHelper.filterProductOrThrow(
             product = productService.findByIdWithLock(request.productId),
             quantity = request.quantity,
         )
-        product.decrementStock(request.quantity)
 
         val savedPurchase = purchaseRepository.save(Purchase(accountId, product.price))
         val savedPurchaseProduct = purchaseProductRepository.save(
             PurchaseProduct(savedPurchase, product.id, request.quantity)
         )
+
+        // 근데 이렇게 하면 Product 재고 차감이 비동기적으로 이루어지는데 이러면 재고 차감에서 음수발생 가능하다
+        // 그러면 Purchase - PurchaseProduct들 은 DB상에 존재하지만 카프카 메시지 핸들러에서 실제 product.stock이 차감이 안될수 있는데...
+        sendProductStockUpdateKafkaMessage(product.id, savedPurchaseProduct.id, request.quantity)
 
         return PurchaseDomain(savedPurchase, listOf(savedPurchaseProduct))
     }
@@ -75,19 +87,23 @@ class PurchaseService(
     @Transactional
     fun purchaseByCart(accountId: Long): PurchaseDomain? {
         val cartDomain = cartDomainService.getMyCart(accountId) ?: return null
-        val cart = cartDomain.cart
         val productsInCart = productService.findByIdsWithLock(cartDomain.cartItems.map { it.productId })
         val purchasableProducts = purchaseHelper.filterProductsOrThrow(cartDomain.cartItems, productsInCart)
 
         val totalPrice = purchasableProducts.sumOf { (product, quantity) -> product.price * quantity }
-        val purchase = purchaseRepository.save(Purchase(cart.accountId, totalPrice))
+        val purchase = purchaseRepository.save(Purchase(cartDomain.cart.accountId, totalPrice))
 
         val purchaseProducts = purchasableProducts.map { (product, quantity) ->
-            product.decrementStock(quantity)
-            purchaseProductRepository.save(PurchaseProduct(purchase, product.id, quantity))
+            val savedPurchasedProduct = purchaseProductRepository.save(PurchaseProduct(purchase, product.id, quantity))
+
+            // 근데 이렇게 하면 Product 재고 차감이 비동기적으로 이루어지는데 이러면 재고 차감에서 음수발생 가능하다
+            // 그러면 Purchase - PurchaseProduct들 은 DB상에 존재하지만 카프카 메시지 핸들러에서 실제 product.stock이 차감이 안될수 있는데...
+            sendProductStockUpdateKafkaMessage(product.id, savedPurchasedProduct.id, quantity)
+
+            savedPurchasedProduct
         }
 
-        cart.isPurchased = true // 장바구니 구매 상태 업데이트
+        cartDomain.cart.isPurchased = true // 장바구니 구매 상태 업데이트
 
         return PurchaseDomain(purchase, purchaseProducts)
     }

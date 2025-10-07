@@ -1,4 +1,6 @@
 spring:
+  tomcat:
+    keep-alive-timeout: 0
   data:
     redis:
       host: localhost

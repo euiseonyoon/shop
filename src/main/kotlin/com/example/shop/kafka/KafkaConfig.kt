@@ -2,6 +2,7 @@ package com.example.shop.kafka
 
 import com.example.shop.constants.NOTIFY_DLQ_TOPIC
 import com.example.shop.constants.NOTIFY_TOPIC
+import com.example.shop.constants.PRODUCT_STOCK_UPDATE_TOPIC
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -38,6 +39,7 @@ class KafkaConfig(
     // ListenerContainer는 consumer를 사용해서 kafka 로부터 메시지를 계속 polling 해주는 역할을 한다.
 
     val NOTIFY_PARTITION_COUNT = 3
+    val PRODUCT_PARTITION_COUNT = 32
 
     @Bean
     fun kafkaTemplate(producerFactory: ProducerFactory<String, Any>): KafkaTemplate<String, Any> {
@@ -96,6 +98,9 @@ class KafkaConfig(
         return DefaultKafkaConsumerFactory(configProps)
     }
 
+    // ==============================================================================
+    // 1. 알림/공지 토픽 리스너 팩토리 (Concurrency: 3)
+    // ==============================================================================
     @Bean
     fun notifyTopicListenerContainerFactory(
         consumerFactory: ConsumerFactory<String, ByteArray>
@@ -113,10 +118,44 @@ class KafkaConfig(
         return factory
     }
 
+    // ==============================================================================
+    // 2. 재고 업데이트 토픽 리스너 팩토리 (Concurrency: 32)
+    // ==============================================================================
+    /**
+     * 상품 재고 업데이트 토픽 전용 리스너 팩토리.
+     * PRODUCT_PARTITION_COUNT(32)와 동일하게 Concurrency를 설정하여
+     * '파티션 당 하나의 컨슈머'가 할당되도록 보장합니다.
+     */
+    @Bean
+    fun productStockUpdateListenerContainerFactory(
+        consumerFactory: ConsumerFactory<String, ByteArray>
+    ): ConcurrentKafkaListenerContainerFactory<String, ByteArray> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, ByteArray>()
+        factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
+        factory.consumerFactory = consumerFactory
+
+        // PRODUCT_STOCK_UPDATE_TOPIC의 파티션 수(32)와 동일하게 컨슈머를 생성합니다.
+        // 이 서버 인스턴스에서 32개의 컨슈머가 생성되며, 이는 32개의 파티션을 정확히 1:1로 담당합니다.
+        factory.setConcurrency(PRODUCT_PARTITION_COUNT)
+
+        return factory
+    }
+
+    // ==============================================================================
+    // Topic Definitions
+    // ==============================================================================
     @Bean
     fun notifyTopic(): NewTopic {
         return TopicBuilder.name(NOTIFY_TOPIC)
             .partitions(NOTIFY_PARTITION_COUNT)
+            .replicas(3)
+            .build()
+    }
+
+    @Bean
+    fun productStockUpdateTopic(): NewTopic {
+        return TopicBuilder.name(PRODUCT_STOCK_UPDATE_TOPIC)
+            .partitions(PRODUCT_PARTITION_COUNT)
             .replicas(3)
             .build()
     }

@@ -50,10 +50,17 @@ class Product(
     val id: Long = 0
 
     fun decrementStock(quantity: Int): Product {
+        require(quantity >= 0)
         if (isStockInsufficient(quantity)) {
             throw ProductInsufficientStockException("상품 수량이 부족합니다.")
         }
         this.stock -= quantity
+        return this
+    }
+
+    fun incrementStock(quantity: Int): Product {
+        require(quantity >= 0)
+        this.stock += quantity
         return this
     }
 

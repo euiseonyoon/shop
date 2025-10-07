@@ -54,15 +54,16 @@ class PurchaseServiceTest(
     @Test
     fun `test purchaseDirectly`() {
         // GIVEN
-        val threadCount = 100
-        val executorService = Executors.newFixedThreadPool(32) // 스레드 풀 생성
+        val purchaseQuantity = 1
+        val threadCount = 200
+        val executorService = Executors.newFixedThreadPool(10) // 스레드 풀 생성
         val latch = CountDownLatch(threadCount)
 
         // WHEN
         for (i in 0 until threadCount) {
             executorService.submit {
                 try {
-                    val request = PurchaseDirectlyRequest(product.id, 2)
+                    val request = PurchaseDirectlyRequest(product.id, purchaseQuantity)
                     purchaseService.purchaseDirectly(request, account.id)
                 } catch (e: Exception) {
                     throw e
@@ -71,11 +72,11 @@ class PurchaseServiceTest(
                 }
             }
         }
-        latch.await(10, TimeUnit.SECONDS)
+        latch.await(30, TimeUnit.SECONDS)
+        Thread.sleep(1000 * 10)
         executorService.shutdown()
-
         // THEN
         val productDecremented = productRepository.findById(product.id).orElse(null)
-        assertEquals(INITIAL_PRODCUT_STOCK - (2 * threadCount), productDecremented.stock)
+        assertEquals(INITIAL_PRODCUT_STOCK - (purchaseQuantity * threadCount), productDecremented.stock)
     }
 }

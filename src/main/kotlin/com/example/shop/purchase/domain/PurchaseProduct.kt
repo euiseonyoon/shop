@@ -1,7 +1,10 @@
 package com.example.shop.purchase.domain
 
+import com.example.shop.purchase.enums.PurchaseProductStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -30,6 +33,9 @@ class PurchaseProduct(
 
     @Column(nullable = false) @Min(1)
     val count: Int,
+
+    @Column(nullable = false) @Enumerated(EnumType.STRING)
+    var status: PurchaseProductStatus = PurchaseProductStatus.READY
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "purchase_product_seq_gen")
