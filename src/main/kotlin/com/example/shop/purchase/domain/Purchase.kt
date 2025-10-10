@@ -16,6 +16,9 @@ class Purchase(
 
     @Column(nullable = false) @Min(0)
     val totalPrice: Int,
+
+    @Column
+    val cartId: Long? = null
 ) : AuditEntity() {
     @Id @GeneratedValue
     val id: Long = 0

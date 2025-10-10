@@ -77,8 +77,6 @@ class PurchaseService(
             PurchaseProduct(savedPurchase, product.id, request.quantity)
         )
 
-        // 근데 이렇게 하면 Product 재고 차감이 비동기적으로 이루어지는데 이러면 재고 차감에서 음수발생 가능하다
-        // 그러면 Purchase - PurchaseProduct들 은 DB상에 존재하지만 카프카 메시지 핸들러에서 실제 product.stock이 차감이 안될수 있는데...
         sendProductStockUpdateKafkaMessage(product.id, savedPurchaseProduct.id, request.quantity)
 
         return PurchaseDomain(savedPurchase, listOf(savedPurchaseProduct))
@@ -91,13 +89,11 @@ class PurchaseService(
         val purchasableProducts = purchaseHelper.filterProductsOrThrow(cartDomain.cartItems, productsInCart)
 
         val totalPrice = purchasableProducts.sumOf { (product, quantity) -> product.price * quantity }
-        val purchase = purchaseRepository.save(Purchase(cartDomain.cart.accountId, totalPrice))
+        val purchase = purchaseRepository.save(Purchase(cartDomain.cart.accountId, totalPrice, cartDomain.cart.id))
 
         val purchaseProducts = purchasableProducts.map { (product, quantity) ->
             val savedPurchasedProduct = purchaseProductRepository.save(PurchaseProduct(purchase, product.id, quantity))
 
-            // 근데 이렇게 하면 Product 재고 차감이 비동기적으로 이루어지는데 이러면 재고 차감에서 음수발생 가능하다
-            // 그러면 Purchase - PurchaseProduct들 은 DB상에 존재하지만 카프카 메시지 핸들러에서 실제 product.stock이 차감이 안될수 있는데...
             sendProductStockUpdateKafkaMessage(product.id, savedPurchasedProduct.id, quantity)
 
             savedPurchasedProduct
