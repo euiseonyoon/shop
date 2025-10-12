@@ -68,7 +68,7 @@ class PurchaseService(
     @Transactional
     fun purchaseDirectly(request: PurchaseDirectlyRequest, accountId: Long): PurchaseDomain {
         val product = purchaseHelper.filterProductOrThrow(
-            product = productService.findByIdWithLock(request.productId),
+            product = productService.findById(request.productId),
             quantity = request.quantity,
         )
 
@@ -85,7 +85,7 @@ class PurchaseService(
     @Transactional
     fun purchaseByCart(accountId: Long): PurchaseDomain? {
         val cartDomain = cartDomainService.getMyCart(accountId) ?: return null
-        val productsInCart = productService.findByIdsWithLock(cartDomain.cartItems.map { it.productId })
+        val productsInCart = productService.findByIds(cartDomain.cartItems.map { it.productId })
         val purchasableProducts = purchaseHelper.filterProductsOrThrow(cartDomain.cartItems, productsInCart)
 
         val totalPrice = purchasableProducts.sumOf { (product, quantity) -> product.price * quantity }

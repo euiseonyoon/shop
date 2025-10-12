@@ -22,13 +22,11 @@ class ProductService(
     private val categoryService: CategoryService,
     private val jpaBatchHelper: JpaBatchHelper,
 ) {
-    @Transactional
-    fun findByIdWithLock(productId: Long): Product? {
-        return productRepository.findByIdWithLock(productId)
-    }
+    @Transactional(readOnly = true)
+    fun findById(productId: Long): Product? = productRepository.findById(productId).orElse(null)
 
     @Transactional(readOnly = true)
-    fun findByIdsWithLock(productIds: List<Long>): List<Product> = productRepository.findAllByIdIn(productIds)
+    fun findByIds(productIds: List<Long>): List<Product> = productRepository.findAllByIdIn(productIds)
 
     @Transactional
     fun createMany(req: List<CreateProductRequest>): List<Product> {
