@@ -58,4 +58,20 @@ class PurchaseController(
             GlobalResponse.create(response)
         }
     }
+
+    @GetMapping("/approve")
+    fun approvePurchase() {
+        // 여기서 purchase를 uuid를 통해서 찾은다음
+        // status를 확인
+        // INVALID라면  purchase에 포함된 purchaseProduct의 구매수량만큼 재고를 원복시킨다.
+        // 그렇지 않다면 토스 페이먼츠의 /payment/approve인가 하는 것을 호출하고 purchase 상태를 APPROVE로 저장 한다
+    }
+
+    @GetMapping("/fail")
+    fun failPurchase() {
+        // 여기서 purchase를 uuid를 통해서 찾은다음
+        // status를 확인
+        // INVALID라면  purchase에 포함된 purchaseProduct의 구매수량만큼 재고를 원복시킨다.
+        // 그렇지 않다면 토스 페이먼츠의 purchase 상태를 FAIL로 저장 한다
+    }
 }
