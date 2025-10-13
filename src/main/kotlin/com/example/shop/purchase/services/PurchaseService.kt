@@ -1,12 +1,12 @@
 package com.example.shop.purchase.services
 
 import com.example.shop.cart.services.CartDomainService
-import com.example.shop.kafka.KafkaMessageSender
-import com.example.shop.kafka.product_stock_topic.models.ProductStockUpdateKafkaMessage
 import com.example.shop.products.services.ProductService
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseDomain
 import com.example.shop.purchase.domain.PurchaseProduct
+import com.example.shop.purchase.models.PurchaseApproveRequest
+import com.example.shop.purchase.models.PurchaseApproveResult
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
 import com.example.shop.purchase.repositories.PurchaseProductRepository
 import com.example.shop.purchase.repositories.PurchaseRepository
@@ -23,9 +23,9 @@ class PurchaseService(
     private val productService: ProductService,
     private val cartDomainService: CartDomainService,
     private val purchaseHelper: PurchaseHelper,
-    private val kafkaMessageSender: KafkaMessageSender,
+    private val purchaseProductStockHelper: PurchaseProductStockHelper,
+    private val purchaseApproveHelper: PurchaseApproveHelper,
 ) {
-    @Transactional(readOnly = true)
     fun getMyPurchases(
         purchaseIds: List<Long>?,
         accountId: Long,
@@ -59,12 +59,6 @@ class PurchaseService(
         }
     }
 
-    private fun sendProductStockUpdateKafkaMessage(productId: Long, purchaseProductId: Long, purchasedQuantity: Int) {
-        require(purchasedQuantity > 0)
-        val msg = ProductStockUpdateKafkaMessage(purchaseProductId, productId, -1 * purchasedQuantity)
-        kafkaMessageSender.sendProductStockUpdateMessage(msg)
-    }
-
     @Transactional
     fun purchaseDirectly(request: PurchaseDirectlyRequest, accountId: Long): PurchaseDomain {
         val product = purchaseHelper.filterProductOrThrow(
@@ -77,7 +71,7 @@ class PurchaseService(
             PurchaseProduct(savedPurchase, product.id, request.quantity)
         )
 
-        sendProductStockUpdateKafkaMessage(product.id, savedPurchaseProduct.id, request.quantity)
+        purchaseProductStockHelper.sendStockDecrementMessage(product.id, savedPurchaseProduct.id, request.quantity)
 
         return PurchaseDomain(savedPurchase, listOf(savedPurchaseProduct))
     }
@@ -92,15 +86,22 @@ class PurchaseService(
         val purchase = purchaseRepository.save(Purchase(cartDomain.cart.accountId, totalPrice, cartDomain.cart.id))
 
         val purchaseProducts = purchasableProducts.map { (product, quantity) ->
-            val savedPurchasedProduct = purchaseProductRepository.save(PurchaseProduct(purchase, product.id, quantity))
-
-            sendProductStockUpdateKafkaMessage(product.id, savedPurchasedProduct.id, quantity)
-
-            savedPurchasedProduct
+            purchaseProductRepository.save(PurchaseProduct(purchase, product.id, quantity)).also {
+                purchaseProductStockHelper.sendStockDecrementMessage(product.id, it.id, quantity)
+            }
         }
 
         cartDomain.cart.isPurchased = true // 장바구니 구매 상태 업데이트
 
         return PurchaseDomain(purchase, purchaseProducts)
     }
+
+    @Transactional
+    fun approvePurchase(request: PurchaseApproveRequest): PurchaseApproveResult {
+        val purchase = purchaseRepository.findByUuid(request.orderId) ?:
+            return PurchaseApproveResult(false, "orderId에 해당하는 구매를 찾을 수 없습니다.")
+
+        return purchaseApproveHelper.approveByPurchaseStatus(purchase, request)
+    }
+
 }
