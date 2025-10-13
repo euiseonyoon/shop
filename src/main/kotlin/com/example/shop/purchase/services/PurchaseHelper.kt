@@ -5,12 +5,25 @@ import com.example.shop.common.apis.exceptions.NotFoundException
 import com.example.shop.products.domain.Product
 import com.example.shop.products.exceptions.ProductUnavailableException
 import com.example.shop.purchase.domain.Purchase
-import com.example.shop.purchase.domain.PurchaseProduct
+import com.example.shop.purchase.enums.PurchaseStatus
 import com.example.shop.purchase.exceptions.PurchaseByCartException
+import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.stereotype.Component
+import java.time.OffsetDateTime
 
 @Component
-class PurchaseHelper {
+class PurchaseHelper(
+    private val purchaseRepository: PurchaseRepository,
+) {
+    fun updatePurchaseStatus(purchase: Purchase, desiredStatus: PurchaseStatus) {
+        if (purchase.status == PurchaseStatus.READY) {
+            purchase.apply {
+                this.status = desiredStatus
+                this.updatedAt = OffsetDateTime.now()
+            }.let { purchaseRepository.save(it) }
+        }
+    }
+
     fun filterProductOrThrow(product: Product?, quantity: Int): Product {
         val nonNullProduct = product ?: throw NotFoundException("Product Not found.")
 

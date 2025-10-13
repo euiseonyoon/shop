@@ -11,17 +11,16 @@ import com.example.shop.purchase.domain.PurchaseProduct
 import com.example.shop.purchase.enums.PurchaseProductStatus
 import com.example.shop.purchase.enums.PurchaseStatus
 import com.example.shop.purchase.repositories.PurchaseProductRepository
-import com.example.shop.purchase.repositories.PurchaseRepository
+import com.example.shop.purchase.services.PurchaseHelper
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.time.OffsetDateTime
 
 @Component
 class ProductStockUpdateKafkaMsgHandler(
     private val productRepository: ProductRepository,
     private val purchaseProductRepository: PurchaseProductRepository,
-    private val purchaseRepository: PurchaseRepository,
     private val cartRepository: CartRepository,
+    private val purchaseHelper: PurchaseHelper,
 ) : KafkaMessageHandler<ProductStockUpdateKafkaMessage> {
     @Transactional
     override fun handleMessage(message: ProductStockUpdateKafkaMessage) {
@@ -50,12 +49,7 @@ class ProductStockUpdateKafkaMsgHandler(
 
     private fun setPurchaseStockInsufficient(purchase: Purchase) {
         // 1. Purchase의 상태를 `STOCK_INSUFFICIENT` 라고 저장한다.
-        if (purchase.status == PurchaseStatus.READY) {
-            purchase.apply {
-                this.status = PurchaseStatus.STOCK_INSUFFICIENT
-                this.updatedAt = OffsetDateTime.now()
-            }.let { purchaseRepository.save(it) }
-        }
+        purchaseHelper.updatePurchaseStatus(purchase, PurchaseStatus.STOCK_INSUFFICIENT)
 
         // 2. Purchase가 장바구니(cart)를 통해 이루어 진것이라면 Cart의 구매완료 정보도 수정한다.
         purchase.cartId ?.let { cartId ->
