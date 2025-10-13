@@ -12,10 +12,6 @@ class CommonConfig {
     @Bean
     fun json(): Json = Json { ignoreUnknownKeys = true }
 
-
-    @Bean fun jpaQueryFactory(
-        entityManager: EntityManager
-    ): JPAQueryFactory {
-        return JPAQueryFactory(entityManager)
-    }
+    @Bean
+    fun jpaQueryFactory(entityManager: EntityManager): JPAQueryFactory = JPAQueryFactory(entityManager)
 }
