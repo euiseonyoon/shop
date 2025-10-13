@@ -9,5 +9,6 @@ interface PurchaseApproveHelper {
     val stockUpdatedCheckIntervalMilliSeconds: Long
 
     fun approveByPurchaseStatus(purchase: Purchase, request: PurchaseApproveRequest): PurchaseApproveResult
+
     fun waitForStockUpdated(purchase: Purchase): Boolean
 }

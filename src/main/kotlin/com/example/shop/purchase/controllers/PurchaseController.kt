@@ -3,15 +3,14 @@ package com.example.shop.purchase.controllers
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.response.PagedResponse
 import com.example.shop.constants.ROLE_USER
-import com.example.shop.purchase.domain.Purchase
-import com.example.shop.purchase.domain.PurchaseDomain
+import com.example.shop.purchase.models.PurchaseApproveRequest
+import com.example.shop.purchase.models.PurchaseApproveResult
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
 import com.example.shop.purchase.models.PurchaseResponse
 import com.example.shop.purchase.services.PurchaseService
 import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -59,12 +58,13 @@ class PurchaseController(
         }
     }
 
-    @GetMapping("/approve")
-    fun approvePurchase() {
-        // 여기서 purchase를 uuid를 통해서 찾은다음
-        // status를 확인
-        // INVALID라면  purchase에 포함된 purchaseProduct의 구매수량만큼 재고를 원복시킨다.
-        // 그렇지 않다면 토스 페이먼츠의 /payment/approve인가 하는 것을 호출하고 purchase 상태를 APPROVE로 저장 한다
+    @PostMapping("/approve")
+    fun approvePurchase(
+        @RequestBody @Valid request: PurchaseApproveRequest,
+    ): GlobalResponse<PurchaseApproveResult> {
+        return purchaseService.approvePurchase(request).let {
+            GlobalResponse.create(it)
+        }
     }
 
     @GetMapping("/fail")

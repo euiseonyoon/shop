@@ -32,6 +32,9 @@ repositories {
 }
 
 dependencies {
+    // 외부 api call을 할때, WebClient를 사용한다.
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+
     // kafka
     implementation("org.springframework.kafka:spring-kafka")
 

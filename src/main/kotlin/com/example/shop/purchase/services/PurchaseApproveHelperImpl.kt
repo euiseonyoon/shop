@@ -2,6 +2,7 @@ package com.example.shop.purchase.services
 
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.enums.PurchaseStatus
+import com.example.shop.purchase.exceptions.TossPaymentApiException
 import com.example.shop.purchase.models.PurchaseApproveRequest
 import com.example.shop.purchase.models.PurchaseApproveResult
 import com.example.shop.purchase.repositories.PurchaseProductRepository
@@ -14,6 +15,7 @@ class PurchaseApproveHelperImpl(
     private val purchaseProductService: PurchaseProductService,
     private val purchaseProductStockHelper: PurchaseProductStockHelper,
     private val purchaseHelper: PurchaseHelper,
+    private val tossPaymentService: TossPaymentService,
 ) : PurchaseApproveHelper {
     override val maxStockUpdatedTrial = 3
     override val stockUpdatedCheckIntervalMilliSeconds = 200L
@@ -40,20 +42,27 @@ class PurchaseApproveHelperImpl(
                     return PurchaseApproveResult(false, reason)
                 }
 
-                // TODO: 토스 페이먼츠 /v1/payments/confirm 호출하기
-                // https://docs.tosspayments.com/reference#%EA%B2%B0%EC%A0%9C-%EC%8A%B9%EC%9D%B8
-                return PurchaseApproveResult(true, null)
+                return sendApproveRequest(request)
             }
         }
     }
 
-    fun restorePurchaseProductsStock(purchaseId: Long) {
+    private fun sendApproveRequest(request: PurchaseApproveRequest): PurchaseApproveResult {
+        return try {
+            tossPaymentService.sendPaymentApproveRequest(request)
+            PurchaseApproveResult(true, null)
+        } catch (e: TossPaymentApiException) {
+            PurchaseApproveResult(false, "토스 결제 승인 오류. errorCode: ${e.errorCode}, errorMessage: ${e.errorMessage}")
+        }
+    }
+
+    private fun restorePurchaseProductsStock(purchaseId: Long) {
         purchaseProductRepository.findByPurchaseId(purchaseId).let {
             purchaseProductStockHelper.restorePurchasedProductStock(it)
         }
     }
 
-    fun checkPurchase(purchase: Purchase, totalApprovingPrice: Int): Pair<Boolean, String?> {
+    private fun checkPurchase(purchase: Purchase, totalApprovingPrice: Int): Pair<Boolean, String?> {
         if (totalApprovingPrice != purchase.totalPrice) {
             return false to "구매 가격이 서로 다릅니다."
         }
