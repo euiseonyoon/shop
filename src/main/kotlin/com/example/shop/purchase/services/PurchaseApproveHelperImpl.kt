@@ -6,6 +6,7 @@ import com.example.shop.purchase.models.PurchaseApproveRequest
 import com.example.shop.purchase.models.PurchaseApproveResult
 import com.example.shop.purchase.repositories.PurchaseProductRepository
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class PurchaseApproveHelperImpl(
@@ -17,6 +18,7 @@ class PurchaseApproveHelperImpl(
     override val maxStockUpdatedTrial = 3
     override val stockUpdatedCheckIntervalMilliSeconds = 200L
 
+    @Transactional
     override fun approveByPurchaseStatus(purchase: Purchase, request: PurchaseApproveRequest): PurchaseApproveResult {
         when(purchase.status) {
             PurchaseStatus.STOCK_INSUFFICIENT -> {

@@ -25,6 +25,7 @@ class PurchaseService(
     private val purchaseHelper: PurchaseHelper,
     private val purchaseProductStockHelper: PurchaseProductStockHelper,
     private val purchaseApproveHelper: PurchaseApproveHelper,
+    private val paymentService: PaymentService,
 ) {
     fun getMyPurchases(
         purchaseIds: List<Long>?,
@@ -96,10 +97,11 @@ class PurchaseService(
         return PurchaseDomain(purchase, purchaseProducts)
     }
 
-    @Transactional
     fun approvePurchase(request: PurchaseApproveRequest): PurchaseApproveResult {
         val purchase = purchaseRepository.findByUuid(request.orderId) ?:
             return PurchaseApproveResult(false, "orderId에 해당하는 구매를 찾을 수 없습니다.")
+
+        paymentService.savePayment(purchase.id, request.paymentKey)
 
         return purchaseApproveHelper.approveByPurchaseStatus(purchase, request)
     }
