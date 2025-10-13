@@ -14,6 +14,7 @@ import com.example.shop.purchase.repositories.PurchaseProductRepository
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.OffsetDateTime
 
 @Component
 class ProductStockUpdateKafkaMsgHandler(
@@ -30,11 +31,10 @@ class ProductStockUpdateKafkaMsgHandler(
             updateProductStock(message.updateAmount, targetProduct)
             return
         }
-
-        // 구매(Purchase)에 포함된 상품의 재고를 차감하거나 차감된 재고를 원복시킴.
         val targetPurchaseProduct = purchaseProductRepository.findByIdWithPurchase(message.purchaseProductId) ?: return
+
         try {
-            // 구매된 상품 재고 차감 혹은 구매 처리된 상품 재고 원복
+            // 구매(Purchase)에 포함된 상품의 재고를 차감하거나 차감된 재고를 원복시킴.
             decrementOrRestoreProductStock(message.updateAmount, targetProduct, targetPurchaseProduct)
         } catch (e: ProductInsufficientStockException) {
             // 상품의 구매 처리중, 재고 부족으로 오류 발생
@@ -43,14 +43,19 @@ class ProductStockUpdateKafkaMsgHandler(
             targetPurchaseProduct.status = PurchaseProductStatus.PRODUCT_STOCK_RESTORED
             purchaseProductRepository.save(targetPurchaseProduct)
 
-            // 2. Purchase를 구매 진행이 될 수 없는 상태(INVALID)로 표시한다.
-            setPurchaseInvalid(targetPurchaseProduct.purchase)
+            // 2. Purchase를 재고 부족 상태(STOCK_INSUFFICIENT)로 표시한다.
+            setPurchaseStockInsufficient(targetPurchaseProduct.purchase)
         }
     }
 
-    private fun setPurchaseInvalid(purchase: Purchase) {
-        // 1. Purchase의 상태를 INVALID 라고 저장한다.
-        purchase.apply { this.status = PurchaseStatus.INVALID }.let { purchaseRepository.save(it) }
+    private fun setPurchaseStockInsufficient(purchase: Purchase) {
+        // 1. Purchase의 상태를 `STOCK_INSUFFICIENT` 라고 저장한다.
+        if (purchase.status == PurchaseStatus.READY) {
+            purchase.apply {
+                this.status = PurchaseStatus.STOCK_INSUFFICIENT
+                this.updatedAt = OffsetDateTime.now()
+            }.let { purchaseRepository.save(it) }
+        }
 
         // 2. Purchase가 장바구니(cart)를 통해 이루어 진것이라면 Cart의 구매완료 정보도 수정한다.
         purchase.cartId ?.let { cartId ->
@@ -76,15 +81,11 @@ class ProductStockUpdateKafkaMsgHandler(
     ) {
         val status = when {
             updateAmount < 0 -> {
-                require(targetPurchaseProduct.status == PurchaseProductStatus.READY) {
-                    "구매하려는 상품의 재고를 차감하기 위해서는 READY 상태이어야 합니다. ${targetPurchaseProduct.id}"
-                }
+                if (targetPurchaseProduct.status != PurchaseProductStatus.READY) return
                 PurchaseProductStatus.PRODUCT_STOCK_DECREMENTED
             }
             updateAmount > 0 -> {
-                require(targetPurchaseProduct.status == PurchaseProductStatus.PRODUCT_STOCK_DECREMENTED) {
-                    "구매된 상품의 재고를 원복하기 위해서는 PRODUCT_STOCK_DECREMENTED 상태이어야 합니다. ${targetPurchaseProduct.id}"
-                }
+                if (targetPurchaseProduct.status != PurchaseProductStatus.PRODUCT_STOCK_DECREMENTED) return
                 PurchaseProductStatus.PRODUCT_STOCK_RESTORED
             }
             else -> return
