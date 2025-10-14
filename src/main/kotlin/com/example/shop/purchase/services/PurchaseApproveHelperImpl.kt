@@ -75,6 +75,7 @@ class PurchaseApproveHelperImpl(
 
     private fun checkPurchase(purchase: Purchase, totalApprovingPrice: Int): Pair<Boolean, String?> {
         if (totalApprovingPrice != purchase.totalPrice) {
+            handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
             return false to "구매 가격이 서로 다릅니다."
         }
 
