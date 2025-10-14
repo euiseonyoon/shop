@@ -9,7 +9,6 @@ import com.example.shop.purchase.enums.PurchaseStatus
 import com.example.shop.purchase.exceptions.PurchaseByCartException
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.stereotype.Component
-import java.time.OffsetDateTime
 
 @Component
 class PurchaseHelper(
@@ -17,10 +16,7 @@ class PurchaseHelper(
 ) {
     fun updatePurchaseStatus(purchase: Purchase, desiredStatus: PurchaseStatus) {
         if (purchase.status == PurchaseStatus.READY) {
-            purchase.apply {
-                this.status = desiredStatus
-                this.updatedAt = OffsetDateTime.now()
-            }.let { purchaseRepository.save(it) }
+            purchase.apply { this.updateStatus(desiredStatus) }.let { purchaseRepository.save(it) }
         }
     }
 

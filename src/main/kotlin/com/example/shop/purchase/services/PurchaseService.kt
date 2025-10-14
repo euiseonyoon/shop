@@ -20,7 +20,6 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.OffsetDateTime
 
 @Service
 class PurchaseService(
@@ -117,8 +116,7 @@ class PurchaseService(
     fun failPurchase(request: PurchaseFailRequest) {
         val purchase = purchaseRepository.findByUuid(request.orderId) ?: throw PurchaseNotFoundException(request.orderId)
 
-        purchase.status = PurchaseStatus.FAILED
-        purchase.updatedAt = OffsetDateTime.now()
+        purchase.updateStatus(PurchaseStatus.FAILED)
         purchaseRepository.save(purchase)
 
         failedPurchaseRepository.save(FailedPurchase(purchase.id, request.errorCode, request.errorMessage))
