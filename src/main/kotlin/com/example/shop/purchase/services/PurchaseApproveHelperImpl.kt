@@ -37,12 +37,24 @@ class PurchaseApproveHelperImpl(
                 return PurchaseApproveResult(false, "시간 내에 처리 되지 못한 구매입니다.")
             }
             PurchaseStatus.READY -> {
-                val (isOk, reason) = checkPurchase(purchase, request.amount)
-                if (!isOk) {
-                    return PurchaseApproveResult(false, reason)
+                checkPurchasePrice(purchase, request.amount).let { (isOk, failedReason) ->
+                    if (!isOk) {
+                        handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
+                        return PurchaseApproveResult(false, failedReason)
+                    }
+                }
+                checkPurchaseProductStockUpdated(purchase.id).let { (isOk, failedReason) ->
+                    if (!isOk) {
+                        handlePurchaseIfFails(purchase, PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME)
+                        return PurchaseApproveResult(false, failedReason)
+                    }
                 }
 
-                return sendApproveRequest(purchase, request)
+                return sendApproveRequest(request).also {
+                    if (!it.isApproved) {
+                        handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
+                    }
+                }
             }
         }
     }
@@ -52,13 +64,11 @@ class PurchaseApproveHelperImpl(
         restorePurchaseProductsStock(purchase.id)
     }
 
-    private fun sendApproveRequest(purchase: Purchase, request: PurchaseApproveRequest): PurchaseApproveResult {
+    private fun sendApproveRequest(request: PurchaseApproveRequest): PurchaseApproveResult {
         return try {
             tossPaymentService.sendPaymentApproveRequest(request)
             PurchaseApproveResult(true, null)
         } catch (e: Exception) {
-            handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
-
             if (e is TossPaymentApiException) {
                 PurchaseApproveResult(false, "토스 결제 승인 오류. errorCode: ${e.errorCode}, errorMessage: ${e.errorMessage}")
             } else {
@@ -73,23 +83,24 @@ class PurchaseApproveHelperImpl(
         }
     }
 
-    private fun checkPurchase(purchase: Purchase, totalApprovingPrice: Int): Pair<Boolean, String?> {
+    private fun checkPurchasePrice(purchase: Purchase, totalApprovingPrice: Int): Pair<Boolean, String?>{
         if (totalApprovingPrice != purchase.totalPrice) {
-            handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
             return false to "구매 가격이 서로 다릅니다."
         }
+        return true to null
+    }
 
-        if (!waitForStockUpdated(purchase)) {
-            handlePurchaseIfFails(purchase, PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME)
+    private fun checkPurchaseProductStockUpdated(purchaseId: Long): Pair<Boolean, String?>{
+        if (!waitForStockUpdated(purchaseId)) {
             false to "시간 내에 구매상품의 재고 차감이 이루어 지지 않았습니다."
         }
 
         return true to null
     }
 
-    override fun waitForStockUpdated(purchase: Purchase): Boolean {
+    override fun waitForStockUpdated(purchaseId: Long): Boolean {
         for (i in 1..maxStockUpdatedTrial) {
-            if (purchaseProductService.isAllStockUpdated(purchase.id)) {
+            if (purchaseProductService.isAllStockUpdated(purchaseId)) {
                 return true
             }
             Thread.sleep(stockUpdatedCheckIntervalMilliSeconds)

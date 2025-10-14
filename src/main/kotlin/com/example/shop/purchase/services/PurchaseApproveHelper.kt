@@ -11,7 +11,7 @@ interface PurchaseApproveHelper {
 
     fun approveByPurchaseStatus(purchase: Purchase, request: PurchaseApproveRequest): PurchaseApproveResult
 
-    fun waitForStockUpdated(purchase: Purchase): Boolean
+    fun waitForStockUpdated(purchaseId: Long): Boolean
 
     fun handlePurchaseIfFails(purchase: Purchase, updatingStatus: PurchaseStatus)
 }
