@@ -1,12 +1,10 @@
 package com.example.shop.purchase.services
 
-import com.example.shop.purchase.models.PurchaseApproveRequest
-import com.example.shop.purchase.models.pg_payment_result.toss.TossPaymentResponse
-
 interface TossPaymentService : ExternalPaymentService {
     val secretKey: String
 
-    override fun sendPaymentApproveRequest(request: PurchaseApproveRequest): TossPaymentResponse?
+    // NOTE: 추후, Payment response를 확인해야 되는 구현이 있으면 활성화 할 수 있겠다.
+    // override fun sendPaymentApproveRequest(request: PurchaseApproveRequest): TossPaymentResponse?
 }
 
 
