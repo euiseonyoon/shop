@@ -2,12 +2,17 @@ package com.example.shop.purchase.services
 
 import com.example.shop.cart.services.CartDomainService
 import com.example.shop.products.services.ProductService
+import com.example.shop.purchase.domain.FailedPurchase
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseDomain
 import com.example.shop.purchase.domain.PurchaseProduct
+import com.example.shop.purchase.enums.PurchaseStatus
+import com.example.shop.purchase.exceptions.PurchaseNotFoundException
 import com.example.shop.purchase.models.PurchaseApproveRequest
 import com.example.shop.purchase.models.PurchaseApproveResult
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
+import com.example.shop.purchase.models.PurchaseFailRequest
+import com.example.shop.purchase.repositories.FailedPurchaseRepository
 import com.example.shop.purchase.repositories.PurchaseProductRepository
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.data.domain.Page
@@ -15,6 +20,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.OffsetDateTime
 
 @Service
 class PurchaseService(
@@ -26,6 +32,7 @@ class PurchaseService(
     private val purchaseProductStockHelper: PurchaseProductStockHelper,
     private val purchaseApproveHelper: PurchaseApproveHelper,
     private val paymentService: PaymentService,
+    private val failedPurchaseRepository: FailedPurchaseRepository,
 ) {
     fun getMyPurchases(
         purchaseIds: List<Long>?,
@@ -106,4 +113,16 @@ class PurchaseService(
         return purchaseApproveHelper.approveByPurchaseStatus(purchase, request)
     }
 
+    @Transactional
+    fun failPurchase(request: PurchaseFailRequest) {
+        val purchase = purchaseRepository.findByUuid(request.orderId) ?: throw PurchaseNotFoundException(request.orderId)
+
+        purchase.status = PurchaseStatus.FAILED
+        purchase.updatedAt = OffsetDateTime.now()
+        purchaseRepository.save(purchase)
+
+        failedPurchaseRepository.save(FailedPurchase(purchase.id, request.errorCode, request.errorMessage))
+
+        purchaseApproveHelper.restorePurchaseProductsStock(purchase.id)
+    }
 }

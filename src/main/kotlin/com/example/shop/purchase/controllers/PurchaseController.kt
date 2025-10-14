@@ -6,6 +6,7 @@ import com.example.shop.constants.ROLE_USER
 import com.example.shop.purchase.models.PurchaseApproveRequest
 import com.example.shop.purchase.models.PurchaseApproveResult
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
+import com.example.shop.purchase.models.PurchaseFailRequest
 import com.example.shop.purchase.models.PurchaseResponse
 import com.example.shop.purchase.services.PurchaseService
 import jakarta.validation.Valid
@@ -67,11 +68,11 @@ class PurchaseController(
         }
     }
 
-    @GetMapping("/fail")
-    fun failPurchase() {
-        // 여기서 purchase를 uuid를 통해서 찾은다음
-        // status를 확인
-        // INVALID라면  purchase에 포함된 purchaseProduct의 구매수량만큼 재고를 원복시킨다.
-        // 그렇지 않다면 토스 페이먼츠의 purchase 상태를 FAIL로 저장 한다
+    @PostMapping("/fail")
+    fun failPurchase(
+        @RequestBody request: PurchaseFailRequest
+    ): GlobalResponse<Nothing> {
+        purchaseService.failPurchase(request)
+        return GlobalResponse.create(false, null, null)
     }
 }
