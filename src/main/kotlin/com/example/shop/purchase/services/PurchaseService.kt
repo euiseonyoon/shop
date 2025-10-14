@@ -116,11 +116,8 @@ class PurchaseService(
     fun failPurchase(request: PurchaseFailRequest) {
         val purchase = purchaseRepository.findByUuid(request.orderId) ?: throw PurchaseNotFoundException(request.orderId)
 
-        purchase.updateStatus(PurchaseStatus.FAILED)
-        purchaseRepository.save(purchase)
-
         failedPurchaseRepository.save(FailedPurchase(purchase.id, request.errorCode, request.errorMessage))
 
-        purchaseApproveHelper.restorePurchaseProductsStock(purchase.id)
+        purchaseApproveHelper.handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
     }
 }

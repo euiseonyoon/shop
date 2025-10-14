@@ -42,21 +42,32 @@ class PurchaseApproveHelperImpl(
                     return PurchaseApproveResult(false, reason)
                 }
 
-                return sendApproveRequest(request)
+                return sendApproveRequest(purchase, request)
             }
         }
     }
 
-    private fun sendApproveRequest(request: PurchaseApproveRequest): PurchaseApproveResult {
+    override fun handlePurchaseIfFails(purchase: Purchase, updatingStatus: PurchaseStatus) {
+        purchaseHelper.updatePurchaseStatus(purchase, updatingStatus)
+        restorePurchaseProductsStock(purchase.id)
+    }
+
+    private fun sendApproveRequest(purchase: Purchase, request: PurchaseApproveRequest): PurchaseApproveResult {
         return try {
             tossPaymentService.sendPaymentApproveRequest(request)
             PurchaseApproveResult(true, null)
-        } catch (e: TossPaymentApiException) {
-            PurchaseApproveResult(false, "토스 결제 승인 오류. errorCode: ${e.errorCode}, errorMessage: ${e.errorMessage}")
+        } catch (e: Exception) {
+            handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
+
+            if (e is TossPaymentApiException) {
+                PurchaseApproveResult(false, "토스 결제 승인 오류. errorCode: ${e.errorCode}, errorMessage: ${e.errorMessage}")
+            } else {
+                PurchaseApproveResult(false, "${e.message}")
+            }
         }
     }
 
-    override fun restorePurchaseProductsStock(purchaseId: Long) {
+    private fun restorePurchaseProductsStock(purchaseId: Long) {
         purchaseProductRepository.findByPurchaseId(purchaseId).let {
             purchaseProductStockHelper.restorePurchasedProductStock(it)
         }
@@ -68,8 +79,7 @@ class PurchaseApproveHelperImpl(
         }
 
         if (!waitForStockUpdated(purchase)) {
-            purchaseHelper.updatePurchaseStatus(purchase, PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME)
-            restorePurchaseProductsStock(purchase.id)
+            handlePurchaseIfFails(purchase, PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME)
             false to "시간 내에 구매상품의 재고 차감이 이루어 지지 않았습니다."
         }
 
