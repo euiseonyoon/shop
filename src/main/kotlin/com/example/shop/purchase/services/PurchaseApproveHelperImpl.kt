@@ -27,7 +27,7 @@ class PurchaseApproveHelperImpl(
                 return PurchaseApproveResult(false, "이미 승인된 구매입니다.")
             }
             PurchaseStatus.FAILED -> {
-                return PurchaseApproveResult(false, "실패 처리된 구매입니다.")
+                return PurchaseApproveResult(false, "결제 승인 오류로 인해 실패 처리된 구매입니다.")
             }
             PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME -> {
                 return PurchaseApproveResult(false, "시간 내에 처리 되지 못한 구매입니다.")
@@ -36,17 +36,9 @@ class PurchaseApproveHelperImpl(
                 return PurchaseApproveResult(false, "구매 총 금액이 상이해서 취소된 구매입니다.")
             }
             PurchaseStatus.READY -> {
-                checkPurchasePrice(purchase, request.amount).let { (isOk, failedReason) ->
-                    if (!isOk) {
-                        purchaseHelper.handlePurchaseIfFails(purchase, PurchaseStatus.PURCHASED_TOTAL_PRICE_DIFFERENT)
-                        return PurchaseApproveResult(false, failedReason)
-                    }
-                }
-                checkPurchaseProductStockUpdated(purchase.id).let { (isOk, failedReason) ->
-                    if (!isOk) {
-                        purchaseHelper.handlePurchaseIfFails(purchase, PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME)
-                        return PurchaseApproveResult(false, failedReason)
-                    }
+                validatePurchaseBeforeApprove(purchase, request.amount)?.let { (failedReason, failStatus) ->
+                    purchaseHelper.handlePurchaseIfFails(purchase, failStatus)
+                    return PurchaseApproveResult(false, failedReason)
                 }
 
                 return sendApproveRequest(request).also {
@@ -58,27 +50,28 @@ class PurchaseApproveHelperImpl(
         }
     }
 
-    private fun sendApproveRequest(request: PurchaseApproveRequest): PurchaseApproveResult {
+    fun validatePurchaseBeforeApprove(purchase: Purchase, approvingTotal: Int): Pair<String, PurchaseStatus>? {
+        if (approvingTotal != purchase.totalPrice) {
+            return "결제된 금액과 구매된 총 금액이 상이합니다." to PurchaseStatus.PURCHASED_TOTAL_PRICE_DIFFERENT
+        }
+
+        purchaseHelper.checkIfStocksUpdated(
+            purchase.id,
+            maxStockUpdatedTrial,
+            stockUpdatedCheckIntervalMilliSeconds,
+        ).let {
+            if (!it) return "재품 재고를 감소 시간초과로 구매가 취소 되었습니다." to PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME
+        }
+
+        return null
+    }
+
+    fun sendApproveRequest(request: PurchaseApproveRequest): PurchaseApproveResult {
         return try {
             tossPaymentService.sendPaymentApproveRequest(request)
             PurchaseApproveResult(true, null)
         } catch (e: Exception) {
-            PurchaseApproveResult(false, "${e.message}")
+            PurchaseApproveResult(false, "토스 결제 승인 오류. ${e.message}")
         }
-    }
-
-    private fun checkPurchasePrice(purchase: Purchase, totalApprovingPrice: Int): Pair<Boolean, String?>{
-        if (totalApprovingPrice != purchase.totalPrice) {
-            return false to "구매 가격이 서로 다릅니다."
-        }
-        return true to null
-    }
-
-    private fun checkPurchaseProductStockUpdated(purchaseId: Long): Pair<Boolean, String?>{
-        if (!purchaseHelper.checkIfStocksUpdated(purchaseId, maxStockUpdatedTrial, stockUpdatedCheckIntervalMilliSeconds)) {
-            false to "시간 내에 구매상품의 재고 차감이 이루어 지지 않았습니다."
-        }
-
-        return true to null
     }
 }

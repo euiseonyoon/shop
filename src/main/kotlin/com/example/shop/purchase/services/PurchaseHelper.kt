@@ -11,6 +11,7 @@ import com.example.shop.purchase.exceptions.PurchaseByCartException
 import com.example.shop.purchase.repositories.PurchaseProductRepository
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class PurchaseHelper(
@@ -20,6 +21,7 @@ class PurchaseHelper(
     private val purchaseProductStockHelper: PurchaseProductStockHelper,
     private val purchaseProductService: PurchaseProductService,
 ) {
+    @Transactional
     fun handlePurchaseIfFails(purchase: Purchase, updatingStatus: PurchaseStatus) {
         updatePurchaseStatus(purchase, updatingStatus)
         setCartToNotPurchased(purchase)
