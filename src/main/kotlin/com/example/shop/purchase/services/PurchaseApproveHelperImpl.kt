@@ -56,7 +56,7 @@ class PurchaseApproveHelperImpl(
         }
     }
 
-    private fun restorePurchaseProductsStock(purchaseId: Long) {
+    override fun restorePurchaseProductsStock(purchaseId: Long) {
         purchaseProductRepository.findByPurchaseId(purchaseId).let {
             purchaseProductStockHelper.restorePurchasedProductStock(it)
         }
