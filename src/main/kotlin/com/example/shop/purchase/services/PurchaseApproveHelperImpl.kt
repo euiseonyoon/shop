@@ -2,7 +2,6 @@ package com.example.shop.purchase.services
 
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.enums.PurchaseStatus
-import com.example.shop.purchase.exceptions.TossPaymentApiException
 import com.example.shop.purchase.models.PurchaseApproveRequest
 import com.example.shop.purchase.models.PurchaseApproveResult
 import org.springframework.stereotype.Component
@@ -64,11 +63,7 @@ class PurchaseApproveHelperImpl(
             tossPaymentService.sendPaymentApproveRequest(request)
             PurchaseApproveResult(true, null)
         } catch (e: Exception) {
-            if (e is TossPaymentApiException) {
-                PurchaseApproveResult(false, "토스 결제 승인 오류. errorCode: ${e.errorCode}, errorMessage: ${e.errorMessage}")
-            } else {
-                PurchaseApproveResult(false, "${e.message}")
-            }
+            PurchaseApproveResult(false, "${e.message}")
         }
     }
 
