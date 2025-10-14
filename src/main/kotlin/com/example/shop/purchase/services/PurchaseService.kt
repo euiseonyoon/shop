@@ -118,6 +118,6 @@ class PurchaseService(
 
         failedPurchaseRepository.save(FailedPurchase(purchase.id, request.errorCode, request.errorMessage))
 
-        purchaseApproveHelper.handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
+        purchaseHelper.handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
     }
 }

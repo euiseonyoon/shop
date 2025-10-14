@@ -52,11 +52,7 @@ class ProductStockUpdateKafkaMsgHandler(
         purchaseHelper.updatePurchaseStatus(purchase, PurchaseStatus.STOCK_INSUFFICIENT)
 
         // 2. Purchase가 장바구니(cart)를 통해 이루어 진것이라면 Cart의 구매완료 정보도 수정한다.
-        purchase.cartId ?.let { cartId ->
-            cartRepository.findById(cartId).orElse(null)?.apply {
-                this.isPurchased = false
-            }?.let { cartRepository.save(it) }
-        }
+        purchaseHelper.setCartToNotPurchased(purchase)
     }
 
     private fun updateProductStock(updateAmount: Int, product: Product) {

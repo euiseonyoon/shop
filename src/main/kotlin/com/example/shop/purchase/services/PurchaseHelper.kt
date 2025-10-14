@@ -1,19 +1,55 @@
 package com.example.shop.purchase.services
 
 import com.example.shop.cart.domain.CartItem
+import com.example.shop.cart.respositories.CartRepository
 import com.example.shop.common.apis.exceptions.NotFoundException
 import com.example.shop.products.domain.Product
 import com.example.shop.products.exceptions.ProductUnavailableException
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.enums.PurchaseStatus
 import com.example.shop.purchase.exceptions.PurchaseByCartException
+import com.example.shop.purchase.repositories.PurchaseProductRepository
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.stereotype.Component
 
 @Component
 class PurchaseHelper(
     private val purchaseRepository: PurchaseRepository,
+    private val cartRepository: CartRepository,
+    private val purchaseProductRepository: PurchaseProductRepository,
+    private val purchaseProductStockHelper: PurchaseProductStockHelper,
+    private val purchaseProductService: PurchaseProductService,
 ) {
+    fun handlePurchaseIfFails(purchase: Purchase, updatingStatus: PurchaseStatus) {
+        updatePurchaseStatus(purchase, updatingStatus)
+        setCartToNotPurchased(purchase)
+        restorePurchaseProductsStock(purchase.id)
+    }
+
+    fun restorePurchaseProductsStock(purchaseId: Long) {
+        purchaseProductRepository.findByPurchaseId(purchaseId).let {
+            purchaseProductStockHelper.restorePurchasedProductStock(it)
+        }
+    }
+
+    fun setCartToNotPurchased(purchase: Purchase) {
+        purchase.cartId ?.let { cartId ->
+            cartRepository.findById(cartId).orElse(null)?.apply {
+                this.isPurchased = false
+            }?.let { cartRepository.save(it) }
+        }
+    }
+
+    fun checkIfStocksUpdated(purchaseId: Long, maxTrial: Int, sleepTime: Long): Boolean {
+        for (i in 1..maxTrial) {
+            if (purchaseProductService.isAllStockUpdated(purchaseId)) {
+                return true
+            }
+            Thread.sleep(sleepTime)
+        }
+        return false
+    }
+
     fun updatePurchaseStatus(purchase: Purchase, desiredStatus: PurchaseStatus) {
         if (purchase.status == PurchaseStatus.READY) {
             purchase.apply { this.updateStatus(desiredStatus) }.let { purchaseRepository.save(it) }

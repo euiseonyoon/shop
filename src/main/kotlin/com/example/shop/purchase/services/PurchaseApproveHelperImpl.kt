@@ -5,18 +5,15 @@ import com.example.shop.purchase.enums.PurchaseStatus
 import com.example.shop.purchase.exceptions.TossPaymentApiException
 import com.example.shop.purchase.models.PurchaseApproveRequest
 import com.example.shop.purchase.models.PurchaseApproveResult
-import com.example.shop.purchase.repositories.PurchaseProductRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
 class PurchaseApproveHelperImpl(
-    private val purchaseProductRepository: PurchaseProductRepository,
-    private val purchaseProductService: PurchaseProductService,
-    private val purchaseProductStockHelper: PurchaseProductStockHelper,
     private val purchaseHelper: PurchaseHelper,
     private val tossPaymentService: TossPaymentService,
 ) : PurchaseApproveHelper {
+
     override val maxStockUpdatedTrial = 3
     override val stockUpdatedCheckIntervalMilliSeconds = 200L
 
@@ -24,7 +21,7 @@ class PurchaseApproveHelperImpl(
     override fun approveByPurchaseStatus(purchase: Purchase, request: PurchaseApproveRequest): PurchaseApproveResult {
         when(purchase.status) {
             PurchaseStatus.STOCK_INSUFFICIENT -> {
-                restorePurchaseProductsStock(purchase.id)
+                purchaseHelper.restorePurchaseProductsStock(purchase.id)
                 return PurchaseApproveResult(false, "해당 구매에 포함된 상품 중, 재고가 부족한 상품으로 인해 진행될 수 없습니다.")
             }
             PurchaseStatus.APPROVED -> {
@@ -42,29 +39,24 @@ class PurchaseApproveHelperImpl(
             PurchaseStatus.READY -> {
                 checkPurchasePrice(purchase, request.amount).let { (isOk, failedReason) ->
                     if (!isOk) {
-                        handlePurchaseIfFails(purchase, PurchaseStatus.PURCHASED_TOTAL_PRICE_DIFFERENT)
+                        purchaseHelper.handlePurchaseIfFails(purchase, PurchaseStatus.PURCHASED_TOTAL_PRICE_DIFFERENT)
                         return PurchaseApproveResult(false, failedReason)
                     }
                 }
                 checkPurchaseProductStockUpdated(purchase.id).let { (isOk, failedReason) ->
                     if (!isOk) {
-                        handlePurchaseIfFails(purchase, PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME)
+                        purchaseHelper.handlePurchaseIfFails(purchase, PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME)
                         return PurchaseApproveResult(false, failedReason)
                     }
                 }
 
                 return sendApproveRequest(request).also {
                     if (!it.isApproved) {
-                        handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
+                        purchaseHelper.handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
                     }
                 }
             }
         }
-    }
-
-    override fun handlePurchaseIfFails(purchase: Purchase, updatingStatus: PurchaseStatus) {
-        purchaseHelper.updatePurchaseStatus(purchase, updatingStatus)
-        restorePurchaseProductsStock(purchase.id)
     }
 
     private fun sendApproveRequest(request: PurchaseApproveRequest): PurchaseApproveResult {
@@ -80,12 +72,6 @@ class PurchaseApproveHelperImpl(
         }
     }
 
-    private fun restorePurchaseProductsStock(purchaseId: Long) {
-        purchaseProductRepository.findByPurchaseId(purchaseId).let {
-            purchaseProductStockHelper.restorePurchasedProductStock(it)
-        }
-    }
-
     private fun checkPurchasePrice(purchase: Purchase, totalApprovingPrice: Int): Pair<Boolean, String?>{
         if (totalApprovingPrice != purchase.totalPrice) {
             return false to "구매 가격이 서로 다릅니다."
@@ -94,20 +80,10 @@ class PurchaseApproveHelperImpl(
     }
 
     private fun checkPurchaseProductStockUpdated(purchaseId: Long): Pair<Boolean, String?>{
-        if (!waitForStockUpdated(purchaseId)) {
+        if (!purchaseHelper.checkIfStocksUpdated(purchaseId, maxStockUpdatedTrial, stockUpdatedCheckIntervalMilliSeconds)) {
             false to "시간 내에 구매상품의 재고 차감이 이루어 지지 않았습니다."
         }
 
         return true to null
-    }
-
-    override fun waitForStockUpdated(purchaseId: Long): Boolean {
-        for (i in 1..maxStockUpdatedTrial) {
-            if (purchaseProductService.isAllStockUpdated(purchaseId)) {
-                return true
-            }
-            Thread.sleep(stockUpdatedCheckIntervalMilliSeconds)
-        }
-        return false
     }
 }
