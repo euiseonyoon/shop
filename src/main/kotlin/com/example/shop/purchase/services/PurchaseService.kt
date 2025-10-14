@@ -2,7 +2,6 @@ package com.example.shop.purchase.services
 
 import com.example.shop.cart.services.CartDomainService
 import com.example.shop.products.services.ProductService
-import com.example.shop.purchase.domain.FailedPurchase
 import com.example.shop.purchase.domain.Purchase
 import com.example.shop.purchase.domain.PurchaseDomain
 import com.example.shop.purchase.domain.PurchaseProduct
@@ -12,7 +11,6 @@ import com.example.shop.purchase.models.PurchaseApproveRequest
 import com.example.shop.purchase.models.PurchaseApproveResult
 import com.example.shop.purchase.models.PurchaseDirectlyRequest
 import com.example.shop.purchase.models.PurchaseFailRequest
-import com.example.shop.purchase.repositories.FailedPurchaseRepository
 import com.example.shop.purchase.repositories.PurchaseProductRepository
 import com.example.shop.purchase.repositories.PurchaseRepository
 import org.springframework.data.domain.Page
@@ -31,7 +29,6 @@ class PurchaseService(
     private val purchaseProductStockHelper: PurchaseProductStockHelper,
     private val purchaseApproveHelper: PurchaseApproveHelper,
     private val paymentService: PaymentService,
-    private val failedPurchaseRepository: FailedPurchaseRepository,
 ) {
     fun getMyPurchases(
         purchaseIds: List<Long>?,
@@ -115,9 +112,6 @@ class PurchaseService(
     @Transactional
     fun failPurchase(request: PurchaseFailRequest) {
         val purchase = purchaseRepository.findByUuid(request.orderId) ?: throw PurchaseNotFoundException(request.orderId)
-
-        failedPurchaseRepository.save(FailedPurchase(purchase.id, request.errorCode, request.errorMessage))
-
         purchaseHelper.handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
     }
 }
