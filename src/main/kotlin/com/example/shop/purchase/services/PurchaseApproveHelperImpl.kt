@@ -36,10 +36,13 @@ class PurchaseApproveHelperImpl(
             PurchaseStatus.STOCK_NOT_UPDATED_IN_TIME -> {
                 return PurchaseApproveResult(false, "시간 내에 처리 되지 못한 구매입니다.")
             }
+            PurchaseStatus.PURCHASED_TOTAL_PRICE_DIFFERENT -> {
+                return PurchaseApproveResult(false, "구매 총 금액이 상이해서 취소된 구매입니다.")
+            }
             PurchaseStatus.READY -> {
                 checkPurchasePrice(purchase, request.amount).let { (isOk, failedReason) ->
                     if (!isOk) {
-                        handlePurchaseIfFails(purchase, PurchaseStatus.FAILED)
+                        handlePurchaseIfFails(purchase, PurchaseStatus.PURCHASED_TOTAL_PRICE_DIFFERENT)
                         return PurchaseApproveResult(false, failedReason)
                     }
                 }
