@@ -75,3 +75,6 @@ springdoc:
     operationsSorter: alpha
     display-request-duration: true
 
+payment:
+  toss:
+    secret: asdf
