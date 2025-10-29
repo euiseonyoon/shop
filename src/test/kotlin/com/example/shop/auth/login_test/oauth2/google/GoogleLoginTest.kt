@@ -62,7 +62,7 @@ class GoogleLoginTest {
     @Transactional
     fun `test google oidc login`() {
         // GIVEN
-        Mockito.doReturn(TEST_EMAIL).`when`(googleOidcUserService).getEmailAddress(any())
+        Mockito.doReturn(TEST_EMAIL).`when`(googleOidcUserService).getEmailAddressFromToken(any())
 
         // WHEN & THEN
         val mvcResult = AuthTestUtil.checkAccessTokenAndRefreshTokenExistence(

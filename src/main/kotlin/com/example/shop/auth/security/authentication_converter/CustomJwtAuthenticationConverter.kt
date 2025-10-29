@@ -1,4 +1,4 @@
-package com.example.shop.auth.security.filters.authentication_converter
+package com.example.shop.auth.security.authentication_converter
 
 import com.example.shop.auth.security.utils.MyJwtTokenExtractor
 import com.example.shop.auth.security.utils.MyJwtTokenExtractorImpl
@@ -8,7 +8,6 @@ import org.springframework.security.oauth2.server.resource.authentication.Bearer
 import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.stereotype.Component
 
-@Component
 class CustomJwtAuthenticationConverter(
     override val myJwtTokenExtractor: MyJwtTokenExtractor
 ) : AuthenticationConverter, MyJwtAuthenticationConverter {

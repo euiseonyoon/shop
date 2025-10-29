@@ -3,10 +3,7 @@ package com.example.shop.configurations
 import com.example.shop.constants.ADMIN_NAME
 import com.example.shop.auth.security.filters.RateLimitFilter
 import com.example.shop.constants.ADMIN_URI_PREFIX
-import com.example.shop.constants.EMAIL_PASSWORD_AUTH_URI
-import com.example.shop.constants.OAUTH_AUTH_URI_PATTERN
 import com.example.shop.constants.PERMIT_ALL_END_POINTS
-import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,8 +16,6 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.expression.DefaultHttpSecurityExpressionHandler
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager
 import org.springframework.security.web.access.intercept.AuthorizationFilter
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.context.SecurityContextHolderFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -58,25 +53,6 @@ class SecurityConfig(
         return http
     }
 
-    @Bean
-    @Order(1)
-    fun loginAuthenticationFilterChain(
-        http: HttpSecurity,
-        @Qualifier("emailPasswordAuthenticationFilter")
-        emailPasswordAuthenticationFilter: UsernamePasswordAuthenticationFilter,
-        @Qualifier("thirdPartyOauthAuthenticationFilter")
-        thirdPartyOauthAuthenticationFilter: AbstractAuthenticationProcessingFilter
-    ): SecurityFilterChain {
-        return makeBaseHttpSecurity(http)
-            .securityMatcher(OAUTH_AUTH_URI_PATTERN, EMAIL_PASSWORD_AUTH_URI)
-            .addFilterBefore(thirdPartyOauthAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .addFilterAt(emailPasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .authorizeHttpRequests { auth ->
-                auth.anyRequest().permitAll()
-            }
-            .build()
-    }
-
     /**
      * NOTE:
      *      아래 코드처럼 하는 것 보다
@@ -101,7 +77,7 @@ class SecurityConfig(
      *
      * **/
     @Bean
-    @Order(2)
+    @Order(1)
     fun permitAllFilterChain(http: HttpSecurity): SecurityFilterChain {
         return makeBaseHttpSecurity(http)
             .securityMatcher(*PERMIT_ALL_END_POINTS.toTypedArray())
@@ -153,7 +129,7 @@ class SecurityConfig(
      *
      * */
     @Bean
-    @Order(3)
+    @Order(2)
     fun jwtAuthenticationFilterChain(
         http: HttpSecurity,
         @Qualifier("myJwtAuthenticationFilter")

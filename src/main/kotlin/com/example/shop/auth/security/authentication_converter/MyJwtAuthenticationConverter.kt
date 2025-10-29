@@ -1,4 +1,4 @@
-package com.example.shop.auth.security.filters.authentication_converter
+package com.example.shop.auth.security.authentication_converter
 
 import com.example.shop.auth.security.utils.MyJwtTokenExtractor
 import jakarta.servlet.http.HttpServletRequest

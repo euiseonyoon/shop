@@ -6,6 +6,11 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 
 class MyJwtAuthenticationSuccessHandler : AuthenticationSuccessHandler {
-    override fun onAuthenticationSuccess(request: HttpServletRequest?, response: HttpServletResponse?, authentication: Authentication?) {
+    override fun onAuthenticationSuccess(
+        request: HttpServletRequest?,
+        response: HttpServletResponse?,
+        authentication: Authentication?,
+    ) {
+        // DO NOTHING
     }
 }

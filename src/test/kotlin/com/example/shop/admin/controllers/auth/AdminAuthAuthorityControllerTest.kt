@@ -5,15 +5,11 @@ import com.example.shop.auth.common.AuthTestUtil
 import com.example.shop.auth.domain.Role
 import com.example.shop.auth.repositories.AuthorityRepository
 import com.example.shop.auth.security.third_party.interfaces.ThirdPartyAuthenticationUserService
-import com.example.shop.auth.services.AuthorityService
 import com.example.shop.auth.utils.RoleHierarchyHelper
 import com.example.shop.common.AccessTokenGetter
 import com.example.shop.common.EasyAccessTokenTestConfig
 import com.example.shop.constants.ROLE_PREFIX
-import com.example.shop.constants.ROLE_SUPER_ADMIN
-import com.example.shop.constants.SUPER_ADMIN_NAME
 import com.example.shop.redis.authority_refresh.AuthorityRefreshMessageSubscriber
-import jakarta.persistence.EntityManager
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
@@ -21,7 +17,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.times
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -32,7 +27,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A
 import kotlin.test.assertTrue
 
 @SpringBootTest
@@ -60,7 +54,7 @@ class AdminAuthAuthorityControllerTest(
     @Transactional
     fun `test authority create`() {
         // GIVEN
-        Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmailAddress(any())
+        Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmailAddressFromToken(any())
         val roleToCreate = Role(ROLE_PREFIX + "STAFF")
         val roleHierarchy = 5
         assertTrue { roleToCreate !in roleHierarchyHelper.getRoleHierarchyMap().keys }

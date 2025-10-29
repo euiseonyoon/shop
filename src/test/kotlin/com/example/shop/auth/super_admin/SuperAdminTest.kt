@@ -7,7 +7,6 @@ import com.example.shop.constants.ADMIN_URI_PREFIX
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -38,7 +37,7 @@ class SuperAdminTest(
     @Transactional
     fun `test super admin`() {
         // GIVEN
-        Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmailAddress(any())
+        Mockito.doReturn(adminEmail).`when`(googleOidcUserService).getEmailAddressFromToken(any())
 
         // WHEN & THEN
         mockMvc.perform(

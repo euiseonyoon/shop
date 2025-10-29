@@ -14,7 +14,6 @@ class OpenApiConfig {
             .info(Info().title("Shop API").version("v1.0"))
             .addSecurityItem(SecurityRequirement().addList(OpenApiConfigHelper.securitySchemeName))
             .components(OpenApiConfigHelper.makeComponents())
-            // 수동으로 Login 관련 path들을 추가한다.
-            .paths(OpenApiConfigHelper.makeLogInPaths())
+
     }
 }

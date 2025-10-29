@@ -18,7 +18,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -60,7 +59,7 @@ class RateLimitTest(
     @BeforeEach
     fun init() {
         consumedRateLimitToken = 0
-        Mockito.doReturn("testEmail@gmail.com").`when`(googleOidcUserService).getEmailAddress(any())
+        Mockito.doReturn("testEmail@gmail.com").`when`(googleOidcUserService).getEmailAddressFromToken(any())
 
         val googleLogInUri = OAUTH_AUTH_URI_PATTERN.replace("*", "google")
         val tokenToConsume = rateLimitHelper.getTokensToConsume(MockHttpServletRequest().apply {

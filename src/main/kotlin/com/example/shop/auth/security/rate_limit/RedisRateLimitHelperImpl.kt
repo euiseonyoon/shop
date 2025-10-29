@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component
 import org.springframework.util.AntPathMatcher
 import java.util.function.Supplier
 
-
 @Component
 class RedisRateLimitHelperImpl(
     private val lettuceBasedProxyManager: LettuceBasedProxyManager<String>,

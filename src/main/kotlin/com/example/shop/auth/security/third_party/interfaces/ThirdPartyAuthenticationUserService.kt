@@ -1,5 +1,7 @@
 package com.example.shop.auth.security.third_party.interfaces
 
+import com.example.shop.auth.domain.AccountDomain
+import com.example.shop.auth.domain.Email
 import com.example.shop.auth.security.third_party.enums.ThirdPartyAuthenticationVendor
 import org.springframework.security.core.userdetails.UserDetails
 
@@ -8,7 +10,7 @@ interface ThirdPartyAuthenticationUserService {
 
     fun supports(vendor: ThirdPartyAuthenticationVendor): Boolean = providerId == vendor
 
-    fun loadUser(token: String): UserDetails
+    fun findOrCreateUser(email: Email): AccountDomain
 
-    fun getEmailAddress(token: String): String
+    fun getEmailAddressFromToken(token: String): String
 }
