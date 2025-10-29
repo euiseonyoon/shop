@@ -2,7 +2,9 @@ package com.example.shop.auth.utils
 
 import com.example.shop.auth.exceptions.BadRefreshTokenStateException
 import com.example.shop.auth.exceptions.FailedToRetrieveRefreshTokenException
+import com.example.shop.auth.security.domain.HashedRefreshToken
 import com.example.shop.common.logger.LogSupport
+import com.example.shop.common.sha256
 import com.example.shop.constants.REDIS_CIRCUIT_BREAKER
 import com.example.shop.redis.tokens.repositories.RefreshTokenRedisRepository
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
@@ -14,12 +16,12 @@ class RefreshTokenStateHelperImpl(
 ) : RefreshTokenStateHelper, LogSupport() {
 
     @CircuitBreaker(name = REDIS_CIRCUIT_BREAKER, fallbackMethod = "fallBackIfRedisUnavailable")
-    override fun getStoredRefreshToken(accountId: Long): String? {
+    override fun getStoredRefreshToken(accountId: Long): HashedRefreshToken? {
         return refreshTokenRedisRepository.find(accountId)
     }
 
     override fun validateRefreshToken(accountId: Long, refreshTokenFromRequest: String) {
-        val issuedRefreshToken = getStoredRefreshToken(accountId)
+        val issuedRefreshTokenHash = getStoredRefreshToken(accountId)
 
         /**
          * Redis에 해당 account의 refresh token 이 없는경우
@@ -28,15 +30,15 @@ class RefreshTokenStateHelperImpl(
          * 2. 이미 로그아웃 처리되거나.
          * 3. 혹은 expire가 되었거나, 하지만 이 경우는 `refresh token`에서 email을 추출하는 과정에서 이미 걸러졌을 것이다.
          * */
-        if (issuedRefreshToken == null) {
+        if (issuedRefreshTokenHash == null) {
             throw BadRefreshTokenStateException("Refresh token not found for account, but provided in request.")
         }
 
         // 전에 발급된 refresh token과 request에 포함된 refresh token이 다를 경우, 탈취된 refresh token일 수 있다.
-        if (issuedRefreshToken != refreshTokenFromRequest) {
+        if (issuedRefreshTokenHash.value != refreshTokenFromRequest.sha256()) {
             logger.warn(
-                "Refresh token not matching. account_id={}, IssuedRefreshToken={}, RefreshTokenFromRequest={}",
-                accountId, issuedRefreshToken, refreshTokenFromRequest
+                "Refresh token not matching. account_id={}, IssuedRefreshTokenHash={}, RefreshTokenFromRequest={}",
+                accountId, issuedRefreshTokenHash, refreshTokenFromRequest
             )
             throw BadRefreshTokenStateException(
                 "Refresh token from the request did not match with the previously issued one for the account."
@@ -45,8 +47,8 @@ class RefreshTokenStateHelperImpl(
     }
 
     @CircuitBreaker(name = REDIS_CIRCUIT_BREAKER, fallbackMethod = "fallBackIfRedisUnavailable")
-    override fun updateWithNewRefreshToken(accountId: Long, newRefreshToken: String) {
-        refreshTokenRedisRepository.save(accountId, newRefreshToken, null)
+    override fun updateWithNewRefreshToken(accountId: Long, hashedRefreshToken: HashedRefreshToken) {
+        refreshTokenRedisRepository.save(accountId, hashedRefreshToken, null)
     }
 
     // 1. 원래 메서드의 파라미터를 모두 받음

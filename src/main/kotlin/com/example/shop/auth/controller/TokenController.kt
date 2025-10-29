@@ -5,11 +5,13 @@ import com.example.shop.auth.exceptions.FailedToRetrieveRefreshTokenException
 import com.example.shop.auth.exceptions.RefreshTokenMissingException
 import com.example.shop.auth.jwt_helpers.MyJwtTokenHelper
 import com.example.shop.auth.models.TokenResponse
+import com.example.shop.auth.security.domain.HashedRefreshToken
 import com.example.shop.auth.security.utils.MyJwtTokenExtractor
 import com.example.shop.auth.services.AccountDomainService
 import com.example.shop.auth.utils.RefreshTokenStateHelper
 import com.example.shop.common.response.GlobalResponse
 import com.example.shop.common.logger.LogSupport
+import com.example.shop.common.sha256
 import com.example.shop.constants.TOKEN_REFRESH_URI
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import jakarta.servlet.http.HttpServletRequest
@@ -55,7 +57,7 @@ class TokenController(
             val newRefreshToken = myJwtTokenHelper.createRefreshToken(accountId)
 
             // 새롭게 발급한 refresh token을 redis에 저장하여 상태관리
-            refreshTokenStateHelper.updateWithNewRefreshToken(accountId, newRefreshToken)
+            refreshTokenStateHelper.updateWithNewRefreshToken(accountId, HashedRefreshToken(newRefreshToken.sha256()))
             myJwtTokenHelper.setRefreshTokenOnCookie(response, newRefreshToken)
 
             return GlobalResponse.create(TokenResponse(newAccessToken))
